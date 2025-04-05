@@ -61,22 +61,23 @@ void drawTriangle(Vector2u frameSize, Color *frame, Triangle tri) {
         (tri.s1.screenPos.z >  1 && tri.s2.screenPos.z >  1 && tri.s3.screenPos.z >  1 )
     )
         return;
+
     Vector2f a = (v3to2(tri.s1.screenPos) + Vector2f{1, 1}).componentWiseMul(Vector2f{frameSize.x / 2.0f, frameSize.y / 2.0f}),
              b = (v3to2(tri.s2.screenPos) + Vector2f{1, 1}).componentWiseMul(Vector2f{frameSize.x / 2.0f, frameSize.y / 2.0f}),
              c = (v3to2(tri.s3.screenPos) + Vector2f{1, 1}).componentWiseMul(Vector2f{frameSize.x / 2.0f, frameSize.y / 2.0f});
 
-    // Usage inside drawTriangle():
     // plotVertex(frameSize, frame, a, tri.s1.screenPos.z);
     // plotVertex(frameSize, frame, b, tri.s2.screenPos.z);
     // plotVertex(frameSize, frame, c, tri.s3.screenPos.z);
 
     auto &&pixel = [&](Vector2i p) -> void
     {
-        if(p.x<0 || p.y<0 || p.x>(int)frameSize.x || p.y>(int)frameSize.y)
+        if(p.x<0 || p.y<0 || p.x>=(int)frameSize.x || p.y>=(int)frameSize.y)
             return;
         size_t index = frameBufferIndex(frameSize, p);
         if(index > frameSize.x*frameSize.y)
             return;
+
         Vector2f s1 = b - a, s2 = c - a;
         if(s1.cross(s2)<0)
             swap(s1, s2);
@@ -85,7 +86,7 @@ void drawTriangle(Vector2u frameSize, Color *frame, Triangle tri) {
         float C1 = abs((b-pp).cross(c-pp)) / areaOfTriangle; //Because A1*2/A*2 = A1/A
         float C2 = abs((c-pp).cross(a-pp)) / areaOfTriangle; //Because A2*2/A*2 = A2/A
         float C3 = 1.0f - C1 - C2;      
-        // std::cout << tri.s1.screenPos.z << std::endl;
+
         float z = interpolateTriangle(C1, C2, C3, tri.s1.screenPos.z, tri.s2.screenPos.z, tri.s3.screenPos.z, tri.s1.w, tri.s2.w, tri.s3.w);
         if (zBuffer[index] < z || z<0)
             return;
@@ -105,37 +106,32 @@ void drawTriangle(Vector2u frameSize, Color *frame, Triangle tri) {
 
         frame[index] = lighting;
     };
+
     std::array<Vector2f, 3> v = {a, b, c};
+    // Sort vertices by Y (c>b>a)
     std::sort(v.begin(), v.end(), [](const Vector2f &a, const Vector2f &b) -> bool
               { return a.y < b.y; });
     Vector2f BA = v[1] - v[0];
     Vector2f CB = v[2] - v[1];
     Vector2f CA = v[2] - v[0];
+
     for (int i = 0; i < BA.y; i++) {
-        int x1 = i * BA.x / BA.y + v[0].x;
-        int x2 = i * CA.x / CA.y + v[0].x;
+        float x1 = std::round(i * BA.x / BA.y + v[0].x);
+        float x2 = std::round(i * CA.x / CA.y + v[0].x);
         if (x1 > x2)
             swap(x1, x2);
-        // if (ac == bc && bc == cc) {
-        //     gfx.drawFastHLine(x1, i + a.y, x2 - x1, ac.to565());
-        // } else {
-            for (int j = 0; j < x2 - x1; j++) {
-                pixel({j + x1, i + (int)v[0].y});
-            }
-        // }
+        for (int j = x1; j < x2; j++) {
+            pixel({j, i + (int)v[0].y});
+        }
     }
     for (int i = 0; i < CB.y; i++) {
-        int x1 = i * CB.x / CB.y + v[1].x;
-        int x2 = (i + BA.y) * CA.x / CA.y + v[0].x;
+        float x1 = std::round(i * CB.x / CB.y + v[1].x);
+        float x2 = std::round((i + BA.y) * CA.x / CA.y + v[0].x);
         if (x1 > x2)
             swap(x1, x2);
-        // if (ac == bc && bc == cc) {
-        //     gfx.drawFastHLine(x1, i + b.y, x2 - x1, ac.to565());
-        // } else {
-            for (int j = 0; j < x2 - x1; j++) {
-                pixel({j + x1, i + (int)v[1].y});
-            }
-        // }
+        for (int j = x1; j < x2; j++) {
+            pixel({j, i + (int)v[1].y});
+        }
     }
 }
 

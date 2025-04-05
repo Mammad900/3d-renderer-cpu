@@ -1,0 +1,7 @@
+IndentWidth: 4
+AlignAfterOpenBracket: BlockIndent
+BraceBreakingStyle: Attach
+ShortIfStyle: WithoutElse
+BreakBeforeBraces: Custom
+BraceWrapping:
+    BeforeElse: true

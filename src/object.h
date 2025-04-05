@@ -6,45 +6,39 @@
 
 using sf::Vector3f, sf::Vector2f;
 
-struct Material
-{
+struct Material {
     Color diffuse;
     Color specular;
     float shinyness;
 };
 
-struct Vertex
-{
+struct Vertex {
     Vector3f position;
     Vector2f uv;
     Vector3f normal;
 };
 
-struct Face
-{
+struct Face {
     uint16_t v1, v2, v3;
     Material *material;
     bool invert;
 };
 
-struct Mesh
-{
+struct Mesh {
     std::string label;
     Vertex *vertices;
     Face *faces;
     uint16_t n_vertices, n_faces;
 };
 
-struct Object
-{
+struct Object {
     Mesh *mesh;
     Vector3f position;
     Vector3f rotation;
     Vector3f scale;
 };
 
-struct Light
-{
+struct Light {
     Vector3f direction;
     Vector3f normal;
     Color color;

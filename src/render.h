@@ -11,10 +11,6 @@
 using sf::Vector3f, sf::Vector2f;
 using std::max;
 
-unsigned long millis(){
-    return 0;
-}
-
 void render() {
     for (size_t i = 0; i < frameSize.x*frameSize.y; i++)
     {
@@ -23,8 +19,6 @@ void render() {
     }
 
 #pragma region // ===== COUNT VERTICES & FACES =====
-    //std::cout<<("Count vertices & faces ");
-    unsigned long t = millis();
 
     int total_vertices = 0;
     int total_faces = 0;
@@ -34,7 +28,6 @@ void render() {
         total_faces += mesh->n_faces;
     }
 
-    //std::cout<<(millis() - t)<<std::endl;
 #pragma endregion
 
     makePerspectiveProjectionMatrix();
@@ -45,8 +38,6 @@ void render() {
     }
 
 #pragma region // ===== PROJECT VERTICES & BUILD TRIANGLES =====
-    //std::cout<<("Project vertices & build triangles ");
-    t = millis();
 
     Triangle triangles[total_faces];
     int triI = 0;
@@ -81,7 +72,6 @@ void render() {
             if(reverseAllFaces)
                 normalW *= -1.0f;
 
-            // clang-format off
             triangles[triI] = Triangle{
                 .s1 = v1s,
                 .s2 = v2s,
@@ -89,24 +79,19 @@ void render() {
                 .mat = face.material,
                 .cull = normalS.z < 0 && backFaceCulling
             };
-            // clang-format on
             triI++;
         }
     }
 
-    //std::cout<<(millis() - t)<<std::endl;
 #pragma endregion
 
 #pragma region // ===== DRAW TRIANGLES =====
-    //std::cout<<("Draw triangles ");
-    t = millis();
 
     for (int i = 0; i < total_faces; i++)
     {
         drawTriangle(frameSize, framebuffer, triangles[i]);
     }
 
-    //std::cout<<(millis() - t)<<std::endl;
 #pragma endregion
 }
 

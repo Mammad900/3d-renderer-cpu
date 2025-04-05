@@ -17,20 +17,18 @@ struct Color {
     Color operator-(const Color &other) const {
         return {r - other.r, g - other.g, b - other.b, a - other.a};
     }
-    constexpr Color& operator+=(const Color& right)
-    {
-        r+=right.r;
-        g+=right.g;
-        b+=right.b;
-        a+=right.a;
+    constexpr Color &operator+=(const Color &right) {
+        r += right.r;
+        g += right.g;
+        b += right.b;
+        a += right.a;
         return *this;
     }
-    constexpr Color& operator*=(const Color& right)
-    {
-        r*=right.r;
-        g*=right.g;
-        b*=right.b;
-        a*=right.a;
+    constexpr Color &operator*=(const Color &right) {
+        r *= right.r;
+        g *= right.g;
+        b *= right.b;
+        a *= right.a;
         return *this;
     }
     Color operator*(const Color &other) const {

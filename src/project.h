@@ -7,8 +7,7 @@
 using sf::Vector3f;
 using std::sin, std::cos;
 
-struct Projection
-{
+struct Projection {
     Vector3f worldPos;
     Vector3f screenPos;
     float w;
@@ -29,8 +28,7 @@ void makePerspectiveProjectionMatrix() {
     }, projectionMatrix, 4,4,4);
 }
 
-Projection perspectiveProject(Vector3f a)
-{
+Projection perspectiveProject(Vector3f a) {
     a -= cam;
     float vM[4] = {a.x, a.y, a.z, 1};
     matMul(vM, projectionMatrix, vM, 1, 4, 4);

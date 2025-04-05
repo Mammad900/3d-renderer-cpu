@@ -2,9 +2,8 @@
 #define __GUI_H__
 
 #include "imgui.h" // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
-
 #include "imgui-SFML.h" // for ImGui::SFML::* functions and SFML-specific overloads
-
+#include "math.h"
 #include <SFML/Graphics.hpp>
 
 void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)

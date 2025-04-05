@@ -1,18 +1,18 @@
 #ifndef __LOADOBJ_H__
 #define __LOADOBJ_H__
+#include "data.h"
+#include "object.h"
+#include <SFML/Graphics.hpp>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <SFML/Graphics.hpp>
-#include "object.h"
-#include "data.h"
 
 using sf::Vector3f;
 
-Mesh *loadOBJ(const std::string& filename) {
-    std::ifstream file(filename);  // Like std::cin, but for a file
+Mesh *loadOBJ(const std::string &filename) {
+    std::ifstream file(filename); // Like std::cin, but for a file
     if (!file) {
         std::cerr << "Failed to open " << filename << "\n";
         return NULL;
@@ -23,11 +23,10 @@ Mesh *loadOBJ(const std::string& filename) {
 
     std::string line;
     while (std::getline(file, line)) {
-        std::istringstream iss(line);  // lets us use >> on the line
+        std::istringstream iss(line); // lets us use >> on the line
         std::string prefix;
         iss >> prefix;
-        if (prefix == "v")
-        {
+        if (prefix == "v") {
             float x, y, z;
             iss >> x >> y >> z;
             vertices.push_back(Vertex{.position = {x, y, z}});
@@ -38,18 +37,21 @@ Mesh *loadOBJ(const std::string& filename) {
             a--;
             b--;
             c--;
-            faces.push_back(Face{.v1 = a, .v2 = b, .v3 = c, .material = &cubeMaterial});
+            faces.push_back(
+                Face{.v1 = a, .v2 = b, .v3 = c, .material = &cubeMaterial}
+            );
         }
     }
 
     // BAKE NORMALS
 
-    for (auto &&face : faces)
-    {
+    for (auto &&face : faces) {
         Vertex &v1 = vertices[face.v1];
         Vertex &v2 = vertices[face.v2];
         Vertex &v3 = vertices[face.v3];
-        Vector3f normal = (v3.position - v1.position).cross(v2.position - v1.position).normalized();
+        Vector3f normal = (v3.position - v1.position)
+                              .cross(v2.position - v1.position)
+                              .normalized();
         v1.normal += normal;
         v2.normal += normal;
         v3.normal += normal;
