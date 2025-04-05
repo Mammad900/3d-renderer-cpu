@@ -7,11 +7,11 @@
 #include <iostream>
 
 using sf::Vector2f, sf::Vector2u, sf::Vector2i;
-using std::swap;
+using std::swap, std::max;
 
 struct Triangle {
     Projection s1, s2, s3;
-    Color c1, c2, c3;
+    Material *mat;
     bool cull;
 };
 
@@ -87,8 +87,20 @@ void drawTriangle(Vector2u frameSize, Color *frame, Triangle tri) {
         if (zBuffer[index] < z || z<0)
             return;
         zBuffer[index] = z;
-        Color c = interpolateTriangle(C1, C2, C3, tri.c1, tri.c2, tri.c3, tri.s1.w, tri.s2.w, tri.s3.w);
-        frame[index] = c;
+        Vector3f normal= interpolateTriangle(C1, C2, C3, tri.s1.normal, tri.s2.normal, tri.s3.normal, tri.s1.w, tri.s2.w, tri.s3.w);
+
+        // lighting
+        Color lighting = ambientLight*ambientLight.a; 
+        for (size_t i = 0; i < lights.size(); i++)
+        {
+            Light &light = lights[i];
+            float intensity = max(normal.dot(light.normal), 0.0f);
+            if(intensity==0)continue;
+            lighting += light.color * light.color.a * intensity;
+        }
+        lighting *= tri.mat->diffuse;
+
+        frame[index] = lighting;
     };
     std::array<Vector2f, 3> v = {a, b, c};
     std::sort(v.begin(), v.end(), [](const Vector2f &a, const Vector2f &b) -> bool

@@ -61,8 +61,12 @@ void render() {
             Vertex vV = mesh->vertices[j];
             float vM[4] = {vV.position.x, vV.position.y, vV.position.z, 1};
             matMul(vM, objectTransformMatrix, vM, 1, 4, 4);
+            float normal[4] = {vV.normal.x, vV.normal.y, vV.normal.z, 1};
+            matMul(normal, objectTransformMatrix, normal, 1, 4, 4);
 
             projectedVertices[j] = perspectiveProject({vM[0], vM[1], vM[2]});
+            projectedVertices[j].normal = (Vector3f{normal[0], normal[1], normal[2]} - obj.position).normalized(); 
+            // ^ The transform we applied to the normal vector also scales and translates it, have to undo those.
         }
 
         for (size_t j = 0; j < mesh->n_faces; j++) {
@@ -76,25 +80,13 @@ void render() {
                 normalW *= -1.0f;
             if(reverseAllFaces)
                 normalW *= -1.0f;
-            // lighting
-            Color lighting = ambientLight*ambientLight.a; 
-            for (size_t i = 0; i < lights.size(); i++)
-            {
-                Light &light = lights[i];
-                float intensity = max(normalW.dot(light.normal), 0.0f);
-                if(intensity==0)continue;
-                lighting += light.color * light.color.a * intensity;
-            }
-            lighting *= face.material->diffuse;
 
             // clang-format off
             triangles[triI] = Triangle{
                 .s1 = v1s,
                 .s2 = v2s,
                 .s3 = v3s,
-                .c1 = lighting,
-                .c2 = lighting,
-                .c3 = lighting,
+                .mat = face.material,
                 .cull = normalS.z < 0 && backFaceCulling
             };
             // clang-format on

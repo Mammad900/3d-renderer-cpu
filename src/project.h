@@ -12,6 +12,7 @@ struct Projection
     Vector3f worldPos;
     Vector3f screenPos;
     float w;
+    Vector3f normal;
 };
 
 float projectionMatrix[16];

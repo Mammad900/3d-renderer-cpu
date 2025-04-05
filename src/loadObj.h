@@ -41,6 +41,22 @@ Mesh *loadOBJ(const std::string& filename) {
             faces.push_back(Face{.v1 = a, .v2 = b, .v3 = c, .material = &cubeMaterial});
         }
     }
+
+    // BAKE NORMALS
+
+    for (auto &&face : faces)
+    {
+        Vertex &v1 = vertices[face.v1];
+        Vertex &v2 = vertices[face.v2];
+        Vertex &v3 = vertices[face.v3];
+        Vector3f normal = (v3.position - v1.position).cross(v2.position - v1.position).normalized();
+        v1.normal += normal;
+        v2.normal += normal;
+        v3.normal += normal;
+        std::cout << normal.x << normal.y << normal.z << std::endl;
+    }
+
+    // CREATE MESH OBJECT
     Mesh *mesh = new Mesh;
 
     mesh->n_vertices = vertices.size();
