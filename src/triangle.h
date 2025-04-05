@@ -51,11 +51,14 @@ void plotVertex(Vector2u frameSize, Color* frame, Vector2f pos, float depth) {
 void drawTriangle(Vector2u frameSize, Color *frame, Triangle tri) {
     if(tri.cull)
         return;
-    // Sort vertices by Y (c>b>a)
+    
     if(
-        tri.s1.screenPos.z < 0 &&
-        tri.s2.screenPos.z < 0 &&
-        tri.s3.screenPos.z < 0
+        (tri.s1.screenPos.x < -1 && tri.s2.screenPos.x < -1 && tri.s3.screenPos.x < -1 )||
+        (tri.s1.screenPos.x >  1 && tri.s2.screenPos.x >  1 && tri.s3.screenPos.x >  1 )||
+        (tri.s1.screenPos.y < -1 && tri.s2.screenPos.y < -1 && tri.s3.screenPos.y < -1 )||
+        (tri.s1.screenPos.y >  1 && tri.s2.screenPos.y >  1 && tri.s3.screenPos.y >  1 )||
+        (tri.s1.screenPos.z <  0 && tri.s2.screenPos.z <  0 && tri.s3.screenPos.z <  0 )||
+        (tri.s1.screenPos.z >  1 && tri.s2.screenPos.z >  1 && tri.s3.screenPos.z >  1 )
     )
         return;
     Vector2f a = (v3to2(tri.s1.screenPos) + Vector2f{1, 1}).componentWiseMul(Vector2f{frameSize.x / 2.0f, frameSize.y / 2.0f}),
