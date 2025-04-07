@@ -51,6 +51,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
 
     ImGui::Begin("Lights");
     ImGui::ColorEdit4("Ambient lighting", (float*)&ambientLight, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+    ImGui::ColorEdit4("Fog", (float*)&fogColor, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
     for (size_t i = 0; i < lights.size(); i++)
     {
         ImGui::PushID(i);

@@ -114,5 +114,6 @@ bool backFaceCulling = true;
 bool reverseAllFaces = false;
 bool fullBright = false;
 float whitePoint = 1;
+Color fogColor = {0.9,0.9,1,0.05};
 
 #endif /* __DATA_H__ */

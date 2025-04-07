@@ -96,6 +96,24 @@ void render() {
     }
 
 #pragma endregion
+
+#pragma region // ===== FOG =====
+
+    float tanFOV = tan(fov * M_PI / 360);
+    for (int y = 0; y < (int)frameSize.y; y++) {
+        for (int x = 0; x < (int)frameSize.x; x++) {
+            size_t i = frameBufferIndex(frameSize, {x, y});
+            float clipZ = zBuffer[i];
+            float worldZ = (nearClip * farClip) / (farClip + nearClip - clipZ * (farClip - nearClip)); // Reconstruct world space Z from Z buffer
+            Vector2f world = Vector2f{x / (float)frameSize.x, y / (float)frameSize.y} * worldZ * tanFOV; // Reconstruct world space X and Y
+            float dist = std::sqrt(world.lengthSquared() + worldZ*worldZ); // Account for X and Y, to make it radial vs flat
+            float visibility = std::clamp(std::powf(0.5f, dist * fogColor.a), 0.0f, 1.0f); // Exponential falloff
+            Color result = framebuffer[i] * visibility + fogColor * (1 - visibility); // Lerp
+            framebuffer[i] = result;
+        }
+    }
+
+#pragma endregion
 }
 
 #endif /* __RENDER_H__ */
