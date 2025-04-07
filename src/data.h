@@ -107,10 +107,12 @@ constexpr Vector2u frameSize = {500, 500};
 
 Color framebuffer[frameSize.x * frameSize.y];
 float zBuffer[frameSize.x * frameSize.y];
+float maximumColor;
 
 int renderMode = 0;
 bool backFaceCulling = true;
 bool reverseAllFaces = false;
 bool fullBright = false;
+float whitePoint = 1;
 
 #endif /* __DATA_H__ */

@@ -53,6 +53,14 @@ struct Color {
         int b = std::clamp((int)(this->b * 255), 0, 255);
         return sf::Color(r, g, b);
     }
+    float luminance() { return 0.2126f * r + 0.7152f * g + 0.0722f * b; }
+    Color changeLuminance(float lOut) { return (*this) * (lOut / luminance()); }
+    Color reinhardtTonemap(float maximumColor) {
+        float lOld = luminance();
+        float numerator = lOld * (1.0f + (lOld / (maximumColor*maximumColor)));
+        float lNew = numerator / (1.0f + lOld);
+        return changeLuminance(lNew);
+    }
 };
 
 #endif /* __COLOR_H__ */

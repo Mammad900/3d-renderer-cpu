@@ -31,6 +31,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
     ImGui::Checkbox("Back-face culling", &backFaceCulling);
     ImGui::Checkbox("Reverse all faces", &reverseAllFaces);
     ImGui::Checkbox("Full-bright mode", &fullBright);
+    ImGui::SliderFloat("White point", (float*)&whitePoint, 0, 5);
     ImGui::End();
 
     ImGui::Begin("Objects");

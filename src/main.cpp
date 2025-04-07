@@ -37,16 +37,16 @@ int main() {
             }
         }
 
-        objects[0].rotation.y += 0.1;
+        // objects[0].rotation.y += 0.1;
         render();
         sf::Image img(frameSize);
 
         for (unsigned int y = 0; y < frameSize.y; y++)
             for (unsigned int x = 0; x < frameSize.x; x++)
-                if (renderMode == 0) // Frame buffer
-                    img.setPixel(
-                        {x, y}, framebuffer[y * frameSize.x + x].toSFColor()
-                    );
+                if (renderMode == 0) {// Frame buffer
+                    Color pixel = framebuffer[y * frameSize.x + x];
+                    img.setPixel({x, y}, pixel.reinhardtTonemap(whitePoint==0?maximumColor:whitePoint).toSFColor());
+                }
                 else if (renderMode == 1) { // Z buffer
                     // Z buffer range is really display-to-end-user unfriendly
                     float z = 1 / (1 - zBuffer[y * frameSize.x + x]);
