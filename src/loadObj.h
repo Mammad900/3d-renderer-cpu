@@ -55,7 +55,6 @@ Mesh *loadOBJ(const std::string &filename) {
         v1.normal += normal;
         v2.normal += normal;
         v3.normal += normal;
-        std::cout << normal.x << normal.y << normal.z << std::endl;
     }
 
     // CREATE MESH OBJECT
