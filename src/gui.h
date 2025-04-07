@@ -23,6 +23,8 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
     ImGui::ShowDemoWindow();
 
     ImGui::Begin("Options");
+    ImGui::InputFloat("Near", &nearClip);
+    ImGui::InputFloat("Far", &farClip);
     ImGui::SliderFloat("FOV", &fov, 30, 150);
     ImGui::SliderFloat3("Camera rotation", (float *)&camRotation, -M_PI, M_PI);
     ImGui::DragFloat3("Camera position", (float *)&cam, 0.2f);
@@ -62,6 +64,9 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
             ImGui::TreePop();
         }
         ImGui::PopID();
+    }
+    if(ImGui::Button("New light")) {
+        lights.push_back(Light{.direction = {0, 0, 0}, .color = {1, 1, 1, 1}});
     }
     ImGui::End();
 
