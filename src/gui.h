@@ -30,6 +30,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
     ImGui::RadioButton("Z buffer", &renderMode, 1);
     ImGui::Checkbox("Back-face culling", &backFaceCulling);
     ImGui::Checkbox("Reverse all faces", &reverseAllFaces);
+    ImGui::Checkbox("Full-bright mode", &fullBright);
     ImGui::End();
 
     ImGui::Begin("Objects");

@@ -100,6 +100,7 @@ std::vector<Object> objects;
 
 Vector3f cam = {0, 0, -5};       // Camera at (0, 0, -5)
 Vector3f camRotation = {0, 0, 0}; // No rotation (identity rotation)
+Vector3f camDirection;
 float nearClip = 0.1, farClip = 100;
 float fov = 45;
 constexpr Vector2u frameSize = {500, 500};
@@ -110,5 +111,6 @@ float zBuffer[frameSize.x * frameSize.y];
 int renderMode = 0;
 bool backFaceCulling = true;
 bool reverseAllFaces = false;
+bool fullBright = false;
 
 #endif /* __DATA_H__ */

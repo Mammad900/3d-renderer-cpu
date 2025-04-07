@@ -31,6 +31,9 @@ void render() {
 #pragma endregion
 
     makePerspectiveProjectionMatrix();
+
+    camDirection = rotate({0, 0, 1}, camRotation);
+
     for (size_t i = 0; i < lights.size(); i++)
     {
        Light &light = lights[i];
