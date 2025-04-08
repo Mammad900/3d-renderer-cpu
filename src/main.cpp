@@ -6,7 +6,7 @@
 
 int main() {
     // Load teapot
-    meshes.push_back(loadOBJ("/home/mammad/Documents/3d/assets/teapot.obj"));
+    meshes.push_back(loadOBJ("teapot.obj"));
     objects.push_back(Object{
         .mesh = meshes[1],
         .position = {0, 0, 0},
