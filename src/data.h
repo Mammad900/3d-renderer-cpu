@@ -98,11 +98,11 @@ std::vector<Mesh*> meshes = {&cubeMesh};
 std::vector<Object> objects;
 //= {{&cubeMesh, {0, 0, 0}, {0, 0, 0}, {1, 1, 1}}};
 
-Vector3f cam = {0, 0, -5};       // Camera at (0, 0, -5)
-Vector3f camRotation = {0, 0, 0}; // No rotation (identity rotation)
+Vector3f cam = {0, 3.6, -5};       // Camera at (0, 0, -5)
+Vector3f camRotation = {0.5, 0, 0}; // No rotation (identity rotation)
 Vector3f camDirection;
 float nearClip = 0.1, farClip = 100;
-float fov = 45;
+float fov = 70;
 constexpr Vector2u frameSize = {500, 500};
 
 Color framebuffer[frameSize.x * frameSize.y];
