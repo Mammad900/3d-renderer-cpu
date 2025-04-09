@@ -84,7 +84,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
             Material *mat = materials[i];
             ImGui::ColorEdit4("Diffuse", (float*)&mat->diffuse, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
             ImGui::ColorEdit4("Specular", (float*)&mat->specular, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-            ImGui::DragFloat("Shininess", &mat->shinyness);
+            ImGui::DragFloat("Shininess", &mat->shininess);
             ImGui::TreePop();
         }
         ImGui::PopID();
