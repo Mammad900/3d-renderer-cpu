@@ -59,14 +59,20 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
         ImGui::PushID(i);
         if(ImGui::TreeNode("Light")) {
             Light &light = lights[i];
-            ImGui::SliderFloat3("Direction", (float *)&light.direction, -M_PI, M_PI);
+            if(light.isPointLight)
+                ImGui::DragFloat3("Position", (float *)&light.direction);
+            else
+                ImGui::SliderFloat3("Direction", (float *)&light.rotation, -M_PI, M_PI);
             ImGui::ColorEdit4("Color", (float*)&light.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
             ImGui::TreePop();
         }
         ImGui::PopID();
     }
     if(ImGui::Button("New light")) {
-        lights.push_back(Light{.direction = {0, 0, 0}, .color = {1, 1, 1, 1}});
+        lights.push_back(Light{.rotation = {0, 0, 0}, .color = {1, 1, 1, 1}});
+    }
+    if(ImGui::Button("New point light")) {
+        lights.push_back(Light{.direction={10,0,0}, .color = {1, 1, 1, 1}, .isPointLight=true});
     }
     ImGui::End();
 

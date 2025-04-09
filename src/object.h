@@ -39,9 +39,12 @@ struct Object {
 };
 
 struct Light {
+    Vector3f rotation;
     Vector3f direction;
-    Vector3f normal;
+    // Use alpha to set intensity
     Color color;
+    // If false, direction is the vector of the light. If true, direction is its 3D world position.
+    bool isPointLight;
 };
 
 #endif /* __OBJECT_H__ */

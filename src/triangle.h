@@ -105,13 +105,21 @@ void drawTriangle(Vector2u frameSize, Color *frame, Triangle tri) {
             for (size_t i = 0; i < lights.size(); i++)
             {
                 Light &light = lights[i];
-                if(tri.mat->diffuse.a > 0) {
-                    float diffuseIntensity = max(normal.dot(light.normal), 0.0f);
-                    diffuse += light.color * light.color.a * diffuseIntensity;
+                Vector3f direction = light.direction;
+                float intensity = light.color.a;
+                if(light.isPointLight) {
+                    Vector3f d = light.direction - worldPos; //direction is world pos in this case
+                    float l2 = d.lengthSquared();
+                    direction = d / std::sqrtf(l2);
+                    intensity /= l2;
+                }
+                if (tri.mat->diffuse.a > 0) {
+                    float diffuseIntensity = max(normal.dot(direction), 0.0f);
+                    diffuse += light.color * diffuseIntensity * intensity;
                 }
                 if(tri.mat->specular.a > 0) {
-                    float specularIntensity = pow(max(-camDirection.dot(v2reflect(light.normal, normal)), 0.0f), tri.mat->shinyness);
-                    specular += light.color * light.color.a * specularIntensity;
+                    float specularIntensity = pow(max(-camDirection.dot(v2reflect(direction, normal)), 0.0f), tri.mat->shinyness);
+                    specular += light.color * specularIntensity * intensity;
                 }
             }
             

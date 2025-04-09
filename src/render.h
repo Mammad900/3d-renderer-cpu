@@ -34,10 +34,10 @@ void render() {
 
     camDirection = rotate({0, 0, 1}, camRotation);
 
-    for (size_t i = 0; i < lights.size(); i++)
-    {
-       Light &light = lights[i];
-       light.normal = rotate(Vector3f{0, -1, 0}, light.direction);
+    for (size_t i = 0; i < lights.size(); i++) {
+        Light &light = lights[i];
+        if(!light.isPointLight)
+            light.direction = rotate(Vector3f{0, -1, 0}, light.rotation);
     }
 
 #pragma region // ===== PROJECT VERTICES & BUILD TRIANGLES =====
