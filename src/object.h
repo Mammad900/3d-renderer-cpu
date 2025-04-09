@@ -9,7 +9,7 @@ using sf::Vector3f, sf::Vector2f;
 struct Material {
     Color diffuse;
     Color specular;
-    float shinyness;
+    float shininess;
 };
 
 struct Vertex {

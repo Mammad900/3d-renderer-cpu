@@ -118,7 +118,7 @@ void drawTriangle(Vector2u frameSize, Color *frame, Triangle tri) {
                     diffuse += light.color * diffuseIntensity * intensity;
                 }
                 if(tri.mat->specular.a > 0) {
-                    float specularIntensity = pow(max(-camDirection.dot(v2reflect(direction, normal)), 0.0f), tri.mat->shinyness);
+                    float specularIntensity = pow(max(-camDirection.dot(v2reflect(direction, normal)), 0.0f), tri.mat->shininess);
                     specular += light.color * specularIntensity * intensity;
                 }
             }
