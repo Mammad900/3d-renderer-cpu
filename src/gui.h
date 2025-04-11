@@ -4,7 +4,12 @@
 #include "imgui.h" // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
 #include "imgui-SFML.h" // for ImGui::SFML::* functions and SFML-specific overloads
 #include "math.h"
+#include "loadObj.h"
 #include <SFML/Graphics.hpp>
+
+char objFilePath[500];
+Material *selectedMaterial;
+Mesh *selectedMesh;
 
 void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
 {
@@ -33,21 +38,34 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
     ImGui::Checkbox("Back-face culling", &backFaceCulling);
     ImGui::Checkbox("Reverse all faces", &reverseAllFaces);
     ImGui::Checkbox("Full-bright mode", &fullBright);
+    ImGui::Checkbox("Show wireframe mesh", &wireFrame);
     ImGui::SliderFloat("White point", (float*)&whitePoint, 0, 5);
     ImGui::End();
 
-    ImGui::Begin("Objects");
-    for (size_t i = 0; i < objects.size(); i++)
-    {
-        ImGui::PushID(i);
-        if(ImGui::TreeNode("Cube")) {
-            Object &obj = objects[i];
-            ImGui::SliderFloat3("Rotation", (float *)&obj.rotation, -M_PI, M_PI);
-            ImGui::DragFloat3("Position", (float *)&obj.position, 0.2f);
-            ImGui::DragFloat3("Scale", (float *)&obj.scale, 0.1f);
+    if(ImGui::Begin("Objects")) {
+        for (size_t i = 0; i < objects.size(); i++) {
+            ImGui::PushID(i);
+            if(ImGui::TreeNode("Cube")) {
+                Object &obj = objects[i];
+                ImGui::SliderFloat3("Rotation", (float *)&obj.rotation, -M_PI, M_PI);
+                ImGui::DragFloat3("Position", (float *)&obj.position, 0.2f);
+                ImGui::DragFloat3("Scale", (float *)&obj.scale, 0.1f);
+                ImGui::TreePop();
+            }
+            ImGui::PopID();
+        }
+        ImGui::Spacing();
+        if (ImGui::TreeNode("Create object")) {
+            if(selectedMesh == nullptr)
+                ImGui::Text("Select a mesh in the meshes window.");
+            if(selectedMesh!= nullptr && ImGui::Button("Create")) {
+                objects.push_back(Object{
+                    .mesh = selectedMesh,
+                    .scale={1,1,1}
+                });
+            }
             ImGui::TreePop();
         }
-        ImGui::PopID();
     }
     ImGui::End();
 
@@ -76,51 +94,70 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
     }
     ImGui::End();
 
-    ImGui::Begin("Materials");
-    for (size_t i = 0; i < materials.size(); i++)
-    {
-        ImGui::PushID(i);
-        if(ImGui::TreeNode("Material")) {
-            Material *mat = materials[i];
-            ImGui::ColorEdit4("Diffuse", (float*)&mat->diffuse, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-            ImGui::ColorEdit4("Specular", (float*)&mat->specular, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-            ImGui::DragFloat("Shininess", &mat->shininess);
-            ImGui::TreePop();
+    if(ImGui::Begin("Materials")) {
+        for (size_t i = 0; i < materials.size(); i++)
+        {
+            ImGui::PushID(i);
+            if(ImGui::TreeNode("Material")) {
+                Material *mat = materials[i];
+                ImGui::ColorEdit4("Diffuse", (float*)&mat->diffuseColor, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+                ImGui::ColorEdit4("Specular", (float*)&mat->specularColor, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+                ImGui::ColorEdit4("Tint", (float*)&mat->tintColor, ImGuiColorEditFlags_Float);
+                ImGui::ColorEdit4("Emissive", (float*)&mat->emissiveColor, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+                if(mat != selectedMaterial && ImGui::Button("Select"))
+                    selectedMaterial = mat;
+                ImGui::TreePop();
+            }
+            ImGui::PopID();
         }
-        ImGui::PopID();
     }
     ImGui::End();
 
-    ImGui::Begin("Meshes");
-    for (size_t i = 0; i < meshes.size(); i++)
-    {
-        ImGui::PushID(i);
-        Mesh *mesh = meshes[i];
-        if(ImGui::TreeNode(mesh->label.c_str())) {
-            if(ImGui::TreeNode("Vertices")) {
-                for (uint16_t j = 0; j < mesh->n_vertices; j++)
-                {
-                    ImGui::PushID(j);
-                    Vertex &v = mesh->vertices[j];
-                    ImGui::DragFloat3("Position", &v.position.x, 0.2f);
-                    ImGui::DragFloat2("UV", &v.uv.x, 0.2f);
-                    ImGui::PopID();
+    if(ImGui::Begin("Meshes")) {
+        for (size_t i = 0; i < meshes.size(); i++)
+        {
+            ImGui::PushID(i);
+            Mesh *mesh = meshes[i];
+            if(ImGui::TreeNode(mesh->label.c_str())) {
+                if(ImGui::TreeNode("Vertices")) {
+                    for (uint16_t j = 0; j < mesh->n_vertices; j++)
+                    {
+                        ImGui::PushID(j);
+                        Vertex &v = mesh->vertices[j];
+                        ImGui::DragFloat3("Position", &v.position.x, 0.2f);
+                        ImGui::DragFloat2("UV", &v.uv.x, 0.2f);
+                        ImGui::PopID();
+                    }
+                    ImGui::TreePop();
                 }
+                if(ImGui::TreeNode("Faces")) {
+                    for (uint16_t j = 0; j < mesh->n_faces; j++)
+                    {
+                        ImGui::PushID(j);
+                        Face &f = mesh->faces[j];
+                        ImGui::Checkbox("Invert", &f.invert);
+                        ImGui::PopID();
+                    }
+                    ImGui::TreePop();
+                }
+                if(mesh != selectedMesh && ImGui::Button("Select"))
+                    selectedMesh = mesh;
                 ImGui::TreePop();
             }
-            if(ImGui::TreeNode("Faces")) {
-                for (uint16_t j = 0; j < mesh->n_faces; j++)
-                {
-                    ImGui::PushID(j);
-                    Face &f = mesh->faces[j];
-                    ImGui::Checkbox("Invert", &f.invert);
-                    ImGui::PopID();
-                }
-                ImGui::TreePop();
+            ImGui::PopID();
+        }
+        ImGui::Spacing();
+        if (ImGui::TreeNode("Load OBJ")) {
+            ImGui::Text("OBJ file can only contain vertex and face data (no UV) and must be triangulated.");
+            if(selectedMaterial == nullptr)
+                ImGui::Text("Select a material in the materials window.");
+            ImGui::InputText("Path", objFilePath, 500);
+            if(selectedMaterial!= nullptr && ImGui::Button("Load")) {
+                Mesh *m = loadOBJ(objFilePath, selectedMaterial);
+                meshes.push_back(m);
             }
             ImGui::TreePop();
         }
-        ImGui::PopID();
     }
     ImGui::End();
 

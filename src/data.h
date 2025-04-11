@@ -9,9 +9,9 @@ using sf::Vector3f, sf::Vector2u;
 // clang-format off
 
 static Material cubeMaterial = {
-    Color{1.0f, 1.0f, 1.0f, 1.0f}, // Diffuse (white)
-    Color{1.0f, 1.0f, 1.0f, 1.0f}, // Specular (White)
-    32.0f                           // Shininess
+    .diffuseColor= Color{1.0f, 1.0f, 1.0f, 1.0f},
+    .diffuseTexture= nullptr,
+    .specularColor= Color{1.0f, 1.0f, 1.0f, 50.0f},
 };
 
 static Mesh cubeMesh = {
@@ -98,11 +98,11 @@ std::vector<Mesh*> meshes = {&cubeMesh};
 std::vector<Object> objects;
 //= {{&cubeMesh, {0, 0, 0}, {0, 0, 0}, {1, 1, 1}}};
 
-Vector3f cam = {0, 3.6, -5};       // Camera at (0, 0, -5)
-Vector3f camRotation = {0.5, 0, 0}; // No rotation (identity rotation)
+Vector3f cam = {0, 0, -5};       // Camera at (0, 0, -5)
+Vector3f camRotation = {0, 0, 0}; // No rotation (identity rotation)
 Vector3f camDirection;
 float nearClip = 0.1, farClip = 100;
-float fov = 70;
+float fov = 30;
 constexpr Vector2u frameSize = {500, 500};
 
 Color framebuffer[frameSize.x * frameSize.y];
@@ -113,6 +113,7 @@ int renderMode = 0;
 bool backFaceCulling = true;
 bool reverseAllFaces = false;
 bool fullBright = false;
+bool wireFrame = false;
 float whitePoint = 1;
 Color fogColor = {0.9,0.9,1,0.05};
 

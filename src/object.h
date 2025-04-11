@@ -1,15 +1,37 @@
 #ifndef __OBJECT_H__
 #define __OBJECT_H__
 #include "color.h"
-#include <SFML/System.hpp>
+#include <SFML/Graphics.hpp>
 #include <string>
 
 using sf::Vector3f, sf::Vector2f;
 
+enum MaterialFlags : uint8_t {
+    // Causes the polygons to be rasterized last, and allows polygons behind them to be partially visible. 
+    // Slightly worse for performance, and polygons can't intersect.
+    // Not needed for alpha cutout.
+    Transparent = 1,
+    // Enable for transparent materials. This allows back-faces which would normally be culled to be visible.
+    DisableBackfaceCulling = 2
+};
+
 struct Material {
-    Color diffuse;
-    Color specular;
-    float shininess;
+    // Diffuse color. If alpha = 0, diffuse is disabled, even the texture. Otherwise, alpha is unused.
+    Color diffuseColor;
+    // Texture that replaces diffuse color. If not null, diffuse color (except alpha) will be ignored. 
+    // This texture's alpha channel is handled differently: if a pixel's alpha < 0.5, it will not be drawn. (alpha cutout)
+    sf::Image *diffuseTexture;
+    // Specular highlights color. Alpha = 0 disables specular. Otherwise alpha = 10 * log2(shininess).
+    Color specularColor;
+    // Texture for specular. Behaves the same way and overrides the color field.
+    sf::Image *specularTexture;
+    // Transparent materials only: filters light coming from behind the material. Useful for tinted glass, for example.
+    Color tintColor;
+    sf::Image *tintTexture;
+    // Emissive: this color is added to the lighting calculation regardless of incoming light, as if the material emits this light itself.
+    Color emissiveColor;
+    sf::Image *emissiveTexture;
+    MaterialFlags flags;
 };
 
 struct Vertex {

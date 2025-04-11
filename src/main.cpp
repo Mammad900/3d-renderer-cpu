@@ -2,11 +2,22 @@
 #include "gui.h"
 #include "loadObj.h"
 #include "render.h"
+#include "generateMesh.h"
 #include <SFML/Graphics.hpp>
 
 int main() {
     // Load teapot
-    meshes.push_back(loadOBJ("/home/mammad/Documents/3d/teapot.obj"));
+    sf::Image globe("/home/mammad/Documents/3d/assets/globe2.png");
+    sf::Image globeS("/home/mammad/Documents/3d/assets/globeSpecular.png");
+    sf::Image globeE("/home/mammad/Documents/3d/assets/earth_lights.jpg");
+    Material globeMat = {
+        .diffuseColor = {1, 1, 1, 1},
+        .diffuseTexture = &globe,
+        .specularTexture = &globeS,
+        .emissiveTexture = &globeE
+    };
+    materials.push_back(&globeMat);
+    meshes.push_back(createSphere(20, 20, &globeMat));
     objects.push_back(Object{
         .mesh = meshes[1],
         .position = {0, 0, 0},

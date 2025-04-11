@@ -2,6 +2,7 @@
 #define __TRIANGLE_H__
 #include "color.h"
 #include "project.h"
+#include "textureFiltering.h"
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Image.hpp>
 #include <iostream>
@@ -11,6 +12,7 @@ using std::swap, std::max;
 
 struct Triangle {
     Projection s1, s2, s3;
+    Vector2f uv1, uv2, uv3;
     Material *mat;
     bool cull;
 };
@@ -23,11 +25,11 @@ Vector3f v2reflect(Vector3f in, Vector3f normal) {
     return in - normal * in.dot(normal) * 2.0f;
 }
 
-size_t frameBufferIndex(Vector2u frameSize, Vector2i pos) {
+size_t frameBufferIndex(Vector2i pos) {
     return pos.x + frameSize.x * pos.y;
 }
 
-void plotVertex(Vector2u frameSize, Color* frame, Vector2f pos, float depth) {
+void plotVertex(Color* frame, Vector2f pos, float depth) {
     // std::cout << depth << std::endl;
     depth = std::clamp(depth, 0.0f, 1.0f);
     Color heatColor = Color{depth, 0, 1.0f - depth, 1.0f};
@@ -38,13 +40,45 @@ void plotVertex(Vector2u frameSize, Color* frame, Vector2f pos, float depth) {
         for (int dy = -10; dy <= 10; ++dy) {
             Vector2i p = {cx + dx, cy + dy};
             if (p.x >= 0 && p.y >= 0 && p.x < (int)frameSize.x && p.y < (int)frameSize.y) {
-                frame[frameBufferIndex(frameSize, p)] = heatColor;
+                frame[frameBufferIndex(p)] = heatColor;
             }
+        }
+    }
+}void drawLine(Vector2f from, Vector2f to) {
+    Color color = Color{0, 0, 0, 1};
+
+    int x0 = std::round(from.x);
+    int y0 = std::round(from.y);
+    int x1 = std::round(to.x);
+    int y1 = std::round(to.y);
+
+    int dx = std::abs(x1 - x0);
+    int dy = std::abs(y1 - y0);
+    int sx = (x0 < x1) ? 1 : -1;
+    int sy = (y0 < y1) ? 1 : -1;
+    int err = dx - dy;
+
+    while (true) {
+        if (x0 >= 0 && y0 >= 0 && x0 < frameSize.x && y0 < frameSize.y)
+            framebuffer[frameBufferIndex({x0, y0})] = color;
+
+        if (x0 == x1 && y0 == y1)
+            break;
+
+        int e2 = 2 * err;
+        if (e2 > -dy) {
+            err -= dy;
+            x0 += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            y0 += sy;
         }
     }
 }
 
-void drawTriangle(Vector2u frameSize, Color *frame, Triangle tri) {
+
+void drawTriangle(Color *frame, Triangle tri) {
     if(tri.cull)
         return;
     
@@ -65,6 +99,13 @@ void drawTriangle(Vector2u frameSize, Color *frame, Triangle tri) {
     // plotVertex(frameSize, frame, a, tri.s1.screenPos.z);
     // plotVertex(frameSize, frame, b, tri.s2.screenPos.z);
     // plotVertex(frameSize, frame, c, tri.s3.screenPos.z);
+
+    if(wireFrame) {
+        drawLine(a, b);
+        drawLine(c, b);
+        drawLine(a, c);
+    }
+
     Vector2f s1 = b - a, s2 = c - a;
     float areaOfTriangle =
         abs(s1.cross(s2)); // Two times the area of the triangle
@@ -73,7 +114,7 @@ void drawTriangle(Vector2u frameSize, Color *frame, Triangle tri) {
     {
         if(p.x<0 || p.y<0 || p.x>=(int)frameSize.x || p.y>=(int)frameSize.y)
             return;
-        size_t index = frameBufferIndex(frameSize, p);
+        size_t index = frameBufferIndex(p);
         if(index > frameSize.x*frameSize.y)
             return;
 
@@ -89,19 +130,36 @@ void drawTriangle(Vector2u frameSize, Color *frame, Triangle tri) {
         #define INTERPOLATE_TRI(A,B,C) ((C1*(A) + C2*(B) + C3*(C))*denom)
 
         float z = INTERPOLATE_TRI(tri.s1.screenPos.z, tri.s2.screenPos.z, tri.s3.screenPos.z);
+        Vector3f normal= INTERPOLATE_TRI(tri.s1.normal, tri.s2.normal, tri.s3.normal).normalized();
+        Vector3f worldPos= INTERPOLATE_TRI(tri.s1.worldPos, tri.s2.worldPos, tri.s3.worldPos);
+        Vector2f uv= INTERPOLATE_TRI(tri.uv1, tri.uv2, tri.uv3);
+
+
+        Color matDiffuse = tri.mat->diffuseTexture == nullptr
+                                ? tri.mat->diffuseColor
+                                : textureFilter(tri.mat->diffuseTexture, uv);
+
+        if(tri.mat->diffuseTexture != nullptr && matDiffuse.a < 0.5f)
+            return;
+
         if (zBuffer[index] < z || z<0)
             return;
         zBuffer[index] = z;
-        Vector3f normal= INTERPOLATE_TRI(tri.s1.normal, tri.s2.normal, tri.s3.normal).normalized();
-        Vector3f worldPos= INTERPOLATE_TRI(tri.s1.worldPos, tri.s2.worldPos, tri.s3.worldPos);
+
 
         // =========== LIGHTING ===========
+        if (!fullBright) {
+            Color matSpecular = tri.mat->specularTexture == nullptr
+                                ? tri.mat->specularColor
+                                : textureFilter(tri.mat->specularTexture, uv);
+            float shininess = pow(2.0f, matSpecular.a * 25.5f);
+            Color matEmissive = tri.mat->emissiveTexture == nullptr
+                                ? tri.mat->emissiveColor
+                                : textureFilter(tri.mat->emissiveTexture, uv);
 
-        if(!fullBright){
-            // Ambient
-            Color diffuse = ambientLight * ambientLight.a, specular={0,0,0,1};
+            Color diffuse = ambientLight * ambientLight.a;
+            Color specular = {0, 0, 0, 1};
 
-            // Diffuse
             for (size_t i = 0; i < lights.size(); i++)
             {
                 Light &light = lights[i];
@@ -113,23 +171,25 @@ void drawTriangle(Vector2u frameSize, Color *frame, Triangle tri) {
                     direction = d / std::sqrtf(l2);
                     intensity /= l2;
                 }
-                if (tri.mat->diffuse.a > 0) {
+                if (tri.mat->diffuseColor.a > 0) {
                     float diffuseIntensity = max(normal.dot(direction), 0.0f);
                     diffuse += light.color * diffuseIntensity * intensity;
                 }
-                if(tri.mat->specular.a > 0) {
-                    float specularIntensity = pow(max(-camDirection.dot(v2reflect(direction, normal)), 0.0f), tri.mat->shininess);
+                if(matSpecular.a > 0) {
+                    float specularIntensity = pow(max(-camDirection.dot(v2reflect(direction, normal)), 0.0f), shininess);
                     specular += light.color * specularIntensity * intensity;
                 }
             }
             
             Color lighting = frame[index] = 
-                diffuse * tri.mat->diffuse * tri.mat->diffuse.a +
-                specular * tri.mat->specular * tri.mat->specular.a;
+                diffuse * matDiffuse +
+                specular * matSpecular +
+                matEmissive;
 
             maximumColor = max(maximumColor, lighting.luminance());
-        } else {
-            frame[index] = tri.mat->diffuse;
+        }
+        else {
+            frame[index] = matDiffuse;
         }
     };
 

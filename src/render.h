@@ -11,6 +11,8 @@
 using sf::Vector3f, sf::Vector2f;
 using std::max;
 
+void fog();
+
 void render() {
     for (size_t i = 0; i < frameSize.x*frameSize.y; i++)
     {
@@ -79,6 +81,9 @@ void render() {
                 .s1 = v1s,
                 .s2 = v2s,
                 .s3 = v3s,
+                .uv1 = mesh->vertices[face.v1].uv,
+                .uv2 = mesh->vertices[face.v2].uv,
+                .uv3 = mesh->vertices[face.v3].uv,
                 .mat = face.material,
                 .cull = normalS.z < 0 && backFaceCulling
             };
@@ -92,28 +97,41 @@ void render() {
 
     for (int i = 0; i < total_faces; i++)
     {
-        drawTriangle(frameSize, framebuffer, triangles[i]);
+        drawTriangle(framebuffer, triangles[i]);
     }
 
 #pragma endregion
 
 #pragma region // ===== FOG =====
+    fog();
+
+#pragma endregion
+}
+
+void fog() {
 
     float tanFOV = tan(fov * M_PI / 360);
     for (int y = 0; y < (int)frameSize.y; y++) {
         for (int x = 0; x < (int)frameSize.x; x++) {
-            size_t i = frameBufferIndex(frameSize, {x, y});
+            size_t i = frameBufferIndex({x, y});
             float clipZ = zBuffer[i];
-            float worldZ = (nearClip * farClip) / (farClip + nearClip - clipZ * (farClip - nearClip)); // Reconstruct world space Z from Z buffer
-            Vector2f world = Vector2f{x / (float)frameSize.x, y / (float)frameSize.y} * worldZ * tanFOV; // Reconstruct world space X and Y
-            float dist = std::sqrt(world.lengthSquared() + worldZ*worldZ); // Account for X and Y, to make it radial vs flat
-            float visibility = std::clamp(std::powf(0.5f, dist * fogColor.a), 0.0f, 1.0f); // Exponential falloff
-            Color result = framebuffer[i] * visibility + fogColor * (1 - visibility); // Lerp
+            float worldZ = (nearClip * farClip) /
+                           (farClip + nearClip - clipZ * (farClip - nearClip)
+                           ); // Reconstruct world space Z from Z buffer
+            Vector2f world =
+                Vector2f{x / (float)frameSize.x, y / (float)frameSize.y} *
+                worldZ * tanFOV; // Reconstruct world space X and Y
+            float dist = std::sqrt(
+                world.lengthSquared() + worldZ * worldZ
+            ); // Account for X and Y, to make it radial vs flat
+            float visibility = std::clamp(
+                std::powf(0.5f, dist * fogColor.a), 0.0f, 1.0f
+            ); // Exponential falloff
+            Color result = framebuffer[i] * visibility +
+                           fogColor * (1 - visibility); // Lerp
             framebuffer[i] = result;
         }
     }
-
-#pragma endregion
 }
 
 #endif /* __RENDER_H__ */
