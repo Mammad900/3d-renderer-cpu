@@ -1,0 +1,16 @@
+fov 30
+cam pos 0 0 -5
+set whitePoint 2
+
+new material
+diffuseColor 1 1 1 1
+diffuseTexture assets/worldColour.5400x2700.jpg
+emissiveTexture assets/earth_lights.jpg
+normalMap assets/earth-normalmap.jpg
+end
+
+new mesh sphere 20 20 0
+
+new object 0  0 0 0  1 1 1  0 0 0
+
+new light directional 0 0 90 1 1 1 5

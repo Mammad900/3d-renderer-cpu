@@ -3,27 +3,18 @@
 #include "loadObj.h"
 #include "render.h"
 #include "generateMesh.h"
+#include "sceneFile.h"
 #include <SFML/Graphics.hpp>
-
-int main() {
-    // Load teapot
-    sf::Image globe("/home/mammad/Documents/3d/assets/globe2.png");
-    sf::Image globeS("/home/mammad/Documents/3d/assets/globeSpecular.png");
-    sf::Image globeE("/home/mammad/Documents/3d/assets/earth_lights.jpg");
-    Material globeMat = {
-        .diffuseColor = {1, 1, 1, 1},
-        .diffuseTexture = &globe,
-        .specularTexture = &globeS,
-        .emissiveTexture = &globeE
-    };
-    materials.push_back(&globeMat);
-    meshes.push_back(createSphere(20, 20, &globeMat));
-    objects.push_back(Object{
-        .mesh = meshes[1],
-        .position = {0, 0, 0},
-        .rotation = {0, 0, 0},
-        .scale = {1, 1, 1}
-    });
+#include <filesystem>
+int main(int argc, char** argv) {
+    std::cout << std::filesystem::current_path() << std::endl;
+    std::ifstream file(argc > 1 ? argv[1] : "assets/scene.txt");
+    if (!file) {
+        std::cerr << "Failed to open scene file.\n";
+        return 1;
+    }
+    parseSceneFile(file);
+    file.close();
 
     // Scene window
     auto window = sf::RenderWindow(
