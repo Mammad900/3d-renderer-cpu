@@ -103,7 +103,8 @@ void render() {
 #pragma endregion
 
 #pragma region // ===== FOG =====
-    fog();
+    if(fogColor.a > 0)
+        fog();
 
 #pragma endregion
 }
