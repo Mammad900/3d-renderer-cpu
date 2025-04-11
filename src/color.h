@@ -43,6 +43,12 @@ struct Color {
     Color operator/(float scalar) const {
         return {r / scalar, g / scalar, b / scalar, a / scalar};
     }
+    Color operator+(float scalar) const {
+        return {r + scalar, g + scalar, b + scalar, a + scalar};
+    }
+    Color operator-(float scalar) const {
+        return {r - scalar, g - scalar, b - scalar, a - scalar};
+    }
     bool operator==(const Color &other) const {
         return (r == other.r && g == other.g && b == other.b && a == other.a);
     }

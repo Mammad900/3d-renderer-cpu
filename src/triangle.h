@@ -110,6 +110,33 @@ void drawTriangle(Color *frame, Triangle tri) {
     float areaOfTriangle =
         abs(s1.cross(s2)); // Two times the area of the triangle
 
+    std::optional<std::array<float, 16>> TBN;
+    if (tri.mat->normalMap) {
+        Vector3f edge1 = tri.s2.worldPos - tri.s1.worldPos;
+        Vector3f edge2 = tri.s3.worldPos - tri.s1.worldPos; 
+        Vector2f deltaUV1 = tri.uv2 - tri.uv1;
+        Vector2f deltaUV2 = tri.uv3 - tri.uv1; 
+
+        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+        Vector3f T = Vector3f{
+            f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x),
+            f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y),
+            f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z),
+        }.normalized();
+        Vector3f B = Vector3f{
+            f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x),
+            f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y),
+            f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z),
+        }.normalized();
+
+        // N is filled in each pixel, because normal is interpolated
+        TBN = {
+            T.x, B.x, 0,
+            T.y, B.y, 0,
+            T.z, B.z, 0
+        };
+    }
+
     auto &&pixel = [&](Vector2i p) -> void
     {
         if(p.x<0 || p.y<0 || p.x>=(int)frameSize.x || p.y>=(int)frameSize.y)
@@ -159,6 +186,16 @@ void drawTriangle(Color *frame, Triangle tri) {
 
             Color diffuse = ambientLight * ambientLight.a;
             Color specular = {0, 0, 0, 1};
+
+            if(TBN) {
+                TBN.value()[2] = normal.x;
+                TBN.value()[5] = normal.y;
+                TBN.value()[8] = normal.z;
+                Color normalSample = (textureFilter(tri.mat->normalMap, uv) * 2.0 - 1.0) * Color{-1, -1, 1, 0};
+                float normalNew[3] = {normalSample.r, normalSample.g, normalSample.b};
+                matMul(TBN.value().data(), normalNew, normalNew, 3, 3, 1);
+                normal = {normalNew[0], normalNew[1], normalNew[2]};
+            }
 
             for (size_t i = 0; i < lights.size(); i++)
             {

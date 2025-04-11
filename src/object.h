@@ -31,6 +31,8 @@ struct Material {
     // Emissive: this color is added to the lighting calculation regardless of incoming light, as if the material emits this light itself.
     Color emissiveColor;
     sf::Image *emissiveTexture;
+    // Normal map: red is X, green is Y, blue is Z.
+    sf::Image *normalMap;
     MaterialFlags flags;
 };
 
