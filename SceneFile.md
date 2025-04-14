@@ -1,6 +1,6 @@
 # Scene File Format
 
-This is a simple word-based scene description format parsed like `std::cin >> word`. Comments begin with `#` and end at the next `#`.
+This is a simple scene description format parsed word by word.
 
 ## General Notes
 

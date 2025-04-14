@@ -3,7 +3,12 @@
 #include <fstream>
 #include "data.h"
 
-void parseSceneFile(std::istream &in) {
+void parseSceneFile(std::string path) {
+    std::ifstream in(path);
+    if (!in) {
+        std::cerr << "Failed to open scene file.\n";
+        return;
+    }
     std::string word;
     while (in >> word) {
         // Skip comments
@@ -12,7 +17,12 @@ void parseSceneFile(std::istream &in) {
             continue;
         }
 
-        if (word == "cam") {
+        if (word == "import") {
+            std::string path;
+            in >> path;
+            parseSceneFile(path);
+        }
+        else if (word == "cam") {
             in >> word;
             if (word == "pos") in >> cam.x >> cam.y >> cam.z;
             else if (word == "rot") {
@@ -117,6 +127,13 @@ void parseSceneFile(std::istream &in) {
                     in >> stacks >> sectors >> matIndex;
                     Mesh* mesh = createSphere(stacks, sectors, materials[matIndex]);
                     meshes.push_back(mesh);
+                } else if (type == "plane") {
+                    int matIndex;
+                    uint16_t subDivX, subDivY;
+                    float w, h;
+                    in >> w >> h >> subDivX >> subDivY >> matIndex;
+                    Mesh* mesh = createPlane(w, h, subDivX, subDivY, materials[matIndex]);
+                    meshes.push_back(mesh);
                 }
             } else if (word == "object") {
                 int meshIndex;
@@ -130,6 +147,7 @@ void parseSceneFile(std::istream &in) {
             }
         }
     }
+    in.close();
 }
 
 

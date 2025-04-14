@@ -7,14 +7,7 @@
 #include <SFML/Graphics.hpp>
 #include <filesystem>
 int main(int argc, char** argv) {
-    std::cout << std::filesystem::current_path() << std::endl;
-    std::ifstream file(argc > 1 ? argv[1] : "assets/scene.txt");
-    if (!file) {
-        std::cerr << "Failed to open scene file.\n";
-        return 1;
-    }
-    parseSceneFile(file);
-    file.close();
+    parseSceneFile(argc > 1 ? argv[1] : "assets/scene.txt");
 
     // Scene window
     auto window = sf::RenderWindow(
