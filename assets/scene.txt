@@ -9,8 +9,18 @@ emissiveTexture assets/earth_lights.jpg
 normalMap assets/earth-normalmap.jpg
 end
 
-new mesh sphere 20 20 0
+new material
+diffuseColor 0.02 0.02 0.02 1
+specularColor 1 1 1 0.25
+tintColor 1 0 0 1
+transparent
+disableBackfaceCulling
+end
 
+new mesh sphere 20 20 0
 new object 0  0 0 0  1 1 1  0 0 0
+
+new mesh sphere 20 20 1
+new object 1 0 0 -1.5  0.2 0.2 0.2  -90 0 0
 
 new light directional 0 0 90 1 1 1 5
