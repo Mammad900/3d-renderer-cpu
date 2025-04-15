@@ -130,16 +130,6 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
                     }
                     ImGui::TreePop();
                 }
-                if(ImGui::TreeNode("Faces")) {
-                    for (uint16_t j = 0; j < mesh->n_faces; j++)
-                    {
-                        ImGui::PushID(j);
-                        Face &f = mesh->faces[j];
-                        ImGui::Checkbox("Invert", &f.invert);
-                        ImGui::PopID();
-                    }
-                    ImGui::TreePop();
-                }
                 if(mesh != selectedMesh && ImGui::Button("Select"))
                     selectedMesh = mesh;
                 ImGui::TreePop();

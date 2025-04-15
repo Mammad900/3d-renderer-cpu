@@ -11,6 +11,11 @@
 using sf::Vector3f, sf::Vector2f;
 using std::max;
 
+struct TransparentTriangle{
+    float z;
+    Triangle *tri;
+};
+
 void fog();
 
 void render() {
@@ -45,6 +50,7 @@ void render() {
 #pragma region // ===== PROJECT VERTICES & BUILD TRIANGLES =====
 
     Triangle triangles[total_faces];
+    std::vector<TransparentTriangle> transparents;
     int triI = 0;
     for (size_t i = 0; i < objects.size(); i++) {
         Object obj = objects[i];
@@ -70,12 +76,7 @@ void render() {
             Projection v1s = projectedVertices[face.v1],
                        v2s = projectedVertices[face.v2],
                        v3s = projectedVertices[face.v3];
-            Vector3f normalW = (v3s.worldPos - v1s.worldPos).cross(v2s.worldPos - v1s.worldPos).normalized();
             Vector3f normalS = (v3s.screenPos - v1s.screenPos).cross(v2s.screenPos - v1s.screenPos).normalized();
-            if(face.invert)
-                normalW *= -1.0f;
-            if(reverseAllFaces)
-                normalW *= -1.0f;
 
             triangles[triI] = Triangle{
                 .s1 = v1s,
@@ -85,8 +86,11 @@ void render() {
                 .uv2 = mesh->vertices[face.v2].uv,
                 .uv3 = mesh->vertices[face.v3].uv,
                 .mat = face.material,
-                .cull = normalS.z < 0 && backFaceCulling
+                .cull = normalS.z < 0
             };
+            if(face.material->flags & MaterialFlags::Transparent) {
+                transparents.push_back(TransparentTriangle{(v1s.w + v2s.w + v3s.w) / 3, &triangles[triI]});
+            }
             triI++;
         }
     }
@@ -95,10 +99,18 @@ void render() {
 
 #pragma region // ===== DRAW TRIANGLES =====
 
-    for (int i = 0; i < total_faces; i++)
-    {
+    for (int i = 0; i < total_faces; i++) {
+        if(triangles[1].mat->flags & MaterialFlags::Transparent) continue;
         drawTriangle(framebuffer, triangles[i]);
     }
+
+    auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z < b.z; };
+    std::sort(transparents.begin(), transparents.end(), compareZ);
+    for (auto &&tri : transparents) {
+        std::cout << tri.z << std::endl;
+        drawTriangle(framebuffer, *tri.tri);
+    }
+    
 
 #pragma endregion
 

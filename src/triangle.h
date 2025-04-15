@@ -79,9 +79,9 @@ void plotVertex(Color* frame, Vector2f pos, float depth) {
 
 
 void drawTriangle(Color *frame, Triangle tri) {
-    if(tri.cull)
+    if(tri.cull && backFaceCulling && !(tri.mat->flags & MaterialFlags::DisableBackfaceCulling))
         return;
-    
+
     if(
         (tri.s1.screenPos.x < -1 && tri.s2.screenPos.x < -1 && tri.s3.screenPos.x < -1 )||
         (tri.s1.screenPos.x >  1 && tri.s2.screenPos.x >  1 && tri.s3.screenPos.x >  1 )||
@@ -171,8 +171,10 @@ void drawTriangle(Color *frame, Triangle tri) {
 
         if (zBuffer[index] < z || z<0)
             return;
-        zBuffer[index] = z;
+        if(!((tri.mat->flags & MaterialFlags::Transparent)))
+            zBuffer[index] = z;
 
+        Vector3f viewDir = (cam - worldPos).normalized();
 
         // =========== LIGHTING ===========
         if (!fullBright) {
@@ -208,22 +210,34 @@ void drawTriangle(Color *frame, Triangle tri) {
                     direction = d / std::sqrtf(l2);
                     intensity /= l2;
                 }
+                float diffuseIntensity = max(normal.dot(direction), 0.0f);
                 if (tri.mat->diffuseColor.a > 0) {
-                    float diffuseIntensity = max(normal.dot(direction), 0.0f);
                     diffuse += light.color * diffuseIntensity * intensity;
                 }
                 if(matSpecular.a > 0) {
-                    float specularIntensity = pow(max(-camDirection.dot(v2reflect(direction, normal)), 0.0f), shininess);
+                    float specularIntensity = pow(max(viewDir.dot(v2reflect(direction, normal)), 0.0f), shininess);
+                    if(diffuseIntensity == 0)
+                        specularIntensity = 0;
                     specular += light.color * specularIntensity * intensity;
                 }
             }
             
-            Color lighting = frame[index] = 
+            Color lighting = 
                 diffuse * matDiffuse +
                 specular * matSpecular +
                 matEmissive;
 
-            maximumColor = max(maximumColor, lighting.luminance());
+            if(tri.mat->flags & MaterialFlags::Transparent) {
+                Color matTint = tri.mat->tintTexture == nullptr
+                                ? tri.mat->tintColor
+                                : textureFilter(tri.mat->tintTexture, uv);
+                frame[index] = frame[index] * matTint + lighting;
+            } else {
+                frame[index] = lighting;
+            }
+
+            if(whitePoint == 0) // Don't waste cycles if it won't be used
+                maximumColor = max(maximumColor, lighting.luminance()); // This doesn't take transparency into account 
         }
         else {
             frame[index] = matDiffuse;
