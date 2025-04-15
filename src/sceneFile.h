@@ -130,9 +130,8 @@ void parseSceneFile(std::string path) {
                 } else if (type == "plane") {
                     int matIndex;
                     uint16_t subDivX, subDivY;
-                    float w, h;
-                    in >> w >> h >> subDivX >> subDivY >> matIndex;
-                    Mesh* mesh = createPlane(w, h, subDivX, subDivY, materials[matIndex]);
+                    in >> subDivX >> subDivY >> matIndex;
+                    Mesh* mesh = createPlane(subDivX, subDivY, materials[matIndex]);
                     meshes.push_back(mesh);
                 }
             } else if (word == "object") {

@@ -99,5 +99,59 @@ Mesh* createSphere(uint16_t stacks, uint16_t sectors, Material* material) {
     return mesh;
 }
 
+Mesh* createPlane(uint16_t subdivisionsX, uint16_t subdivisionsY, Material* material) {
+    // Allocate the mesh and assign a label.
+    Mesh* mesh = new Mesh;
+    mesh->label = "Plane";
+
+    // Calculate the number of vertices and faces.
+    uint16_t numVertices = (subdivisionsX + 1) * (subdivisionsY + 1);
+    uint16_t numFaces = subdivisionsX * subdivisionsY * 2;
+
+    // Allocate memory for vertices and faces.
+    mesh->vertices = new Vertex[numVertices];
+    mesh->faces = new Face[numFaces];
+    mesh->n_vertices = numVertices;
+    mesh->n_faces = numFaces;
+
+    // Calculate step sizes for subdivisions.
+    float stepX = 1.0f / subdivisionsX;
+    float stepY = 1.0f / subdivisionsY;
+
+    // Generate vertices.
+    uint16_t vertexIndex = 0;
+    for (uint16_t y = 0; y <= subdivisionsY; ++y) {
+        for (uint16_t x = 0; x <= subdivisionsX; ++x) {
+            float posX = -0.5f + x * stepX;
+            float posY = -0.5f + y * stepY;
+
+            mesh->vertices[vertexIndex] = {
+                {posX, 0.0f, posY}, // Position
+                {x / float(subdivisionsX), y / float(subdivisionsY)}, // UV
+                {0.0f, 1.0f, 0.0f} // Normal
+            };
+            ++vertexIndex;
+        }
+    }
+
+    // Generate faces.
+    uint16_t faceIndex = 0;
+    for (uint16_t y = 0; y < subdivisionsY; ++y) {
+        for (uint16_t x = 0; x < subdivisionsX; ++x) {
+            uint16_t topLeft = y * (subdivisionsX + 1) + x;
+            uint16_t topRight = topLeft + 1;
+            uint16_t bottomLeft = (y + 1) * (subdivisionsX + 1) + x;
+            uint16_t bottomRight = bottomLeft + 1;
+
+            // First triangle of the quad.
+            mesh->faces[faceIndex++] = {topLeft, bottomLeft, topRight, material};
+
+            // Second triangle of the quad.
+            mesh->faces[faceIndex++] = {topRight, bottomLeft, bottomRight, material};
+        }
+    }
+
+    return mesh;
+}
 
 #endif /* __GENERATEMESH_H__ */
