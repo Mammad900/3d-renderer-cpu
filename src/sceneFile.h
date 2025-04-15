@@ -142,6 +142,7 @@ void parseSceneFile(std::string path) {
                 in >> obj.position.x >> obj.position.y >> obj.position.z;
                 in >> obj.scale.x >> obj.scale.y >> obj.scale.z;
                 in >> obj.rotation.x >> obj.rotation.y >> obj.rotation.z;
+                obj.rotation *= M_PIf / 180.0f;
                 objects.push_back(obj);
             }
         }

@@ -45,7 +45,6 @@ struct Vertex {
 struct Face {
     uint16_t v1, v2, v3;
     Material *material;
-    bool invert;
 };
 
 struct Mesh {
