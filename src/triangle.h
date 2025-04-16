@@ -59,7 +59,7 @@ void plotVertex(Color* frame, Vector2f pos, float depth) {
     int err = dx - dy;
 
     while (true) {
-        if (x0 >= 0 && y0 >= 0 && x0 < frameSize.x && y0 < frameSize.y)
+        if (x0 >= 0 && y0 >= 0 && x0 < (int)frameSize.x && y0 < (int)frameSize.y)
             framebuffer[frameBufferIndex({x0, y0})] = color;
 
         if (x0 == x1 && y0 == y1)
