@@ -145,10 +145,12 @@ void drawTriangle(Color *frame, Triangle tri) {
         if(index > frameSize.x*frameSize.y)
             return;
 
-        Vector2f pp = {(float)p.x, (float)p.y};
-        float C1 = (abs((b-pp).cross(c-pp)) / areaOfTriangle);
-        float C2 = (abs((c-pp).cross(a-pp)) / areaOfTriangle);
-        float C3 = (1.0f - C1 - C2);
+        Vector2f pp = {(float)p.x + 0.5f, (float)p.y + 0.5f};
+        float C1 = -(b-pp).cross(c-pp) / areaOfTriangle;
+        float C2 = -(c-pp).cross(a-pp) / areaOfTriangle;
+        float C3 = 1.0f - C1 - C2;
+        if(C1<0 || C2 < 0 || C3 < 0)
+            return;
         C1 /= tri.s1.w;
         C2 /= tri.s2.w;
         C3 /= tri.s3.w;
@@ -244,32 +246,14 @@ void drawTriangle(Color *frame, Triangle tri) {
         }
     };
 
-    std::array<Vector2f, 3> v = {a, b, c};
-    // Sort vertices by Y (c>b>a)
-    std::sort(v.begin(), v.end(), [](const Vector2f &a, const Vector2f &b) -> bool
-              { return a.y < b.y; });
-    Vector2f BA = v[1] - v[0];
-    Vector2f CB = v[2] - v[1];
-    Vector2f CA = v[2] - v[0];
+    float minY =(std::min({a.y, b.y, c.y}));
+    float maxY =(std::max({a.y, b.y, c.y}));
+    float minX =(std::min({a.x, b.x, c.x}));
+    float maxX =(std::max({a.x, b.x, c.x}));
 
-    for (int i = 0; i < BA.y; i++) {
-        float x1 = std::round(i * BA.x / BA.y + v[0].x);
-        float x2 = std::round(i * CA.x / CA.y + v[0].x);
-        if (x1 > x2)
-            swap(x1, x2);
-        for (int j = x1; j < x2; j++) {
-            pixel({j, i + (int)v[0].y});
-        }
-    }
-    for (int i = 0; i < CB.y; i++) {
-        float x1 = std::round(i * CB.x / CB.y + v[1].x);
-        float x2 = std::round((i + BA.y) * CA.x / CA.y + v[0].x);
-        if (x1 > x2)
-            swap(x1, x2);
-        for (int j = x1; j < x2; j++) {
-            pixel({j, i + (int)v[1].y});
-        }
-    }
+    for (int y = minY; y < maxY; y++)
+        for (int x = minX; x < maxX; x++)
+            pixel({x,y});
 }
 
 #endif /* __TRIANGLE_H__ */
