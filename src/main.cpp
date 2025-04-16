@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
                 }
                 else if (renderMode == 1) { // Z buffer
                     // Z buffer range is really display-to-end-user unfriendly
-                    float z = 1 / (1 - zBuffer[y * frameSize.x + x]);
+                    float z = zBuffer[y * frameSize.x + x] * 20.0f;
                     img.setPixel({x, y}, sf::Color(z, z, z));
                 }
 

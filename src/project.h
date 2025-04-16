@@ -10,7 +10,6 @@ using std::sin, std::cos;
 struct Projection {
     Vector3f worldPos;
     Vector3f screenPos;
-    float w;
     Vector3f normal;
 };
 
@@ -34,8 +33,7 @@ Projection perspectiveProject(Vector3f a) {
     matMul(vM, projectionMatrix, vM, 1, 4, 4);
     return Projection{
         .worldPos = a,
-        .screenPos = Vector3f{vM[0], vM[1], vM[2]} / vM[3],
-        .w = vM[3]
+        .screenPos = Vector3f{vM[0] / vM[3], vM[1] / vM[3], -vM[3]},
     };
 }
 

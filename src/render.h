@@ -22,7 +22,7 @@ void render() {
     for (size_t i = 0; i < frameSize.x*frameSize.y; i++)
     {
         framebuffer[i] = Color{0, 0, 0, 1};
-        zBuffer[i]=1.0f;
+        zBuffer[i]=farClip;
     }
 
 #pragma region // ===== COUNT VERTICES & FACES =====
@@ -89,7 +89,7 @@ void render() {
                 .cull = normalS.z < 0
             };
             if(face.material->flags & MaterialFlags::Transparent) {
-                transparents.push_back(TransparentTriangle{(v1s.w + v2s.w + v3s.w) / 3, &triangles[triI]});
+                transparents.push_back(TransparentTriangle{(v1s.screenPos.z + v2s.screenPos.z + v3s.screenPos.z) / 3, &triangles[triI]});
             }
             triI++;
         }
@@ -104,7 +104,7 @@ void render() {
         drawTriangle(framebuffer, triangles[i]);
     }
 
-    auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z < b.z; };
+    auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z > b.z; };
     std::sort(transparents.begin(), transparents.end(), compareZ);
     for (auto &&tri : transparents) {
         std::cout << tri.z << std::endl;
@@ -127,15 +127,10 @@ void fog() {
     for (int y = 0; y < (int)frameSize.y; y++) {
         for (int x = 0; x < (int)frameSize.x; x++) {
             size_t i = frameBufferIndex({x, y});
-            float clipZ = zBuffer[i];
-            float worldZ = (nearClip * farClip) /
-                           (farClip + nearClip - clipZ * (farClip - nearClip)
-                           ); // Reconstruct world space Z from Z buffer
-            Vector2f world =
-                Vector2f{x / (float)frameSize.x, y / (float)frameSize.y} *
-                worldZ * tanFOV; // Reconstruct world space X and Y
+            float z = zBuffer[i];
+            Vector2f world = Vector2f{x / (float)frameSize.x, y / (float)frameSize.y} * z * tanFOV; // Reconstruct world space X and Y
             float dist = std::sqrt(
-                world.lengthSquared() + worldZ * worldZ
+                world.lengthSquared() + z * z
             ); // Account for X and Y, to make it radial vs flat
             float visibility = std::clamp(
                 std::powf(0.5f, dist * fogColor.a), 0.0f, 1.0f

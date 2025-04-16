@@ -87,8 +87,8 @@ void drawTriangle(Color *frame, Triangle tri) {
         (tri.s1.screenPos.x >  1 && tri.s2.screenPos.x >  1 && tri.s3.screenPos.x >  1 )||
         (tri.s1.screenPos.y < -1 && tri.s2.screenPos.y < -1 && tri.s3.screenPos.y < -1 )||
         (tri.s1.screenPos.y >  1 && tri.s2.screenPos.y >  1 && tri.s3.screenPos.y >  1 )||
-        (tri.s1.screenPos.z <  0 && tri.s2.screenPos.z <  0 && tri.s3.screenPos.z <  0 )||
-        (tri.s1.screenPos.z >  1 && tri.s2.screenPos.z >  1 && tri.s3.screenPos.z >  1 )
+        (tri.s1.screenPos.z <  nearClip && tri.s2.screenPos.z <  nearClip && tri.s3.screenPos.z <  nearClip )||
+        (tri.s1.screenPos.z >  farClip && tri.s2.screenPos.z >  farClip && tri.s3.screenPos.z >  farClip )
     )
         return;
 
@@ -148,12 +148,16 @@ void drawTriangle(Color *frame, Triangle tri) {
         Vector2f pp = {(float)p.x + 0.5f, (float)p.y + 0.5f};
         float C1 = -(b-pp).cross(c-pp) / areaOfTriangle;
         float C2 = -(c-pp).cross(a-pp) / areaOfTriangle;
+        if(tri.cull) {
+            C1 *= -1;
+            C2 *= -1;
+        }
         float C3 = 1.0f - C1 - C2;
         if(C1<0 || C2 < 0 || C3 < 0)
             return;
-        C1 /= tri.s1.w;
-        C2 /= tri.s2.w;
-        C3 /= tri.s3.w;
+        C1 /= tri.s1.screenPos.z;
+        C2 /= tri.s2.screenPos.z;
+        C3 /= tri.s3.screenPos.z;
         float denom = 1 / (C1 + C2 + C3);
 
         #define INTERPOLATE_TRI(A,B,C) ((C1*(A) + C2*(B) + C3*(C))*denom)
