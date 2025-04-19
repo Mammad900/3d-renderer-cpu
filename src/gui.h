@@ -100,10 +100,10 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
             ImGui::PushID(i);
             if(ImGui::TreeNode("Material")) {
                 Material *mat = materials[i];
-                ImGui::ColorEdit4("Diffuse", (float*)&mat->diffuseColor, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-                ImGui::ColorEdit4("Specular", (float*)&mat->specularColor, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-                ImGui::ColorEdit4("Tint", (float*)&mat->tintColor, ImGuiColorEditFlags_Float);
-                ImGui::ColorEdit4("Emissive", (float*)&mat->emissiveColor, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+                ImGui::ColorEdit4("Diffuse", (float*)&mat->diffuse.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+                ImGui::ColorEdit4("Specular", (float*)&mat->specular.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+                ImGui::ColorEdit4("Tint", (float*)&mat->tint.color, ImGuiColorEditFlags_Float);
+                ImGui::ColorEdit4("Emissive", (float*)&mat->emissive.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
                 if(mat != selectedMaterial && ImGui::Button("Select"))
                     selectedMaterial = mat;
                 ImGui::TreePop();

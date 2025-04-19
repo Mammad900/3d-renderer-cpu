@@ -4,35 +4,56 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
-using sf::Vector3f, sf::Vector2f;
+using sf::Vector3f, sf::Vector2f, sf::Vector2u, std::optional;
 
 enum MaterialFlags : uint8_t {
     // Causes the polygons to be rasterized last, and allows polygons behind them to be partially visible. 
     // Slightly worse for performance, and polygons can't intersect.
     // Not needed for alpha cutout.
-    Transparent = 1,
-    // Enable for transparent materials. This allows back-faces which would normally be culled to be visible.
-    DisableBackfaceCulling = 2
+    Transparent = 1 << 0,
+    // Enable for flat materials. This allows back-faces which would normally be culled to be visible.
+    DoubleSided = 1 << 1
+};
+
+template <typename T>
+struct Texture {
+    // It's actually an atlas size*2-1 big, that also contains mipmaps.
+    T* pixels;
+    Vector2u size;
+    Vector2u atlasSize;
+};
+struct MaterialMap {
+    Color color;
+    optional<Texture<Color>> texture;
 };
 
 struct Material {
-    // Diffuse color. If alpha = 0, diffuse is disabled, even the texture. Otherwise, alpha is unused.
-    Color diffuseColor;
-    // Texture that replaces diffuse color. If not null, diffuse color (except alpha) will be ignored. 
-    // This texture's alpha channel is handled differently: if a pixel's alpha < 0.5, it will not be drawn. (alpha cutout)
-    sf::Image *diffuseTexture;
-    // Specular highlights color. Alpha = 0 disables specular. Otherwise alpha = 10 * log2(shininess).
-    Color specularColor;
-    // Texture for specular. Behaves the same way and overrides the color field.
-    sf::Image *specularTexture;
-    // Transparent materials only: filters light coming from behind the material. Useful for tinted glass, for example.
-    Color tintColor;
-    sf::Image *tintTexture;
-    // Emissive: this color is added to the lighting calculation regardless of incoming light, as if the material emits this light itself.
-    Color emissiveColor;
-    sf::Image *emissiveTexture;
-    // Normal map: red is X, green is Y, blue is Z.
-    sf::Image *normalMap;
+    // Diffuse, aka albedo, aka base. If alpha < 0.5, it will not be drawn. (alpha cutout)
+    MaterialMap diffuse;
+
+    // Specular highlights. Alpha = 0 disables specular. Otherwise alpha = 10 * log2(shininess).
+    MaterialMap specular;
+
+    // Transparent materials: Filters light coming from behind the material, which is the existing pixels. 
+    // Alpha is ignored. Useful for tinted glass, for example.
+    //
+    // Non-transparent materials: Controls subsurface scattering. 
+    // In other words, light hitting the back of a flat object creates diffuse lighting visible at the front. 
+    // Alpha controls how much the intensity depends on view direction. Most useful for leaves.
+    MaterialMap tint;
+
+    // This is added to the lighting calculation regardless of incoming light, as if the material emits this light itself.
+    MaterialMap emissive;
+
+    // Normal map, used to add detail that would otherwise require a lot of polygons
+    optional<Texture<Vector3f>> normalMap;
+
+    // Displacement map, used to do Parallax [Occlusion] Mapping. Only used if a normal map is also defined.
+    optional<Texture<float>> displacementMap;
+
+    // Parallax Occlusion mapping steps, the higher the slower. 0 means simple Parallax Mapping. Only used if displacement map is defined.
+    uint8_t POM;
+
     MaterialFlags flags;
 };
 

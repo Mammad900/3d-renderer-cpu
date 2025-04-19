@@ -4,9 +4,10 @@ set whitePoint 2
 
 new material
 diffuseColor 1 1 1 1
-diffuseTexture assets/worldColour.5400x2700.jpg
-emissiveTexture assets/earth_lights.jpg
-normalMap assets/earth-normalmap.jpg
+diffuseTexture assets/worldColour.4096x2048.jpg
+emissiveTexture assets/earth_lights_2.jpg
+emissiveColor 1 1 1 1
+normalMap assets/earth-normalmap.jpg -1
 end
 
 new material
@@ -14,7 +15,6 @@ diffuseColor 0.02 0.02 0.02 1
 specularColor 1 1 1 0.25
 tintColor 1 0 0 1
 transparent
-disableBackfaceCulling
 end
 
 new mesh sphere 20 20 0

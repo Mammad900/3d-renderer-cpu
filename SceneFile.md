@@ -55,35 +55,66 @@ Textures are loaded from relative file paths.
 
 ```txt
 new material
-    diffuseColor <r> <g> <b> <a>   # Base color. If alpha = 0, diffuse is disabled, even the texture. Otherwise, alpha is unused.
-    diffuseTexture <path>          # Texture that replaces diffuse color. If not null, diffuse color (except alpha) will be ignored. 
-                                   # This texture's alpha channel is handled differently: if a pixel's alpha < 0.5, it will not be drawn. (alpha cutout)
-    specularColor <r> <g> <b> <a>  # Specular highlights color. Alpha = 0 disables specular. Otherwise alpha = 10 * log2(shininess).
-    specularTexture <path>         # Texture for specular. Behaves the same way and overrides the color field.
-    tintColor <r> <g> <b> <a>      # [todo] Transparent materials only: filters light coming from behind the material. Useful for tinted glass, for example.
+    diffuseColor <r> <g> <b> <a>
+    diffuseTexture <path>
+    specularColor <r> <g> <b> <a>
+    specularTexture <path>
+    tintColor <r> <g> <b> <a>
     tintTexture <path>
-    emissiveColor <r> <g> <b> <a>  # Emissive: this color is added to the lighting calculation regardless of incoming light, as if the material emits this light itself.
+    emissiveColor <r> <g> <b> <a>
     emissiveTexture <path>
-    normalMap <path>
-    transparent                    # [todo] flag: 
-                                   # Causes the polygons to be rasterized last, and allows polygons behind them to be partially visible. 
-                                   # Slightly worse for performance, and polygons can't intersect.
-                                   # Not needed for alpha cutout.
-    disableBackfaceCulling         # flag: Enable for transparent materials (including alpha cutout). This allows back-faces which would normally be culled to be visible.
+    normalMap <path> <POM>
+    transparent
+    doubleSided
 end
 ```
+
+### Parameters
+
+#### Colors
+
+All colors can have a texture.  
+If no texture is set, only the color is used.  
+If a texture is set, texture samples are multiplied by the color, so make sure to set both.
+
+- **Diffuse**: Aka albedo, aka base. If alpha < 0.5, fragments will not be drawn. (alpha cutout)
+- **Specular**: Specular highlights. Alpha = 0 disables specular. Otherwise alpha is `10 * log2(shininess)`.
+- **Tint**: Depends on whether the material is transparent:
+  - **Transparent materials**: Filters light coming from behind the material (the existing pixels).  
+    Alpha is ignored. Useful for tinted glass, for example.
+  - **Non-transparent materials**: Controls subsurface scattering.  
+    In other words, light hitting the back of a flat object creates diffuse lighting visible at the front.  
+    Alpha controls how much the intensity depends on view direction. Most useful for leaves.
+- **Emissive**: This is added to the lighting calculation regardless of incoming light, as if the material emits this light itself.
+
+#### Normal & displacement maps
+
+Used to add detail that would otherwise require a lot of polygons. Red channel is X, green is Y, blue is Z, alpha is displacement.
+
+POM parameter control Parallax [Occlusion] mapping:
+
+- `-1`: Disable
+- `0`: Parallax Mapping
+- `>0`: Enable Parallax Occlusion Mapping, parameter controls steps. It is advised that the lowest amount that looks correct at high angles be used. A typical value is 5.
+
+#### Flags
+
+- **Transparent**: Used for partially transparent materials like glass, but not needed for alpha cutout.  
+  Causes object using this material to be rendered last so blending works.  
+  Slightly worse for performance, and doesn't support intersecting polygons.
+- **Double Sided**: Disables back-face culling for flat materials (like fences and foliage, or a sphere with alpha-cutout), and makes transparent materials hollow so the inside surface reflects light.
 
 ## Meshes
 
 ```txt
 new mesh obj <materialIndex> <path>
 new mesh sphere <stacks> <sectors> <materialIndex>
+new mesh plane <subdivision x> <subdivision y> <materialIndex>
 ```
 
 - `obj`: loads a mesh from .obj file
-- `sphere`: procedurally generates a sphere
-
----
+- `sphere`: procedurally generates a sphere. More stacks and sectors makes the object smoother at the cost of performance.
+- `plane`: procedurally generates a flat plane. Subdivision should be kept at 1 unless the object is large, in which case it should be increased.
 
 ## Objects
 

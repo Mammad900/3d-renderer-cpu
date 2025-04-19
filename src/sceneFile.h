@@ -69,47 +69,47 @@ void parseSceneFile(std::string path) {
                     if (key == "#") { while (in >> key && key != "#"); continue; }
 
                     if (key == "diffuseColor")
-                        in >> mat->diffuseColor.r >> mat->diffuseColor.g >> mat->diffuseColor.b >> mat->diffuseColor.a;
+                        in >> mat->diffuse.color.r >> mat->diffuse.color.g >> mat->diffuse.color.b >> mat->diffuse.color.a;
                     else if (key == "specularColor")
-                        in >> mat->specularColor.r >> mat->specularColor.g >> mat->specularColor.b >> mat->specularColor.a;
+                        in >> mat->specular.color.r >> mat->specular.color.g >> mat->specular.color.b >> mat->specular.color.a;
                     else if (key == "tintColor")
-                        in >> mat->tintColor.r >> mat->tintColor.g >> mat->tintColor.b >> mat->tintColor.a;
+                        in >> mat->tint.color.r >> mat->tint.color.g >> mat->tint.color.b >> mat->tint.color.a;
                     else if (key == "emissiveColor")
-                        in >> mat->emissiveColor.r >> mat->emissiveColor.g >> mat->emissiveColor.b >> mat->emissiveColor.a;
+                        in >> mat->emissive.color.r >> mat->emissive.color.g >> mat->emissive.color.b >> mat->emissive.color.a;
                     else if (key == "diffuseTexture") {
                         std::string path;
                         in >> path;
-                        mat->diffuseTexture = new sf::Image();
-                        if (!mat->diffuseTexture->loadFromFile(path))
-                            std::cerr << "Failed to load texture: " << path << "\n";
+                        sf::Image img(path);
+                        mat->diffuse.texture = loadColorTexture(img);
                     } else if (key == "specularTexture") {
                         std::string path;
                         in >> path;
-                        mat->specularTexture = new sf::Image();
-                        if (!mat->specularTexture->loadFromFile(path))
-                            std::cerr << "Failed to load texture: " << path << "\n";
+                        sf::Image img(path);
+                        mat->specular.texture = loadColorTexture(img);
                     } else if (key == "tintTexture") {
                         std::string path;
                         in >> path;
-                        mat->tintTexture = new sf::Image();
-                        if (!mat->tintTexture->loadFromFile(path))
-                            std::cerr << "Failed to load texture: " << path << "\n";
+                        sf::Image img(path);
+                        mat->tint.texture = loadColorTexture(img);
                     } else if (key == "emissiveTexture") {
                         std::string path;
                         in >> path;
-                        mat->emissiveTexture = new sf::Image();
-                        if (!mat->emissiveTexture->loadFromFile(path))
-                            std::cerr << "Failed to load texture: " << path << "\n";
+                        sf::Image img(path);
+                        mat->emissive.texture = loadColorTexture(img);
                     } else if (key == "normalMap") {
                         std::string path;
-                        in >> path;
-                        mat->normalMap = new sf::Image();
-                        if (!mat->normalMap->loadFromFile(path))
-                            std::cerr << "Failed to load texture: " << path << "\n";
+                        int POM;
+                        in >> path >> POM;
+                        sf::Image img(path);
+                        mat->normalMap = loadVectorTexture(img);
+                        if(POM != -1) {
+                            mat->POM = POM;
+                            mat->displacementMap = loadFloatTexture(img);
+                        }
                     } else if (key == "transparent") {
                         mat->flags = static_cast<MaterialFlags>(mat->flags | Transparent);
-                    } else if (key == "disableBackfaceCulling") {
-                        mat->flags = static_cast<MaterialFlags>(mat->flags | DisableBackfaceCulling);
+                    } else if (key == "doubleSided") {
+                        mat->flags = static_cast<MaterialFlags>(mat->flags | DoubleSided);
                     }
                 }
                 materials.push_back(mat);

@@ -79,7 +79,7 @@ void plotVertex(Color* frame, Vector2f pos, float depth) {
 
 
 void drawTriangle(Color *frame, Triangle tri) {
-    if(tri.cull && backFaceCulling && !(tri.mat->flags & MaterialFlags::DisableBackfaceCulling))
+    if(tri.cull && backFaceCulling && !(tri.mat->flags & (MaterialFlags::Transparent | MaterialFlags::DoubleSided)))
         return;
 
     if(
@@ -161,36 +161,32 @@ void drawTriangle(Color *frame, Triangle tri) {
         float denom = 1 / (C1 + C2 + C3);
 
         #define INTERPOLATE_TRI(A,B,C) ((C1*(A) + C2*(B) + C3*(C))*denom)
-
         float z = INTERPOLATE_TRI(tri.s1.screenPos.z, tri.s2.screenPos.z, tri.s3.screenPos.z);
         Vector3f normal= INTERPOLATE_TRI(tri.s1.normal, tri.s2.normal, tri.s3.normal).normalized();
         Vector3f worldPos= INTERPOLATE_TRI(tri.s1.worldPos, tri.s2.worldPos, tri.s3.worldPos);
         Vector2f uv= INTERPOLATE_TRI(tri.uv1, tri.uv2, tri.uv3);
+        #undef INTERPOLATE_TRI
 
+        #define COLORMAP(x) ((x).color * (((x).texture) ? textureFilter((x).texture.value(), uv) : Color{1,1,1,1} ))
 
-        Color matDiffuse = tri.mat->diffuseTexture == nullptr
-                                ? tri.mat->diffuseColor
-                                : textureFilter(tri.mat->diffuseTexture, uv);
+        Color matDiffuse = COLORMAP(tri.mat->diffuse);
 
-        if(tri.mat->diffuseTexture != nullptr && matDiffuse.a < 0.5f)
+        if(matDiffuse.a < 0.5f)
             return;
-
         if (zBuffer[index] < z || z<0)
             return;
         if(!((tri.mat->flags & MaterialFlags::Transparent)))
             zBuffer[index] = z;
 
         Vector3f viewDir = (cam - worldPos).normalized();
+        if(!(tri.mat->flags & Transparent) && (tri.mat->flags & DoubleSided) && tri.cull)
+            normal *= -1.0f;
 
         // =========== LIGHTING ===========
         if (!fullBright) {
-            Color matSpecular = tri.mat->specularTexture == nullptr
-                                ? tri.mat->specularColor
-                                : textureFilter(tri.mat->specularTexture, uv);
+            Color matSpecular = COLORMAP(tri.mat->specular);
             float shininess = pow(2.0f, matSpecular.a * 25.5f);
-            Color matEmissive = tri.mat->emissiveTexture == nullptr
-                                ? tri.mat->emissiveColor
-                                : textureFilter(tri.mat->emissiveTexture, uv);
+            Color matEmissive = COLORMAP(tri.mat->emissive);
 
             Color diffuse = ambientLight * ambientLight.a;
             Color specular = {0, 0, 0, 1};
@@ -199,8 +195,8 @@ void drawTriangle(Color *frame, Triangle tri) {
                 TBN.value()[2] = normal.x;
                 TBN.value()[5] = normal.y;
                 TBN.value()[8] = normal.z;
-                Color normalSample = (textureFilter(tri.mat->normalMap, uv) * 2.0 - 1.0) * Color{-1, -1, 1, 0};
-                float normalNew[3] = {normalSample.r, normalSample.g, normalSample.b};
+                Vector3f normalSample = (textureFilter(tri.mat->normalMap.value(), uv) * 2.0f);
+                float normalNew[3] = {-normalSample.x+1.0f, -normalSample.y+1.0f, normalSample.z-1.0f};
                 matMul(TBN.value().data(), normalNew, normalNew, 3, 3, 1);
                 normal = {normalNew[0], normalNew[1], normalNew[2]};
             }
@@ -216,13 +212,15 @@ void drawTriangle(Color *frame, Triangle tri) {
                     direction = d / std::sqrtf(l2);
                     intensity /= l2;
                 }
-                float diffuseIntensity = max(normal.dot(direction), 0.0f);
-                if (tri.mat->diffuseColor.a > 0) {
-                    diffuse += light.color * diffuseIntensity * intensity;
+                float diffuseIntensity = normal.dot(direction);
+                if((tri.mat->flags & Transparent) && (tri.mat->flags & DoubleSided))
+                    diffuseIntensity = abs(diffuseIntensity);
+                if (matDiffuse.a > 0) {
+                    diffuse += light.color * max(diffuseIntensity, 0.0f) * intensity;
                 }
                 if(matSpecular.a > 0) {
                     float specularIntensity = pow(max(viewDir.dot(v2reflect(direction, normal)), 0.0f), shininess);
-                    if(diffuseIntensity == 0)
+                    if(diffuseIntensity <= 0)
                         specularIntensity = 0;
                     specular += light.color * specularIntensity * intensity;
                 }
@@ -234,9 +232,7 @@ void drawTriangle(Color *frame, Triangle tri) {
                 matEmissive;
 
             if(tri.mat->flags & MaterialFlags::Transparent) {
-                Color matTint = tri.mat->tintTexture == nullptr
-                                ? tri.mat->tintColor
-                                : textureFilter(tri.mat->tintTexture, uv);
+                Color matTint = COLORMAP(tri.mat->tint);
                 frame[index] = frame[index] * matTint + lighting;
             } else {
                 frame[index] = lighting;
@@ -248,6 +244,7 @@ void drawTriangle(Color *frame, Triangle tri) {
         else {
             frame[index] = matDiffuse;
         }
+        #undef COLOR_MAP
     };
 
     float minY =(std::min({a.y, b.y, c.y}));
