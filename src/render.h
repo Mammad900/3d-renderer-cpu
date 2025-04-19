@@ -107,7 +107,6 @@ void render() {
     auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z > b.z; };
     std::sort(transparents.begin(), transparents.end(), compareZ);
     for (auto &&tri : transparents) {
-        std::cout << tri.z << std::endl;
         drawTriangle(framebuffer, *tri.tri);
     }
     
