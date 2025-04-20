@@ -4,10 +4,10 @@ set whitePoint 2
 
 new material
 diffuseColor 1 1 1 1
-diffuseTexture assets/worldColour.4096x2048.jpg
+diffuseTexture assets/earth-diffuse-2k.jpg
 emissiveTexture assets/earth_lights_2.jpg
 emissiveColor 1 1 1 1
-normalMap assets/earth-normalmap.jpg -1
+normalMap assets/earth-normalmap-2k.jpg -1
 end
 
 new material
