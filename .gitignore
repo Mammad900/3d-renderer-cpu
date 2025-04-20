@@ -56,4 +56,5 @@ bin/*
 test/test_runner
 
 imgui.ini
-!teapot.obj
+!assets/*.obj
+assets backup
