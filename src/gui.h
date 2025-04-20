@@ -40,6 +40,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
     ImGui::Checkbox("Full-bright mode", &fullBright);
     ImGui::Checkbox("Show wireframe mesh", &wireFrame);
     ImGui::SliderFloat("White point", (float*)&whitePoint, 0, 5);
+    ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     ImGui::End();
 
     if(ImGui::Begin("Objects")) {
