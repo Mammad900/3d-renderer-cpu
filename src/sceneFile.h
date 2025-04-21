@@ -2,6 +2,7 @@
 #define __SCENEFILE_H__
 #include <fstream>
 #include "data.h"
+#include "baseMaterial.h"
 
 void parseSceneFile(std::string path) {
     std::ifstream in(path);
@@ -63,56 +64,57 @@ void parseSceneFile(std::string path) {
                 in >> light.color.r >> light.color.g >> light.color.b >> light.color.a;
                 lights.push_back(light);
             } else if (word == "material") {
-                Material* mat = new Material{};
+                BaseMaterialProps mat{};
+                MaterialFlags flags = MaterialFlags::None;
                 std::string key;
                 while (in >> key && key != "end") {
                     if (key == "#") { while (in >> key && key != "#"); continue; }
 
                     if (key == "diffuseColor")
-                        in >> mat->diffuse.color.r >> mat->diffuse.color.g >> mat->diffuse.color.b >> mat->diffuse.color.a;
+                        in >> mat.diffuse.color.r >> mat.diffuse.color.g >> mat.diffuse.color.b >> mat.diffuse.color.a;
                     else if (key == "specularColor")
-                        in >> mat->specular.color.r >> mat->specular.color.g >> mat->specular.color.b >> mat->specular.color.a;
+                        in >> mat.specular.color.r >> mat.specular.color.g >> mat.specular.color.b >> mat.specular.color.a;
                     else if (key == "tintColor")
-                        in >> mat->tint.color.r >> mat->tint.color.g >> mat->tint.color.b >> mat->tint.color.a;
+                        in >> mat.tint.color.r >> mat.tint.color.g >> mat.tint.color.b >> mat.tint.color.a;
                     else if (key == "emissiveColor")
-                        in >> mat->emissive.color.r >> mat->emissive.color.g >> mat->emissive.color.b >> mat->emissive.color.a;
+                        in >> mat.emissive.color.r >> mat.emissive.color.g >> mat.emissive.color.b >> mat.emissive.color.a;
                     else if (key == "diffuseTexture") {
                         std::string path;
                         in >> path;
                         sf::Image img(path);
-                        mat->diffuse.texture = loadColorTexture(img);
+                        mat.diffuse.texture = loadColorTexture(img);
                     } else if (key == "specularTexture") {
                         std::string path;
                         in >> path;
                         sf::Image img(path);
-                        mat->specular.texture = loadColorTexture(img);
+                        mat.specular.texture = loadColorTexture(img);
                     } else if (key == "tintTexture") {
                         std::string path;
                         in >> path;
                         sf::Image img(path);
-                        mat->tint.texture = loadColorTexture(img);
+                        mat.tint.texture = loadColorTexture(img);
                     } else if (key == "emissiveTexture") {
                         std::string path;
                         in >> path;
                         sf::Image img(path);
-                        mat->emissive.texture = loadColorTexture(img);
+                        mat.emissive.texture = loadColorTexture(img);
                     } else if (key == "normalMap") {
                         std::string path;
                         int POM;
                         in >> path >> POM;
                         sf::Image img(path);
-                        mat->normalMap = loadVectorTexture(img);
+                        mat.normalMap = loadVectorTexture(img);
                         if(POM != -1) {
-                            mat->POM = POM;
-                            mat->displacementMap = loadFloatTexture(img);
+                            mat.POM = POM;
+                            mat.displacementMap = loadFloatTexture(img);
                         }
                     } else if (key == "transparent") {
-                        mat->flags = static_cast<MaterialFlags>(mat->flags | Transparent);
+                        flags = static_cast<MaterialFlags>(flags | Transparent);
                     } else if (key == "doubleSided") {
-                        mat->flags = static_cast<MaterialFlags>(mat->flags | DoubleSided);
+                        flags = static_cast<MaterialFlags>(flags | DoubleSided);
                     }
                 }
-                materials.push_back(mat);
+                materials.push_back(new BaseMaterial(mat, flags));
             } else if (word == "mesh") {
                 std::string type;
                 in >> type;

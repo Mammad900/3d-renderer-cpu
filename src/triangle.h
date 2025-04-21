@@ -110,31 +110,31 @@ void drawTriangle(Color *frame, Triangle tri) {
     float areaOfTriangle =
         abs(s1.cross(s2)); // Two times the area of the triangle
 
-    std::optional<std::array<float, 16>> TBN;
-    if (tri.mat->normalMap) {
+    Vector3f tangent{}, bitangent{};
+    if (tri.mat->needsTBN) {
         Vector3f edge1 = tri.s2.worldPos - tri.s1.worldPos;
         Vector3f edge2 = tri.s3.worldPos - tri.s1.worldPos; 
         Vector2f deltaUV1 = tri.uv2 - tri.uv1;
         Vector2f deltaUV2 = tri.uv3 - tri.uv1; 
 
         float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-        Vector3f T = Vector3f{
+        tangent = Vector3f{
             f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x),
             f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y),
             f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z),
         }.normalized();
-        Vector3f B = Vector3f{
+        bitangent = Vector3f{
             f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x),
             f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y),
             f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z),
         }.normalized();
 
         // N is filled in each pixel, because normal is interpolated
-        TBN = {
-            T.x, B.x, 0,
-            T.y, B.y, 0,
-            T.z, B.z, 0
-        };
+        // TBN = {
+        //     T.x, B.x, 0,
+        //     T.y, B.y, 0,
+        //     T.z, B.z, 0
+        // };
     }
 
     auto &&pixel = [&](Vector2i p) -> void
@@ -167,9 +167,7 @@ void drawTriangle(Color *frame, Triangle tri) {
         Vector2f uv= INTERPOLATE_TRI(tri.uv1, tri.uv2, tri.uv3);
         #undef INTERPOLATE_TRI
 
-        #define COLORMAP(x) ((x).color * (((x).texture) ? textureFilter((x).texture.value(), uv) : Color{1,1,1,1} ))
-
-        Color matDiffuse = COLORMAP(tri.mat->diffuse);
+        Color matDiffuse = tri.mat->getBaseColor(uv, {0,0});
 
         if(matDiffuse.a < 0.5f)
             return;
@@ -178,73 +176,19 @@ void drawTriangle(Color *frame, Triangle tri) {
         if(!((tri.mat->flags & MaterialFlags::Transparent)))
             zBuffer[index] = z;
 
-        Vector3f viewDir = (cam - worldPos).normalized();
-        if(!(tri.mat->flags & Transparent) && (tri.mat->flags & DoubleSided) && tri.cull)
-            normal *= -1.0f;
+        Fragment f{
+            .position = worldPos,
+            .normal = normal,
+            .tangent = tangent,
+            .bitangent = bitangent,
+            .uv = uv,
+            .baseColor = matDiffuse,
+            .mat = tri.mat,
+            .isBackFace = tri.cull,
+        };
 
-        // =========== LIGHTING ===========
-        if (!fullBright) {
-            Color matSpecular = COLORMAP(tri.mat->specular);
-            float shininess = pow(2.0f, matSpecular.a * 25.5f);
-            Color matEmissive = COLORMAP(tri.mat->emissive);
+        frame[index] = tri.mat->shade(f, frame[index]);
 
-            Color diffuse = ambientLight * ambientLight.a;
-            Color specular = {0, 0, 0, 1};
-
-            if(TBN) {
-                TBN.value()[2] = normal.x;
-                TBN.value()[5] = normal.y;
-                TBN.value()[8] = normal.z;
-                Vector3f normalSample = (textureFilter(tri.mat->normalMap.value(), uv) * 2.0f);
-                float normalNew[3] = {-normalSample.x+1.0f, -normalSample.y+1.0f, normalSample.z-1.0f};
-                matMul(TBN.value().data(), normalNew, normalNew, 3, 3, 1);
-                normal = {normalNew[0], normalNew[1], normalNew[2]};
-            }
-
-            for (size_t i = 0; i < lights.size(); i++)
-            {
-                Light &light = lights[i];
-                Vector3f direction = light.direction;
-                float intensity = light.color.a;
-                if(light.isPointLight) {
-                    Vector3f d = light.direction - worldPos; //direction is world pos in this case
-                    float l2 = d.lengthSquared();
-                    direction = d / std::sqrtf(l2);
-                    intensity /= l2;
-                }
-                float diffuseIntensity = normal.dot(direction);
-                if((tri.mat->flags & Transparent) && (tri.mat->flags & DoubleSided))
-                    diffuseIntensity = abs(diffuseIntensity);
-                if (matDiffuse.a > 0) {
-                    diffuse += light.color * max(diffuseIntensity, 0.0f) * intensity;
-                }
-                if(matSpecular.a > 0) {
-                    float specularIntensity = pow(max(viewDir.dot(v2reflect(direction, normal)), 0.0f), shininess);
-                    if(diffuseIntensity <= 0)
-                        specularIntensity = 0;
-                    specular += light.color * specularIntensity * intensity;
-                }
-            }
-            
-            Color lighting = 
-                diffuse * matDiffuse +
-                specular * matSpecular +
-                matEmissive;
-
-            if(tri.mat->flags & MaterialFlags::Transparent) {
-                Color matTint = COLORMAP(tri.mat->tint);
-                frame[index] = frame[index] * matTint + lighting;
-            } else {
-                frame[index] = lighting;
-            }
-
-            if(whitePoint == 0) // Don't waste cycles if it won't be used
-                maximumColor = max(maximumColor, lighting.luminance()); // This doesn't take transparency into account 
-        }
-        else {
-            frame[index] = matDiffuse;
-        }
-        #undef COLOR_MAP
     };
 
     float minY =(std::min({a.y, b.y, c.y}));

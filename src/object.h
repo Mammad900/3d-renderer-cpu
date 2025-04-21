@@ -6,13 +6,37 @@
 
 using sf::Vector3f, sf::Vector2f, sf::Vector2u, std::optional;
 
+
 enum MaterialFlags : uint8_t {
+    None = 0,
     // Causes the polygons to be rasterized last, and allows polygons behind them to be partially visible. 
     // Slightly worse for performance, and polygons can't intersect.
     // Not needed for alpha cutout.
     Transparent = 1 << 0,
     // Enable for flat materials. This allows back-faces which would normally be culled to be visible.
     DoubleSided = 1 << 1
+};
+
+class Material;
+
+struct Fragment {
+    Vector3f position;
+    Vector3f normal;
+    Vector3f tangent;
+    Vector3f bitangent;
+    Vector2f uv;
+    Vector2f uv_p;
+    Color baseColor;
+    Material *mat;
+    bool isBackFace;
+};
+
+class Material {
+public:
+    MaterialFlags flags;
+    bool needsTBN = false;
+    virtual Color shade(Fragment &f, Color previous) = 0;
+    virtual Color getBaseColor(Vector2f uv, Vector2f uv_p) = 0;
 };
 
 template <typename T>
@@ -27,7 +51,7 @@ struct MaterialMap {
     optional<Texture<Color>> texture;
 };
 
-struct Material {
+struct BaseMaterialProps {
     // Diffuse, aka albedo, aka base. If alpha < 0.5, it will not be drawn. (alpha cutout)
     MaterialMap diffuse;
 
@@ -53,8 +77,6 @@ struct Material {
 
     // Parallax Occlusion mapping steps, the higher the slower. 0 means simple Parallax Mapping. Only used if displacement map is defined.
     uint8_t POM;
-
-    MaterialFlags flags;
 };
 
 struct Vertex {
