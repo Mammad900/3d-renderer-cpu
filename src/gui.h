@@ -96,24 +96,21 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
     }
     ImGui::End();
 
-    // if(ImGui::Begin("Materials")) {
-    //     for (size_t i = 0; i < materials.size(); i++)
-    //     {
-    //         ImGui::PushID(i);
-    //         if(ImGui::TreeNode("Material")) {
-    //             Material *mat = materials[i];
-    //             ImGui::ColorEdit4("Diffuse", (float*)&mat->diffuse.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-    //             ImGui::ColorEdit4("Specular", (float*)&mat->specular.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-    //             ImGui::ColorEdit4("Tint", (float*)&mat->tint.color, ImGuiColorEditFlags_Float);
-    //             ImGui::ColorEdit4("Emissive", (float*)&mat->emissive.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-    //             if(mat != selectedMaterial && ImGui::Button("Select"))
-    //                 selectedMaterial = mat;
-    //             ImGui::TreePop();
-    //         }
-    //         ImGui::PopID();
-    //     }
-    // }
-    // ImGui::End();
+    if(ImGui::Begin("Materials")) {
+        for (size_t i = 0; i < materials.size(); i++)
+        {
+            ImGui::PushID(i);
+            if(ImGui::TreeNode("Material")) {
+                Material *mat = materials[i];
+                mat->GUI();
+                if (mat != selectedMaterial && ImGui::Button("Select"))
+                    selectedMaterial = mat;
+                ImGui::TreePop();
+            }
+            ImGui::PopID();
+        }
+    }
+    ImGui::End();
 
     if(ImGui::Begin("Meshes")) {
         for (size_t i = 0; i < meshes.size(); i++)

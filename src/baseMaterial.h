@@ -19,7 +19,12 @@ public:
         return COLORMAP(mat.diffuse);
     }
 
-    Color shade(Fragment &f, Color previous) {
+    void GUI() {
+        ImGui::ColorEdit4("Diffuse", (float*)&mat.diffuse.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+        ImGui::ColorEdit4("Specular", (float*)&mat.specular.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+        ImGui::ColorEdit4("Tint", (float*)&mat.tint.color, ImGuiColorEditFlags_Float);
+        ImGui::ColorEdit4("Emissive", (float*)&mat.emissive.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+    }
         Vector2f uv = f.uv;
         Vector3f viewDir = (cam - f.position).normalized();
         if(!(flags & Transparent) && (flags & DoubleSided) && f.isBackFace)

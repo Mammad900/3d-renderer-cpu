@@ -37,6 +37,7 @@ public:
     bool needsTBN = false;
     virtual Color shade(Fragment &f, Color previous) = 0;
     virtual Color getBaseColor(Vector2f uv, Vector2f uv_p) = 0;
+    virtual void GUI() = 0;
 };
 
 template <typename T>
