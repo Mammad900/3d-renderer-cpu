@@ -3,6 +3,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector3.hpp>
 #include <algorithm>
+#include <math.h>
 
 typedef float colorComponent_t;
 using sf::Vector3f;
@@ -74,11 +75,18 @@ struct Color {
 
     float luminance() { return 0.2126f * r + 0.7152f * g + 0.0722f * b; }
     Color changeLuminance(float lOut) { return (*this) * (lOut / luminance()); }
-    Color reinhardtTonemap(float maximumColor) {
+    Color reinhardtTonemap(float maximumColor, bool gammaCorrection) {
         float lOld = luminance();
         float numerator = lOld * (1.0f + (lOld / (maximumColor*maximumColor)));
         float lNew = numerator / (1.0f + lOld);
-        return changeLuminance(lNew);
+        Color newColor = changeLuminance(lNew);
+        if(gammaCorrection)
+            newColor = Color{
+                .r = pow(newColor.r, (1.0f / 2.2f)),
+                .g = pow(newColor.g, (1.0f / 2.2f)),
+                .b = pow(newColor.b, (1.0f / 2.2f)),
+            };
+        return newColor;
     }
 };
 

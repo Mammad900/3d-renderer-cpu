@@ -41,6 +41,7 @@ void parseSceneFile(std::string path) {
             else if (word == "reverseAllFaces") { int x; in >> x; reverseAllFaces = x; }
             else if (word == "fullBright") { int x; in >> x; fullBright = x; }
             else if (word == "wireFrame") { int x; in >> x; wireFrame = x; }
+            else if (word == "gammaCorrection") { int x; in >> x; gammaCorrection = x; }
             else if (word == "whitePoint") { in >> whitePoint; }
         } else if (word == "fog") {
             in >> fogColor.r >> fogColor.g >> fogColor.b >> fogColor.a;
