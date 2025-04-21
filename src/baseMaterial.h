@@ -1,6 +1,7 @@
 #ifndef __BASEMATERIAL_H__
 #define __BASEMATERIAL_H__
 
+#include "imgui.h"
 #include "object.h"
 #include "textureFiltering.h"
 
@@ -25,21 +26,25 @@ public:
         ImGui::ColorEdit4("Tint", (float*)&mat.tint.color, ImGuiColorEditFlags_Float);
         ImGui::ColorEdit4("Emissive", (float*)&mat.emissive.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
     }
+
+    Color shade(Fragment &f, Color previous, Color matSpecular, Color matEmissive, Color matTint) {
         Vector2f uv = f.uv;
         Vector3f viewDir = (cam - f.position).normalized();
         if(!(flags & Transparent) && (flags & DoubleSided) && f.isBackFace)
             f.normal *= -1.0f;
-        Color matSpecular = COLORMAP(mat.specular);
+        if(matSpecular.a == 0)
+            matSpecular = COLORMAP(mat.specular);
         float shininess = pow(2.0f, matSpecular.a * 25.5f);
-        Color matEmissive = COLORMAP(mat.emissive);
+        if(matEmissive.a == 0)
+            matEmissive = COLORMAP(mat.emissive);
 
         Color diffuse = ambientLight * ambientLight.a;
         Color specular = {0, 0, 0, 1};
 
-        if(mat.normalMap) {
-            Vector3f normal = ((textureFilter(mat.normalMap.value(), f.uv) * 2.0f) - Vector3f{1.0f,1.0f,1.0f}).componentWiseMul({-1,-1,1});
+        Vector3f normal = f.normal;
+        if (mat.normalMap) {
+            normal = ((textureFilter(mat.normalMap.value(), f.uv) * 2.0f) - Vector3f{1.0f,1.0f,1.0f}).componentWiseMul({-1,-1,1});
             normal = f.tangent*normal.x + f.bitangent*normal.y + f.normal*normal.z;
-            f.normal = normal;
         }
 
         for (size_t i = 0; i < lights.size(); i++)
@@ -53,14 +58,14 @@ public:
                 direction = d / std::sqrtf(l2);
                 intensity /= l2;
             }
-            float diffuseIntensity = f.normal.dot(direction);
+            float diffuseIntensity = normal.dot(direction);
             if((flags & Transparent) && (flags & DoubleSided))
                 diffuseIntensity = abs(diffuseIntensity);
             if (f.baseColor.a > 0) {
                 diffuse += light.color * max(diffuseIntensity, 0.0f) * intensity;
             }
             if(matSpecular.a > 0) {
-                float specularIntensity = pow(max(viewDir.dot(v2reflect(direction, f.normal)), 0.0f), shininess);
+                float specularIntensity = pow(max(viewDir.dot(v2reflect(direction, normal)), 0.0f), shininess);
                 if(diffuseIntensity <= 0)
                     specularIntensity = 0;
                 specular += light.color * specularIntensity * intensity;
@@ -73,7 +78,8 @@ public:
             matEmissive;
 
         if(flags & MaterialFlags::Transparent) {
-            Color matTint = COLORMAP(mat.tint);
+            if(matTint.a == 0)
+                matTint = COLORMAP(mat.tint);
             lighting = previous * matTint + lighting;
         }
 
@@ -82,6 +88,9 @@ public:
 
         return lighting;
     }
+    Color shade(Fragment &f, Color previous) {
+        return shade(f, previous, {}, {}, {});
+    }
 };
-#undef COLORMAP
+
 #endif /* __BASEMATERIAL_H__ */

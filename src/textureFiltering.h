@@ -71,7 +71,7 @@ Texture<float> loadFloatTexture(sf::Image &img) {
     float *pixels = new float[atlasSize.x*atlasSize.y];
     for (uint y = 0; y < size.y; y++)
         for (uint x = 0; x < size.x; x++)
-            pixels[y * atlasSize.x + x] = img.getPixel({x, y}).a / 255.0f;
+            pixels[y * atlasSize.x + x] = img.getPixel({x, y}).r / 255.0f;
     // generateMipmaps(pixels, size, atlasSize);
     return {pixels, size, atlasSize};
 }

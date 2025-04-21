@@ -30,7 +30,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
     ImGui::Begin("Options");
     ImGui::InputFloat("Near", &nearClip);
     ImGui::InputFloat("Far", &farClip);
-    ImGui::SliderFloat("FOV", &fov, 30, 150);
+    ImGui::SliderFloat("FOV", &fov, 10, 150);
     ImGui::SliderFloat3("Camera rotation", (float *)&camRotation, -M_PI, M_PI);
     ImGui::DragFloat3("Camera position", (float *)&cam, 0.2f);
     ImGui::RadioButton("Frame buffer", &renderMode, 0);

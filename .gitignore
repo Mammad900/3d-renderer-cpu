@@ -57,4 +57,4 @@ test/test_runner
 
 imgui.ini
 !assets/*.obj
-assets backup
+assets-backup

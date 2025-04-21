@@ -33,7 +33,7 @@ Vector3f camRotation = {0, 0, 0};
 Vector3f camDirection;
 float nearClip = 0.1, farClip = 100;
 float fov = 90;
-constexpr Vector2u frameSize = {500, 500};
+constexpr Vector2u frameSize = {1000, 1000};
 
 Color framebuffer[frameSize.x * frameSize.y];
 float zBuffer[frameSize.x * frameSize.y];

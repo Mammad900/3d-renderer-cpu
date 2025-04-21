@@ -1,14 +1,17 @@
 fov 30
 cam pos 0 0 -5
-set whitePoint 2
+set whitePoint 4
+ambientLight 0.4 0.4 0.4 0.1
 
-new material
+# new material
 diffuseColor 1 1 1 1
 diffuseTexture assets/earth-diffuse-2k.jpg
+specularColor 0.3 0.275 0.6 0.15
+specularTexture assets/earth-specular-4k.jpg
 emissiveTexture assets/earth_lights_2.jpg
 emissiveColor 1 1 1 1
 normalMap assets/earth-normalmap-2k.jpg -1
-end
+end #
 
 new material
 diffuseColor 0.02 0.02 0.02 1
@@ -21,6 +24,6 @@ new mesh sphere 20 20 0
 new object 0  0 0 0  1 1 1  0 0 0
 
 new mesh sphere 20 20 1
-new object 1 0 0 -1.5  0.2 0.2 0.2  -90 0 0
+# new object 1 0 0 -1.5  0.2 0.2 0.2  -90 0 0 #
 
 new light directional 0 0 90 1 1 1 5
