@@ -1,5 +1,5 @@
-#ifndef __BASEMATERIAL_H__
-#define __BASEMATERIAL_H__
+#ifndef __PHONGMATERIAL_H__
+#define __PHONGMATERIAL_H__
 
 #include "imgui.h"
 #include "object.h"
@@ -7,11 +7,11 @@
 
 #define COLORMAP(x) ((x).color * (((x).texture) ? textureFilter((x).texture.value(), uv) : Color{1,1,1,1} ))
 
-class BaseMaterial : public Material {
+class PhongMaterial : public Material {
 public:
-    BaseMaterialProps mat;
+    PhongMaterialProps mat;
 
-    BaseMaterial(BaseMaterialProps &mat, MaterialFlags flags) : mat(mat) {
+    PhongMaterial(PhongMaterialProps &mat, MaterialFlags flags) : mat(mat) {
         this->flags = flags;
         needsTBN = mat.normalMap.has_value();
     }
@@ -93,4 +93,4 @@ public:
     }
 };
 
-#endif /* __BASEMATERIAL_H__ */
+#endif /* __PHONGMATERIAL_H__ */

@@ -2,7 +2,7 @@
 #define __SCENEFILE_H__
 #include <fstream>
 #include "data.h"
-#include "baseMaterial.h"
+#include "phongMaterial.h"
 
 void parseSceneFile(std::string path) {
     std::ifstream in(path);
@@ -65,7 +65,7 @@ void parseSceneFile(std::string path) {
                 in >> light.color.r >> light.color.g >> light.color.b >> light.color.a;
                 lights.push_back(light);
             } else if (word == "material") {
-                BaseMaterialProps mat{};
+                PhongMaterialProps mat{};
                 MaterialFlags flags = MaterialFlags::None;
                 std::string key;
                 while (in >> key && key != "end") {
@@ -115,7 +115,7 @@ void parseSceneFile(std::string path) {
                         flags = static_cast<MaterialFlags>(flags | DoubleSided);
                     }
                 }
-                materials.push_back(new BaseMaterial(mat, flags));
+                materials.push_back(new PhongMaterial(mat, flags));
             } else if (word == "mesh") {
                 std::string type;
                 in >> type;

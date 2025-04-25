@@ -52,7 +52,7 @@ struct MaterialMap {
     optional<Texture<Color>> texture;
 };
 
-struct BaseMaterialProps {
+struct PhongMaterialProps {
     // Diffuse, aka albedo, aka base. If alpha < 0.5, it will not be drawn. (alpha cutout)
     MaterialMap diffuse;
 

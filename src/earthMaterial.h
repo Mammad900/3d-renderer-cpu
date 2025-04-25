@@ -1,12 +1,12 @@
 #ifndef __EARTHMATERIAL_H__
 #define __EARTHMATERIAL_H__
-#include "baseMaterial.h"
+#include "phongMaterial.h"
 
 class EarthMaterial : public Material {
 public:
-    BaseMaterial *terrain;
-    BaseMaterial *ocean;
-    BaseMaterial *cloud;
+    PhongMaterial *terrain;
+    PhongMaterial *ocean;
+    PhongMaterial *cloud;
     Texture<float> oceanMask;
     Texture<float> cloudTexture;
 
@@ -20,7 +20,7 @@ public:
         this->oceanMask = loadFloatTexture(oceanMask);
         this->cloudTexture = loadFloatTexture(clouds);
 
-        BaseMaterialProps terrainProps{
+        PhongMaterialProps terrainProps{
             .diffuse = {
                 .color = {1, 1, 1, 1},
                 .texture = loadColorTexture(diffuse),
@@ -31,16 +31,16 @@ public:
             },
             .normalMap = loadVectorTexture(normalMap),
         };
-        terrain = new BaseMaterial(terrainProps, MaterialFlags::None);
+        terrain = new PhongMaterial(terrainProps, MaterialFlags::None);
 
-        BaseMaterialProps oceanProps{
+        PhongMaterialProps oceanProps{
             .diffuse = {.color = {1,1,1,1}},
             .specular = {.color = {0.275, 0.38, 0.6, 0.16}}
         };
-        ocean = new BaseMaterial(oceanProps, MaterialFlags::None);
+        ocean = new PhongMaterial(oceanProps, MaterialFlags::None);
 
-        BaseMaterialProps cloudProps{.diffuse = {.color = {1, 1, 1, 1}}};
-        cloud = new BaseMaterial(cloudProps, MaterialFlags::None);
+        PhongMaterialProps cloudProps{.diffuse = {.color = {1, 1, 1, 1}}};
+        cloud = new PhongMaterial(cloudProps, MaterialFlags::None);
 
         this->needsTBN = true;
     }
