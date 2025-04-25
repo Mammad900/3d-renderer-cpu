@@ -4,13 +4,13 @@
 
 class EarthMaterial : public Material {
 public:
-    PhongMaterial *terrain;
-    PhongMaterial *ocean;
-    PhongMaterial *cloud;
+    PhongMaterial *terrainMat;
+    PhongMaterial *oceanMat;
+    PhongMaterial *cloudMat;
     Texture<float> oceanMask;
     Texture<float> cloudTexture;
 
-    EarthMaterial() {
+    EarthMaterial(std::string name) : Material(name, MaterialFlags::None, true) {
         sf::Image diffuse("assets/earth-diffuse-8k.jpg");
         sf::Image oceanMask("assets/earth-specular-8k.jpg");
         sf::Image lights("assets/earth-lights-8k.jpg");
@@ -31,40 +31,59 @@ public:
             },
             .normalMap = loadVectorTexture(normalMap),
         };
-        terrain = new PhongMaterial(terrainProps, MaterialFlags::None);
+        terrainMat = new PhongMaterial(terrainProps, name+" Terrain", MaterialFlags::None);
 
         PhongMaterialProps oceanProps{
             .diffuse = {.color = {1,1,1,1}},
             .specular = {.color = {0.275, 0.38, 0.6, 0.16}}
         };
-        ocean = new PhongMaterial(oceanProps, MaterialFlags::None);
+        oceanMat = new PhongMaterial(oceanProps, name+" Terrain", MaterialFlags::None);
 
         PhongMaterialProps cloudProps{.diffuse = {.color = {1, 1, 1, 1}}};
-        cloud = new PhongMaterial(cloudProps, MaterialFlags::None);
-
-        this->needsTBN = true;
+        cloudMat = new PhongMaterial(cloudProps, name+" Terrain", MaterialFlags::None);
     }
 
     Color shade(Fragment &f, Color previous) {
         bool isOcean = textureFilter(oceanMask, f.uv) > 0.5f;
-        Color groundLighting = isOcean ? ocean->shade(f, previous) : terrain->shade(f, previous);
-        f.baseColor = cloud->mat.diffuse.color; // Because it contains terrain diffuse and we want white
-        Color cloudLighting = cloud->shade(f, previous);
+        Color groundLighting = isOcean ? oceanMat->shade(f, previous) : terrainMat->shade(f, previous);
+        f.baseColor = cloudMat->mat.diffuse.color; // Because it contains terrain diffuse and we want white
+        Color cloudLighting = cloudMat->shade(f, previous);
         float cloudIntensity = textureFilter(cloudTexture, f.uv);
         return groundLighting * (1 - cloudIntensity) +
                cloudLighting * cloudIntensity;
     }
 
     Color getBaseColor(Vector2f uv, Vector2f uv_p) {
-        return textureFilter(terrain->mat.diffuse.texture.value(), uv);
+        return textureFilter(terrainMat->mat.diffuse.texture.value(), uv);
     }
 
     void GUI() {
-        ImGui::ColorEdit4("Terrain base", (float*)&terrain->mat.diffuse.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-        ImGui::ColorEdit4("City lights", (float*)&terrain->mat.emissive.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-        ImGui::ColorEdit4("Ocean diffuse", (float*)&ocean->mat.diffuse.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-        ImGui::ColorEdit4("Ocean specular", (float*)&ocean->mat.specular.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-        ImGui::ColorEdit4("Cloud diffuse", (float*)&cloud->mat.diffuse.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+        ImGui::ColorEdit4("Terrain base", (float*)&terrainMat->mat.diffuse.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+        ImGui::ColorEdit4("City lights", (float*)&terrainMat->mat.emissive.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+        ImGui::ColorEdit4("Ocean diffuse", (float*)&oceanMat->mat.diffuse.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+        ImGui::ColorEdit4("Ocean specular", (float*)&oceanMat->mat.specular.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+        ImGui::ColorEdit4("Cloud diffuse", (float*)&cloudMat->mat.diffuse.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+
+        ImGui::PushID(0);
+        if(ImGui::TreeNode("Terrain material")) {
+            terrainMat->GUI();
+            ImGui::TreePop();
+        }
+        ImGui::PopID();
+
+        ImGui::PushID(1);
+        if(ImGui::TreeNode("Ocean material")) {
+            oceanMat->GUI();
+            ImGui::TreePop();
+        }
+        ImGui::PopID();
+
+        ImGui::PushID(2);
+        if(ImGui::TreeNode("Cloud material")) {
+            cloudMat->GUI();
+            ImGui::TreePop();
+        }
+        ImGui::PopID();
     }
 };
 

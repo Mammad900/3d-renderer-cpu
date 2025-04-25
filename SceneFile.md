@@ -4,7 +4,7 @@ This is a simple scene description format parsed word by word.
 
 ## General Notes
 
-- Comments: `# this is a comment #`
+- Comments: `# this is a comment #` (# must be separated by whitespace, else it won't count as a comment special character)
 - Words are separated by any whitespace desired.
 - Rotations are in degrees.
 - All colors are 4 floats (r g b a).
@@ -53,7 +53,7 @@ All fields are optional unless otherwise noted.
 Textures are loaded from relative file paths.
 
 ```txt
-new material <type>
+new material <name> <type>
   <parameters>
 end
 ```
@@ -63,7 +63,7 @@ end
 This material is based on the [Phong Reflection Model](https://en.wikipedia.org/wiki/Phong_reflection_model) with several additions such as transparency, emissive and simple subsurface scattering.
 
 ```txt
-new material
+new material <name>
     diffuseColor <r> <g> <b> <a>
     diffuseTexture <path>
     specularColor <r> <g> <b> <a>
@@ -116,9 +116,9 @@ POM parameter control Parallax [Occlusion] mapping:
 ## Meshes
 
 ```txt
-new mesh obj <materialIndex> <path>
-new mesh sphere <stacks> <sectors> <materialIndex>
-new mesh plane <subdivision x> <subdivision y> <materialIndex>
+new mesh <name> obj <material-name> <path>
+new mesh <name> sphere <stacks> <sectors> <material-name>
+new mesh <name> plane <subdivision x> <subdivision y> <material-name>
 ```
 
 - `obj`: loads a mesh from .obj file
@@ -128,7 +128,7 @@ new mesh plane <subdivision x> <subdivision y> <materialIndex>
 ## Objects
 
 ```txt
-new object <meshIndex>
+new object <mesh-name>
     <x> <y> <z>         # position
     <sx> <sy> <sz>      # scale
     <rx> <ry> <rz>      # rotation (degrees)
@@ -148,20 +148,21 @@ ambientLight 0.2 0.2 0.2 1
 new light directional 1 -1 -1 1 1 1 1
 
 # Material #
-new material
+new material MyMaterial phong
     diffuseColor 1 0 0 1
 end
 
 # Mesh and object #
-new mesh sphere 16 32 0
-new object 0
+new mesh MyMesh sphere 16 32 MyMaterial
+new object MyMesh
     0 0 0
     1 1 1
-    0 0 0
+    30 45 60
 ```
 
 ## Notes
 
+- Material and mesh names cannot contain spaces.
 - Indentation is for readability only. All whitespace is ignored.
 - If the file is missing optional sections, defaults are used:
   - All camera settings, settings and scene globals are optional.

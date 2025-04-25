@@ -1,11 +1,52 @@
 #ifndef __SCENEFILE_H__
 #define __SCENEFILE_H__
 #include <fstream>
+#include <filesystem>
 #include "data.h"
 #include "phongMaterial.h"
 #include "earthMaterial.h"
 
-void parseSceneFile(std::string path) {
+std::istream& operator>>(std::istream& in, Vector3f& v){
+    in >> v.x >> v.y >> v.z;
+    return in;
+}
+std::istream& operator>>(std::istream& in, std::optional<Texture<Color>>& t){
+    std::string path;
+    in >> path;
+    sf::Image img(path);
+    t = loadColorTexture(img);
+    return in;
+}
+std::istream& operator>>(std::istream& in, std::optional<Texture<Vector3f>>& t){
+    std::string path;
+    in >> path;
+    sf::Image img(path);
+    t = loadVectorTexture(img);
+    return in;
+}
+std::istream& operator>>(std::istream& in, std::optional<Texture<float>>& t){
+    std::string path;
+    in >> path;
+    sf::Image img(path);
+    t = loadFloatTexture(img);
+    return in;
+}
+Material* findMaterial(std::string& name) {
+    for (auto &&mat : materials)
+        if(mat->name == name)
+            return mat;
+    std::cout << "Could not find material " << name << std::endl;
+    return nullptr;
+}
+Mesh* findMesh(std::string& name) {
+    for (auto &&mesh : meshes)
+        if(mesh->label == name)
+            return mesh;
+    std::cout << "Could not find mesh " << name << std::endl;
+    return nullptr;
+}
+
+void parseSceneFile(std::filesystem::path path) {
     std::ifstream in(path);
     if (!in) {
         std::cerr << "Failed to open scene file.\n";
@@ -20,15 +61,15 @@ void parseSceneFile(std::string path) {
         }
 
         if (word == "import") {
-            std::string path;
-            in >> path;
-            parseSceneFile(path);
+            std::filesystem::path path2;
+            in >> path2;
+            parseSceneFile(path.parent_path() / path2);
         }
         else if (word == "cam") {
             in >> word;
-            if (word == "pos") in >> cam.x >> cam.y >> cam.z;
+            if (word == "pos") in >> cam;
             else if (word == "rot") {
-                in >> camRotation.x >> camRotation.y >> camRotation.z;
+                in >> camRotation;
                 camRotation *= M_PIf / 180.0f;
             }
         } else if (word == "nearFar") {
@@ -44,9 +85,9 @@ void parseSceneFile(std::string path) {
             else if (word == "wireFrame") { int x; in >> x; wireFrame = x; }
             else if (word == "whitePoint") { in >> whitePoint; }
         } else if (word == "fog") {
-            in >> fogColor.r >> fogColor.g >> fogColor.b >> fogColor.a;
+            in >> fogColor;
         } else if (word == "ambientLight") {
-            in >> ambientLight.r >> ambientLight.g >> ambientLight.b >> ambientLight.a;
+            in >> ambientLight;
         } else if (word == "new") {
             in >> word;
             if (word == "light") {
@@ -55,18 +96,18 @@ void parseSceneFile(std::string path) {
 
                 Light light;
                 if (type == "directional") {
-                    in >> light.rotation.x >> light.rotation.y >> light.rotation.z;
+                    in >> light.rotation;
                     light.rotation *= M_PIf / 180.0f;
                     light.isPointLight = false;
                 } else if (type == "point") {
-                    in >> light.direction.x >> light.direction.y >> light.direction.z;
+                    in >> light.direction;
                     light.isPointLight = true;
                 }
-                in >> light.color.r >> light.color.g >> light.color.b >> light.color.a;
+                in >> light.color;
                 lights.push_back(light);
             } else if (word == "material") {
-                std::string type;
-                in >> type;
+                std::string name, type;
+                in >> name >> type;
 
                 if(type == "phong") {
                     PhongMaterialProps mat{};
@@ -76,33 +117,21 @@ void parseSceneFile(std::string path) {
                         if (key == "#") { while (in >> key && key != "#"); continue; }
 
                         if (key == "diffuseColor")
-                            in >> mat.diffuse.color.r >> mat.diffuse.color.g >> mat.diffuse.color.b >> mat.diffuse.color.a;
+                            in >> mat.diffuse.color;
                         else if (key == "specularColor")
-                            in >> mat.specular.color.r >> mat.specular.color.g >> mat.specular.color.b >> mat.specular.color.a;
+                            in >> mat.specular.color;
                         else if (key == "tintColor")
-                            in >> mat.tint.color.r >> mat.tint.color.g >> mat.tint.color.b >> mat.tint.color.a;
+                            in >> mat.tint.color;
                         else if (key == "emissiveColor")
-                            in >> mat.emissive.color.r >> mat.emissive.color.g >> mat.emissive.color.b >> mat.emissive.color.a;
+                            in >> mat.emissive.color;
                         else if (key == "diffuseTexture") {
-                            std::string path;
-                            in >> path;
-                            sf::Image img(path);
-                            mat.diffuse.texture = loadColorTexture(img);
+                            in >> mat.diffuse.texture;
                         } else if (key == "specularTexture") {
-                            std::string path;
-                            in >> path;
-                            sf::Image img(path);
-                            mat.specular.texture = loadColorTexture(img);
+                            in >> mat.specular.texture;
                         } else if (key == "tintTexture") {
-                            std::string path;
-                            in >> path;
-                            sf::Image img(path);
-                            mat.tint.texture = loadColorTexture(img);
+                            in >> mat.tint.texture;
                         } else if (key == "emissiveTexture") {
-                            std::string path;
-                            in >> path;
-                            sf::Image img(path);
-                            mat.emissive.texture = loadColorTexture(img);
+                            in >> mat.emissive.texture;
                         } else if (key == "normalMap") {
                             std::string path;
                             int POM;
@@ -119,40 +148,38 @@ void parseSceneFile(std::string path) {
                             flags = static_cast<MaterialFlags>(flags | DoubleSided);
                         }
                     }
-                    materials.push_back(new PhongMaterial(mat, flags));
+                    materials.push_back(new PhongMaterial(mat, name, flags));
                 }
                 else if(type == "earth") {
-                    materials.push_back(new EarthMaterial());
+                    materials.push_back(new EarthMaterial(name));
                 }
             } else if (word == "mesh") {
-                std::string type;
-                in >> type;
+                std::string name, type;
+                in >> name >> type;
                 if (type == "obj") {
-                    int matIndex;
-                    std::string path;
-                    in >> matIndex >> path;
-                    Mesh* mesh = loadOBJ(path, materials[matIndex]);
+                    std::string matName, path;
+                    in >> matName >> path;
+                    Mesh* mesh = loadOBJ(path, findMaterial(matName), name);
                     meshes.push_back(mesh);
                 } else if (type == "sphere") {
-                    int stacks, sectors, matIndex;
-                    in >> stacks >> sectors >> matIndex;
-                    Mesh* mesh = createSphere(stacks, sectors, materials[matIndex]);
+                    int stacks, sectors;
+                    std::string matName;
+                    in >> stacks >> sectors >> matName;
+                    Mesh* mesh = createSphere(findMaterial(matName), name, stacks, sectors);
                     meshes.push_back(mesh);
                 } else if (type == "plane") {
-                    int matIndex;
                     uint16_t subDivX, subDivY;
-                    in >> subDivX >> subDivY >> matIndex;
-                    Mesh* mesh = createPlane(subDivX, subDivY, materials[matIndex]);
+                    std::string matName;
+                    in >> subDivX >> subDivY >> matName;
+                    Mesh* mesh = createPlane(findMaterial(matName), name, subDivX, subDivY);
                     meshes.push_back(mesh);
                 }
             } else if (word == "object") {
-                int meshIndex;
+                std::string meshName;
+                in >> meshName;
                 Object obj;
-                in >> meshIndex;
-                obj.mesh = meshes[meshIndex];
-                in >> obj.position.x >> obj.position.y >> obj.position.z;
-                in >> obj.scale.x >> obj.scale.y >> obj.scale.z;
-                in >> obj.rotation.x >> obj.rotation.y >> obj.rotation.z;
+                obj.mesh = findMesh(meshName);
+                in >> obj.position >> obj.scale >> obj.rotation;
                 obj.rotation *= M_PIf / 180.0f;
                 objects.push_back(obj);
             }

@@ -11,10 +11,8 @@ class PhongMaterial : public Material {
 public:
     PhongMaterialProps mat;
 
-    PhongMaterial(PhongMaterialProps &mat, MaterialFlags flags) : mat(mat) {
-        this->flags = flags;
-        needsTBN = mat.normalMap.has_value();
-    }
+    PhongMaterial(PhongMaterialProps &mat, std::string name, MaterialFlags flags) 
+        : Material(name, flags, mat.normalMap.has_value()), mat(mat) { }
 
     Color getBaseColor(Vector2f uv, Vector2f uv_p) {
         return COLORMAP(mat.diffuse);

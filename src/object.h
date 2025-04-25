@@ -33,8 +33,10 @@ struct Fragment {
 
 class Material {
 public:
+    std::string name;
     MaterialFlags flags;
     bool needsTBN = false;
+    Material(std::string name, MaterialFlags flags, bool needsTBN) : name(name), flags(flags), needsTBN(needsTBN) {}
     virtual Color shade(Fragment &f, Color previous) = 0;
     virtual Color getBaseColor(Vector2f uv, Vector2f uv_p) = 0;
     virtual void GUI() = 0;

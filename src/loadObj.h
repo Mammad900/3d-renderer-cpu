@@ -11,7 +11,7 @@
 
 using sf::Vector3f;
 
-Mesh *loadOBJ(const std::string &filename, Material *mat) {
+Mesh *loadOBJ(const std::string &filename, Material *mat, std::string name) {
     std::ifstream file(filename); // Like std::cin, but for a file
     if (!file) {
         std::cerr << "Failed to open " << filename << "\n";
@@ -64,7 +64,7 @@ Mesh *loadOBJ(const std::string &filename, Material *mat) {
     mesh->n_faces = faces.size();
     mesh->vertices = new Vertex[vertices.size()];
     mesh->faces = new Face[faces.size()];
-    mesh->label = ((std::filesystem::path)filename).filename();
+    mesh->label = name;
 
     std::copy(vertices.begin(), vertices.end(), mesh->vertices);
     std::copy(faces.begin(), faces.end(), mesh->faces);

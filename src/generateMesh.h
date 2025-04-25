@@ -17,10 +17,10 @@
 //   material - pointer to the Material to be assigned to each face
 //
 // Returns a pointer to a Mesh containing the sphere geometry.
-Mesh* createSphere(uint16_t stacks, uint16_t sectors, Material* material) {
+Mesh* createSphere(Material* material, std::string name, uint16_t stacks, uint16_t sectors) {
     // Allocate the mesh and assign a label.
     Mesh* mesh = new Mesh;
-    mesh->label = "UV Sphere";
+    mesh->label = name;
     
     // Calculate number of vertices:
     // There will be (stacks + 1) rows and (sectors + 1) columns of vertices.
@@ -99,10 +99,10 @@ Mesh* createSphere(uint16_t stacks, uint16_t sectors, Material* material) {
     return mesh;
 }
 
-Mesh* createPlane(uint16_t subdivisionsX, uint16_t subdivisionsY, Material* material) {
+Mesh* createPlane(Material* material, std::string name, uint16_t subdivisionsX, uint16_t subdivisionsY) {
     // Allocate the mesh and assign a label.
     Mesh* mesh = new Mesh;
-    mesh->label = "Plane";
+    mesh->label = name;
 
     // Calculate the number of vertices and faces.
     uint16_t numVertices = (subdivisionsX + 1) * (subdivisionsY + 1);

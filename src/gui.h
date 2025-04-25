@@ -99,8 +99,8 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
         for (size_t i = 0; i < materials.size(); i++)
         {
             ImGui::PushID(i);
-            if(ImGui::TreeNode("Material")) {
-                Material *mat = materials[i];
+            Material *mat = materials[i];
+            if(ImGui::TreeNode(mat->name.c_str())) {
                 mat->GUI();
                 if (mat != selectedMaterial && ImGui::Button("Select"))
                     selectedMaterial = mat;
@@ -141,7 +141,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
                 ImGui::Text("Select a material in the materials window.");
             ImGui::InputText("Path", objFilePath, 500);
             if(selectedMaterial!= nullptr && ImGui::Button("Load")) {
-                Mesh *m = loadOBJ(objFilePath, selectedMaterial);
+                Mesh *m = loadOBJ(objFilePath, selectedMaterial, std::filesystem::path(objFilePath).filename());
                 meshes.push_back(m);
             }
             ImGui::TreePop();

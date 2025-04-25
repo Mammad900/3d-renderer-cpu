@@ -4,6 +4,7 @@
 #include <SFML/System/Vector3.hpp>
 #include <algorithm>
 #include <math.h>
+#include <istream>
 
 typedef float colorComponent_t;
 using sf::Vector3f;
@@ -72,6 +73,11 @@ struct Color {
         return sf::Color(r, g, b);
     }
     operator Vector3f() const { return Vector3f{r, g, b}; }
+
+    friend std::istream& operator>>(std::istream &is, Color &color) {
+        is >> color.r >> color.g >> color.b >> color.a;
+        return is;
+    }
 
     float luminance() { return 0.2126f * r + 0.7152f * g + 0.0722f * b; }
     Color changeLuminance(float lOut) { return (*this) * (lOut / luminance()); }
