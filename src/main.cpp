@@ -4,11 +4,9 @@
 #include "render.h"
 #include "generateMesh.h"
 #include "sceneFile.h"
-#include "earthMaterial.h"
 #include <SFML/Graphics.hpp>
 #include <filesystem>
 int main(int argc, char** argv) {
-    materials.push_back(new EarthMaterial());
     parseSceneFile(argc > 1 ? argv[1] : "assets/scene.txt");
 
     // Scene window

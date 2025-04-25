@@ -3,7 +3,7 @@ cam pos 0 0 -5
 set whitePoint 4
 ambientLight 0.4 0.4 0.4 0.1
 
-# new material
+# new material phong
 diffuseColor 1 1 1 1
 diffuseTexture assets/earth-diffuse-2k.jpg
 specularColor 0.3 0.275 0.6 0.15
@@ -13,7 +13,9 @@ emissiveColor 1 1 1 1
 normalMap assets/earth-normalmap-2k.jpg -1
 end #
 
-new material
+new material earth
+
+new material phong
 diffuseColor 0.02 0.02 0.02 1
 specularColor 1 1 1 0.25
 tintColor 1 0 0 1

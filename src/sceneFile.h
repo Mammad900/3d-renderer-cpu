@@ -3,6 +3,7 @@
 #include <fstream>
 #include "data.h"
 #include "phongMaterial.h"
+#include "earthMaterial.h"
 
 void parseSceneFile(std::string path) {
     std::ifstream in(path);
@@ -65,57 +66,65 @@ void parseSceneFile(std::string path) {
                 in >> light.color.r >> light.color.g >> light.color.b >> light.color.a;
                 lights.push_back(light);
             } else if (word == "material") {
-                PhongMaterialProps mat{};
-                MaterialFlags flags = MaterialFlags::None;
-                std::string key;
-                while (in >> key && key != "end") {
-                    if (key == "#") { while (in >> key && key != "#"); continue; }
+                std::string type;
+                in >> type;
 
-                    if (key == "diffuseColor")
-                        in >> mat.diffuse.color.r >> mat.diffuse.color.g >> mat.diffuse.color.b >> mat.diffuse.color.a;
-                    else if (key == "specularColor")
-                        in >> mat.specular.color.r >> mat.specular.color.g >> mat.specular.color.b >> mat.specular.color.a;
-                    else if (key == "tintColor")
-                        in >> mat.tint.color.r >> mat.tint.color.g >> mat.tint.color.b >> mat.tint.color.a;
-                    else if (key == "emissiveColor")
-                        in >> mat.emissive.color.r >> mat.emissive.color.g >> mat.emissive.color.b >> mat.emissive.color.a;
-                    else if (key == "diffuseTexture") {
-                        std::string path;
-                        in >> path;
-                        sf::Image img(path);
-                        mat.diffuse.texture = loadColorTexture(img);
-                    } else if (key == "specularTexture") {
-                        std::string path;
-                        in >> path;
-                        sf::Image img(path);
-                        mat.specular.texture = loadColorTexture(img);
-                    } else if (key == "tintTexture") {
-                        std::string path;
-                        in >> path;
-                        sf::Image img(path);
-                        mat.tint.texture = loadColorTexture(img);
-                    } else if (key == "emissiveTexture") {
-                        std::string path;
-                        in >> path;
-                        sf::Image img(path);
-                        mat.emissive.texture = loadColorTexture(img);
-                    } else if (key == "normalMap") {
-                        std::string path;
-                        int POM;
-                        in >> path >> POM;
-                        sf::Image img(path);
-                        mat.normalMap = loadVectorTexture(img);
-                        if(POM != -1) {
-                            mat.POM = POM;
-                            mat.displacementMap = loadFloatTexture(img);
+                if(type == "phong") {
+                    PhongMaterialProps mat{};
+                    MaterialFlags flags = MaterialFlags::None;
+                    std::string key;
+                    while (in >> key && key != "end") {
+                        if (key == "#") { while (in >> key && key != "#"); continue; }
+
+                        if (key == "diffuseColor")
+                            in >> mat.diffuse.color.r >> mat.diffuse.color.g >> mat.diffuse.color.b >> mat.diffuse.color.a;
+                        else if (key == "specularColor")
+                            in >> mat.specular.color.r >> mat.specular.color.g >> mat.specular.color.b >> mat.specular.color.a;
+                        else if (key == "tintColor")
+                            in >> mat.tint.color.r >> mat.tint.color.g >> mat.tint.color.b >> mat.tint.color.a;
+                        else if (key == "emissiveColor")
+                            in >> mat.emissive.color.r >> mat.emissive.color.g >> mat.emissive.color.b >> mat.emissive.color.a;
+                        else if (key == "diffuseTexture") {
+                            std::string path;
+                            in >> path;
+                            sf::Image img(path);
+                            mat.diffuse.texture = loadColorTexture(img);
+                        } else if (key == "specularTexture") {
+                            std::string path;
+                            in >> path;
+                            sf::Image img(path);
+                            mat.specular.texture = loadColorTexture(img);
+                        } else if (key == "tintTexture") {
+                            std::string path;
+                            in >> path;
+                            sf::Image img(path);
+                            mat.tint.texture = loadColorTexture(img);
+                        } else if (key == "emissiveTexture") {
+                            std::string path;
+                            in >> path;
+                            sf::Image img(path);
+                            mat.emissive.texture = loadColorTexture(img);
+                        } else if (key == "normalMap") {
+                            std::string path;
+                            int POM;
+                            in >> path >> POM;
+                            sf::Image img(path);
+                            mat.normalMap = loadVectorTexture(img);
+                            if(POM != -1) {
+                                mat.POM = POM;
+                                mat.displacementMap = loadFloatTexture(img);
+                            }
+                        } else if (key == "transparent") {
+                            flags = static_cast<MaterialFlags>(flags | Transparent);
+                        } else if (key == "doubleSided") {
+                            flags = static_cast<MaterialFlags>(flags | DoubleSided);
                         }
-                    } else if (key == "transparent") {
-                        flags = static_cast<MaterialFlags>(flags | Transparent);
-                    } else if (key == "doubleSided") {
-                        flags = static_cast<MaterialFlags>(flags | DoubleSided);
                     }
+                    materials.push_back(new PhongMaterial(mat, flags));
                 }
-                materials.push_back(new PhongMaterial(mat, flags));
+                else if(type == "earth") {
+                    materials.push_back(new EarthMaterial());
+                }
             } else if (word == "mesh") {
                 std::string type;
                 in >> type;

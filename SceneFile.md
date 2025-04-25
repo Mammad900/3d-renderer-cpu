@@ -49,9 +49,18 @@ new light point <x> <y> <z>  <r> <g> <b> <a>         # x y z is position
 
 ## Materials
 
-All these fields are optional.
-
+All fields are optional unless otherwise noted.  
 Textures are loaded from relative file paths.
+
+```txt
+new material <type>
+  <parameters>
+end
+```
+
+### Phong
+
+This material is based on the [Phong Reflection Model](https://en.wikipedia.org/wiki/Phong_reflection_model) with several additions such as transparency, emissive and simple subsurface scattering.
 
 ```txt
 new material
@@ -69,9 +78,9 @@ new material
 end
 ```
 
-### Parameters
+#### Parameters
 
-#### Colors
+##### Colors
 
 All colors can have a texture.  
 If no texture is set, only the color is used.  
@@ -84,10 +93,10 @@ If a texture is set, texture samples are multiplied by the color, so make sure t
     Alpha is ignored. Useful for tinted glass, for example.
   - **Non-transparent materials**: Controls subsurface scattering.  
     In other words, light hitting the back of a flat object creates diffuse lighting visible at the front.  
-    Alpha controls how much the intensity depends on view direction. Most useful for leaves.
+    Alpha controls how much the intensity depends on view direction. Most useful for leaves. Only works for flat materials.
 - **Emissive**: This is added to the lighting calculation regardless of incoming light, as if the material emits this light itself.
 
-#### Normal & displacement maps
+##### Normal & displacement maps
 
 Used to add detail that would otherwise require a lot of polygons. Red channel is X, green is Y, blue is Z, alpha is displacement.
 
@@ -97,7 +106,7 @@ POM parameter control Parallax [Occlusion] mapping:
 - `0`: Parallax Mapping
 - `>0`: Enable Parallax Occlusion Mapping, parameter controls steps. It is advised that the lowest amount that looks correct at high angles be used. A typical value is 5.
 
-#### Flags
+### Flags
 
 - **Transparent**: Used for partially transparent materials like glass, but not needed for alpha cutout.  
   Causes object using this material to be rendered last so blending works.  
