@@ -128,13 +128,6 @@ void drawTriangle(Color *frame, Triangle tri) {
             f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y),
             f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z),
         }.normalized();
-
-        // N is filled in each pixel, because normal is interpolated
-        // TBN = {
-        //     T.x, B.x, 0,
-        //     T.y, B.y, 0,
-        //     T.z, B.z, 0
-        // };
     }
 
     auto &&pixel = [&](Vector2i p) -> void
