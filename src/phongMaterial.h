@@ -39,6 +39,7 @@ public:
             matEmissive = COLORMAP(mat.emissive);
 
         Color diffuse = ambientLight * ambientLight.a;
+        Color sss = {0, 0, 0, 1};
         Color specular = {0, 0, 0, 1};
 
         Vector3f normal = f.normal;
@@ -58,22 +59,38 @@ public:
                 direction = d / std::sqrtf(l2);
                 intensity /= l2;
             }
-            float diffuseIntensity = normal.dot(direction);
+
+            float receivedLight = normal.dot(direction);
+
+            // Transparent double sided objects can be lit from any side.
             if((flags & Transparent) && (flags & DoubleSided))
-                diffuseIntensity = abs(diffuseIntensity);
-            if (f.baseColor.a > 0) {
-                diffuse += light.color * max(diffuseIntensity, 0.0f) * intensity;
+                receivedLight = abs(receivedLight);
+
+            // Diffuse
+            if(receivedLight > 0) {
+                if (f.baseColor.a > 0)
+                    diffuse += light.color * max(receivedLight, 0.0f) * intensity;
             }
+            // Or subsurface scattering
+            else if(!(flags & Transparent) && (flags & DoubleSided)) {
+                sss += light.color * max(-receivedLight, 0.0f) * intensity;
+            }
+
+            // Specular highlights
             if(matSpecular.a > 0) {
                 float specularIntensity = pow(max(viewDir.dot(v2reflect(direction, normal)), 0.0f), shininess);
-                if(diffuseIntensity <= 0)
+                if(receivedLight <= 0)
                     specularIntensity = 0;
                 specular += light.color * specularIntensity * intensity;
             }
         }
         
+        if(!(flags & Transparent) && (flags & DoubleSided) && matTint.a == 0)
+            matTint = COLORMAP(mat.tint);
+        
         Color lighting = 
             diffuse * f.baseColor +
+            sss * matTint +
             specular * matSpecular +
             matEmissive;
 
