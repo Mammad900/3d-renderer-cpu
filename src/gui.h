@@ -39,7 +39,6 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock)
     ImGui::Checkbox("Reverse all faces", &reverseAllFaces);
     ImGui::Checkbox("Full-bright mode", &fullBright);
     ImGui::Checkbox("Show wireframe mesh", &wireFrame);
-    ImGui::Checkbox("Gamma Correction", &gammaCorrection);
     ImGui::SliderFloat("White point", (float*)&whitePoint, 0, 5);
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     ImGui::End();

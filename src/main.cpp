@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
             for (unsigned int x = 0; x < frameSize.x; x++)
                 if (renderMode == 0) {// Frame buffer
                     Color pixel = framebuffer[y * frameSize.x + x];
-                    img.setPixel({x, y}, pixel.reinhardtTonemap(whitePoint==0?maximumColor:whitePoint, gammaCorrection));
+                    img.setPixel({x, y}, pixel.reinhardtTonemap(whitePoint==0?maximumColor:whitePoint));
                 }
                 else if (renderMode == 1) { // Z buffer
                     // Z buffer range is really display-to-end-user unfriendly

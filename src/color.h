@@ -75,17 +75,11 @@ struct Color {
 
     float luminance() { return 0.2126f * r + 0.7152f * g + 0.0722f * b; }
     Color changeLuminance(float lOut) { return (*this) * (lOut / luminance()); }
-    Color reinhardtTonemap(float maximumColor, bool gammaCorrection) {
+    Color reinhardtTonemap(float maximumColor) {
         float lOld = luminance();
         float numerator = lOld * (1.0f + (lOld / (maximumColor*maximumColor)));
         float lNew = numerator / (1.0f + lOld);
         Color newColor = changeLuminance(lNew);
-        if(gammaCorrection)
-            newColor = Color{
-                .r = pow(newColor.r, (1.0f / 2.2f)),
-                .g = pow(newColor.g, (1.0f / 2.2f)),
-                .b = pow(newColor.b, (1.0f / 2.2f)),
-            };
         return newColor;
     }
 };
