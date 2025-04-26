@@ -30,7 +30,6 @@ size_t frameBufferIndex(Vector2i pos) {
 }
 
 void plotVertex(Color* frame, Vector2f pos, float depth) {
-    // std::cout << depth << std::endl;
     depth = std::clamp(depth, 0.0f, 1.0f);
     Color heatColor = Color{depth, 0, 1.0f - depth, 1.0f};
     int cx = static_cast<int>(pos.x);
@@ -168,6 +167,11 @@ void drawTriangle(Color *frame, Triangle tri) {
             return;
         if(!((tri.mat->flags & MaterialFlags::Transparent)))
             zBuffer[index] = z;
+
+        if(fullBright) {
+            frame[index] = matDiffuse;
+            return;
+        }
 
         Fragment f{
             .position = worldPos,
