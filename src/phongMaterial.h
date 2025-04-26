@@ -23,6 +23,7 @@ public:
         ImGui::ColorEdit4("Specular", (float*)&mat.specular.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
         ImGui::ColorEdit4("Tint", (float*)&mat.tint.color, ImGuiColorEditFlags_Float);
         ImGui::ColorEdit4("Emissive", (float*)&mat.emissive.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+        ImGui::SliderFloat("Normal Map Strength", &mat.normalMapStrength, 0, 1.5f);
     }
 
     Color shade(Fragment &f, Color previous, Color matSpecular, Color matEmissive, Color matTint) {
@@ -43,7 +44,10 @@ public:
         Vector3f normal = f.normal;
         if (mat.normalMap) {
             normal = ((textureFilter(mat.normalMap.value(), f.uv) * 2.0f) - Vector3f{1.0f,1.0f,1.0f}).componentWiseMul({-1,-1,1});
-            normal = f.tangent*normal.x + f.bitangent*normal.y + f.normal*normal.z;
+            normal = f.tangent * normal.x * mat.normalMapStrength
+                   + f.bitangent*normal.y * mat.normalMapStrength
+                   + f.normal*normal.z;
+            normal = normal.normalized();
         }
 
         for (size_t i = 0; i < lights.size(); i++)

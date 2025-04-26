@@ -30,6 +30,7 @@ public:
                 .texture = loadColorTexture(lights),
             },
             .normalMap = loadVectorTexture(normalMap),
+            .normalMapStrength = 1,
         };
         terrainMat = new PhongMaterial(terrainProps, name+" Terrain", MaterialFlags::None);
 

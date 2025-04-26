@@ -75,6 +75,9 @@ struct PhongMaterialProps {
     // Normal map, used to add detail that would otherwise require a lot of polygons
     optional<Texture<Vector3f>> normalMap;
 
+    // Normal map strength, 1 is same as source, 0 is completely flat
+    float normalMapStrength;
+
     // Displacement map, used to do Parallax [Occlusion] Mapping. Only used if a normal map is also defined.
     optional<Texture<float>> displacementMap;
 
