@@ -20,7 +20,7 @@ T textureFilter(Texture<T> &texture, Vector2f pos) {
 template <typename T>
 void generateMipmaps(T *pixels, Vector2u size, Vector2u atlasSize) {
     if((size.x & (size.x - 1)) || (size.y & (size.y - 1))) {
-        std::cout << "Texture size is not power of 2" << std::endl;
+        std::cerr << "Texture size is not power of 2" << std::endl;
         return;
     }
 

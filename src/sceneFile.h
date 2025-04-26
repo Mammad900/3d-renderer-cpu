@@ -35,14 +35,14 @@ Material* findMaterial(std::string& name) {
     for (auto &&mat : materials)
         if(mat->name == name)
             return mat;
-    std::cout << "Could not find material " << name << std::endl;
+    std::cerr << "Could not find material " << name << std::endl;
     return nullptr;
 }
 Mesh* findMesh(std::string& name) {
     for (auto &&mesh : meshes)
         if(mesh->label == name)
             return mesh;
-    std::cout << "Could not find mesh " << name << std::endl;
+    std::cerr << "Could not find mesh " << name << std::endl;
     return nullptr;
 }
 
