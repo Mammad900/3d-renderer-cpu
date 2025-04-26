@@ -1,3 +1,20 @@
+ambientLight 0.4 0.4 0.4 0.1
+set whitePoint 4
+new light directional 0 0 90 1 1 1 5
+fov 30
+
 new material EarthMat earth
+    terrainDiffuseColor     1 1 1 1
+    cityLightsColor         1 1 1 1
+    oceanDiffuseColor       1 1 1 1
+    oceanSpecularColor      0.275 0.38 0.6 0.16
+    cloudDiffuseColor       1 1 1 1
+    terrainDiffuseTexture   earth-diffuse-8k.jpg
+    oceanMask               earth-specular-8k.jpg
+    cityLightsTexture       earth-lights-8k.jpg
+    cloudTexture            earth-clouds-4k.png
+    normalMap               earth-normalmap-8k.jpg 1 -1
+end
+
 new mesh EarthMesh sphere 20 20 EarthMat
 new object EarthMesh  0 0 0  1 1 1  0 0 0

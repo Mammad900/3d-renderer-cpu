@@ -10,26 +10,46 @@ std::istream& operator>>(std::istream& in, Vector3f& v){
     in >> v.x >> v.y >> v.z;
     return in;
 }
-std::istream& operator>>(std::istream& in, std::optional<Texture<Color>>& t){
-    std::string path;
-    in >> path;
-    sf::Image img(path);
-    t = loadColorTexture(img);
+std::istream& operator>>(std::istream& in, Vector2f& v){
+    in >> v.x >> v.y;
     return in;
 }
-std::istream& operator>>(std::istream& in, std::optional<Texture<Vector3f>>& t){
+Texture<Color> getColorTexture(std::istream& in, std::filesystem::path &referrer){
     std::string path;
     in >> path;
-    sf::Image img(path);
-    t = loadVectorTexture(img);
-    return in;
+    std::cout << "Loading texture " << path; std::cout.flush();
+    sf::Image img(referrer.parent_path() / path);
+    std::cout << "."; std::cout.flush();
+    Texture<Color> res = loadColorTexture(img);
+    std::cout << "." << std::endl;
+    return res;
 }
-std::istream& operator>>(std::istream& in, std::optional<Texture<float>>& t){
-    std::string path;
-    in >> path;
-    sf::Image img(path);
-    t = loadFloatTexture(img);
-    return in;
+void getNormalMap(std::istream& in, std::filesystem::path &referrer, PhongMaterialProps& mat) {
+    std::string filePath;
+    int POM;
+    float strength;
+    in >> filePath >> strength >> POM;
+    std::cout << "Loading normal map " << filePath; std::cout.flush();
+    sf::Image img(referrer.parent_path() / filePath);
+    std::cout << "."; std::cout.flush();
+    mat.normalMap = loadVectorTexture(img);
+    mat.normalMapStrength = strength;
+    if (POM != -1) {
+        mat.POM = POM;
+        std::cout << "."; std::cout.flush();
+        mat.displacementMap = loadFloatTexture(img);
+    }
+    std::cout << "." << std::endl;
+}
+Texture<float> getFloatTexture(std::istream &in, std::filesystem::path &referrer) {
+    std::string filePath;
+    in >> filePath;
+    std::cout << "Loading texture " << filePath; std::cout.flush();
+    sf::Image img(referrer.parent_path() / filePath);
+    std::cout << "."; std::cout.flush();
+    Texture<float> res = loadFloatTexture(img);
+    std::cout << "." << std::endl;
+    return res;
 }
 Material* findMaterial(std::string& name) {
     for (auto &&mat : materials)
@@ -71,6 +91,8 @@ void parseSceneFile(std::filesystem::path path) {
             else if (word == "rot") {
                 in >> camRotation;
                 camRotation *= M_PIf / 180.0f;
+            } else {
+                std::cerr << "Invalid cam setting " << word << std::endl;
             }
         } else if (word == "nearFar") {
             in >> nearClip >> farClip;
@@ -83,7 +105,10 @@ void parseSceneFile(std::filesystem::path path) {
             else if (word == "reverseAllFaces") { int x; in >> x; reverseAllFaces = x; }
             else if (word == "fullBright") { int x; in >> x; fullBright = x; }
             else if (word == "wireFrame") { int x; in >> x; wireFrame = x; }
-            else if (word == "whitePoint") { in >> whitePoint; }
+            else if (word == "whitePoint") { in >> whitePoint; } 
+            else {
+                std::cerr << "Invalid setting " << word << std::endl;
+            }
         } else if (word == "fog") {
             in >> fogColor;
         } else if (word == "ambientLight") {
@@ -102,6 +127,8 @@ void parseSceneFile(std::filesystem::path path) {
                 } else if (type == "point") {
                     in >> light.direction;
                     light.isPointLight = true;
+                } else {
+                    std::cerr << "Invalid light type " << type << std::endl;
                 }
                 in >> light.color;
                 lights.push_back(light);
@@ -125,33 +152,58 @@ void parseSceneFile(std::filesystem::path path) {
                         else if (key == "emissiveColor")
                             in >> mat.emissive.color;
                         else if (key == "diffuseTexture") {
-                            in >> mat.diffuse.texture;
+                            mat.diffuse.texture = getColorTexture(in, path);
                         } else if (key == "specularTexture") {
-                            in >> mat.specular.texture;
+                            mat.specular.texture = getColorTexture(in, path);
                         } else if (key == "tintTexture") {
-                            in >> mat.tint.texture;
+                            mat.tint.texture = getColorTexture(in, path);
                         } else if (key == "emissiveTexture") {
-                            in >> mat.emissive.texture;
+                            mat.emissive.texture = getColorTexture(in, path);
                         } else if (key == "normalMap") {
-                            std::string path;
-                            int POM;
-                            in >> path >> POM;
-                            sf::Image img(path);
-                            mat.normalMap = loadVectorTexture(img);
-                            if(POM != -1) {
-                                mat.POM = POM;
-                                mat.displacementMap = loadFloatTexture(img);
-                            }
+                            getNormalMap(in, path, mat);
                         } else if (key == "transparent") {
                             flags = static_cast<MaterialFlags>(flags | Transparent);
                         } else if (key == "doubleSided") {
                             flags = static_cast<MaterialFlags>(flags | DoubleSided);
+                        } else {
+                            std::cerr << "Invalid material property " << key << std::endl;
                         }
                     }
                     materials.push_back(new PhongMaterial(mat, name, flags));
                 }
                 else if(type == "earth") {
-                    materials.push_back(new EarthMaterial(name));
+                    EarthMaterial *mat = new EarthMaterial(name);
+                    std::string key;
+                    while (in >> key && key != "end") {
+                        if (key == "#") { while (in >> key && key != "#"); continue; }
+
+                        if(key == "terrainDiffuseColor") {
+                            in >> mat->terrainMat->mat.diffuse.color;
+                        } else if(key == "cityLightsColor") {
+                            in >> mat->terrainMat->mat.emissive.color;
+                        } else if(key == "oceanDiffuseColor") {
+                            in >> mat->oceanMat->mat.diffuse.color;
+                        } else if(key == "oceanSpecularColor") {
+                            in >> mat->oceanMat->mat.specular.color;
+                        } else if(key == "cloudDiffuseColor") {
+                            in >> mat->cloudMat->mat.diffuse.color;
+                        } else if(key == "terrainDiffuseTexture") {
+                            mat->terrainMat->mat.diffuse.texture = getColorTexture(in, path);
+                        } else if(key == "oceanMask") {
+                            mat->oceanMask = getFloatTexture(in, path);
+                        } else if(key == "cityLightsTexture") {
+                            mat->terrainMat->mat.emissive.texture = getColorTexture(in, path);
+                        } else if(key == "cloudTexture") {
+                            mat->cloudTexture = getFloatTexture(in, path);
+                        } else if(key == "normalMap") {
+                            getNormalMap(in, path, mat->terrainMat->mat);
+                        } else {
+                            std::cerr << "Invalid material property " << key << std::endl;
+                        }
+                    }
+                    materials.push_back(mat);
+                } else {
+                    std::cerr << "Invalid material type " << type << std::endl;
                 }
             } else if (word == "mesh") {
                 std::string name, type;
@@ -173,6 +225,40 @@ void parseSceneFile(std::filesystem::path path) {
                     in >> subDivX >> subDivY >> matName;
                     Mesh* mesh = createPlane(findMaterial(matName), name, subDivX, subDivY);
                     meshes.push_back(mesh);
+                } else if (type == "custom") {
+                    std::string key;
+                    std::vector<Vertex> vertices;
+                    std::vector<Face> faces;
+                    Material *currentMat;
+                    while (in >> key && key != "end") {
+                        if (key == "#") { while (in >> key && key != "#"); continue; }
+                        
+                        if(key == "v") {
+                            Vector3f pos;
+                            Vector2f uv;
+                            uint16_t i;
+                            in >> i >> pos >> uv;
+                            if(i != vertices.size()){
+                                std::cerr << "Invalid vertex index " << i << ", expected " << vertices.size() << std::endl;
+                            }
+                            vertices.push_back(Vertex{.position = pos, .uv = uv});
+                        }
+                        else if(key == "f") {
+                            uint16_t i1, i2, i3;
+                            in >> i1 >> i2 >> i3;
+                            faces.push_back(Face{.v1=i1, .v2 = i2, .v3 = i3, .material = currentMat});
+                        }
+                        else if(key == "m") {
+                            std::string matName;
+                            in >> matName;
+                            currentMat = findMaterial(matName);
+                        } else {
+                            std::cerr << "Invalid custom mesh entry " << key << std::endl;
+                        }
+                    }
+                    meshes.push_back(createMesh(faces, vertices, name));
+                } else {
+                    std::cerr << "Invalid mesh type " << type << std::endl;
                 }
             } else if (word == "object") {
                 std::string meshName;
@@ -182,6 +268,8 @@ void parseSceneFile(std::filesystem::path path) {
                 in >> obj.position >> obj.scale >> obj.rotation;
                 obj.rotation *= M_PIf / 180.0f;
                 objects.push_back(obj);
+            } else {
+                std::cerr << "Invalid command " << word << std::endl;
             }
         }
     }

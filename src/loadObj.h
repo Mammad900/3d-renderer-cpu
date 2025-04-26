@@ -2,6 +2,7 @@
 #define __LOADOBJ_H__
 #include "data.h"
 #include "object.h"
+#include "generateMesh.h"
 #include <SFML/Graphics.hpp>
 #include <fstream>
 #include <iostream>
@@ -10,6 +11,10 @@
 #include <vector>
 
 using sf::Vector3f;
+
+Mesh *createMesh(
+    std::vector<Face> &faces, std::vector<Vertex> &vertices, std::string &name
+);
 
 Mesh *loadOBJ(const std::string &filename, Material *mat, std::string name) {
     std::ifstream file(filename); // Like std::cin, but for a file
@@ -44,33 +49,7 @@ Mesh *loadOBJ(const std::string &filename, Material *mat, std::string name) {
     }
 
     // BAKE NORMALS
-
-    for (auto &&face : faces) {
-        Vertex &v1 = vertices[face.v1];
-        Vertex &v2 = vertices[face.v2];
-        Vertex &v3 = vertices[face.v3];
-        Vector3f normal = (v3.position - v1.position)
-                              .cross(v2.position - v1.position)
-                              .normalized();
-        v1.normal += normal;
-        v2.normal += normal;
-        v3.normal += normal;
-    }
-
-    // CREATE MESH OBJECT
-    Mesh *mesh = new Mesh;
-
-    mesh->n_vertices = vertices.size();
-    mesh->n_faces = faces.size();
-    mesh->vertices = new Vertex[vertices.size()];
-    mesh->faces = new Face[faces.size()];
-    mesh->label = name;
-
-    std::copy(vertices.begin(), vertices.end(), mesh->vertices);
-    std::copy(faces.begin(), faces.end(), mesh->faces);
-
-
-    return mesh;
+    return createMesh(faces, vertices, name);
 }
 
 #endif /* __LOADOBJ_H__ */

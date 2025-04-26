@@ -1,8 +1,4 @@
-fov 30
+fov 60
 cam pos 0 0 -5
-set whitePoint 4
-ambientLight 0.4 0.4 0.4 0.1
-
-new light directional 0 0 90 1 1 1 5
 
 import earth.txt

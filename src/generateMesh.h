@@ -3,12 +3,45 @@
 
 #include <cmath>
 #include <string>
+#include <iostream>
 #include "object.h"
 
-// If M_PI is not already defined (e.g., with _USE_MATH_DEFINES in MSVC), you can define it:
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
+Mesh *createMesh(std::vector<Face> &faces, std::vector<Vertex> &vertices, std::string &name) {
+    for (auto &&face : faces) {
+        Vertex &v1 = vertices[face.v1];
+        Vertex &v2 = vertices[face.v2];
+        Vertex &v3 = vertices[face.v3];
+        Vector3f normal = (v3.position - v1.position)
+                              .cross(v2.position - v1.position)
+                              .normalized();
+        v1.normal += normal;
+        v2.normal += normal;
+        v3.normal += normal;
+    }
+
+#ifndef NDEBUG
+    for (auto &&vertex : vertices)
+        if(vertex.normal.lengthSquared() == 0)
+            std::cerr << "A vertex has zero normal! "
+                         "This usually happens when a face is winded incorrectly "
+                         "and cancels out another face's normal." << std::endl;
 #endif
+
+    // CREATE MESH OBJECT
+    Mesh *mesh = new Mesh;
+
+    mesh->n_vertices = vertices.size();
+    mesh->n_faces = faces.size();
+    mesh->vertices = new Vertex[vertices.size()];
+    mesh->faces = new Face[faces.size()];
+    mesh->label = name;
+
+    std::copy(vertices.begin(), vertices.end(), mesh->vertices);
+    std::copy(faces.begin(), faces.end(), mesh->faces);
+
+    return mesh;
+}
+
 
 // Constructs a UV sphere as a Mesh pointer.
 // Parameters:

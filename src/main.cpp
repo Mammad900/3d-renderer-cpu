@@ -32,8 +32,8 @@ int main(int argc, char** argv) {
             }
         }
 
-        lights[0].rotation.x += 0.1;
-        objects[0].rotation.y += 0.01;
+        // lights[0].rotation.x += 0.1;
+        // objects[0].rotation.y += 0.01;
         render();
         sf::Image img(frameSize);
 

@@ -11,36 +11,13 @@ public:
     Texture<float> cloudTexture;
 
     EarthMaterial(std::string name) : Material(name, MaterialFlags::None, true) {
-        sf::Image diffuse("assets/earth-diffuse-8k.jpg");
-        sf::Image oceanMask("assets/earth-specular-8k.jpg");
-        sf::Image lights("assets/earth-lights-8k.jpg");
-        sf::Image clouds("assets/earth-clouds-4k.png");
-        sf::Image normalMap("assets/earth-normalmap-8k.jpg");
-
-        this->oceanMask = loadFloatTexture(oceanMask);
-        this->cloudTexture = loadFloatTexture(clouds);
-
-        PhongMaterialProps terrainProps{
-            .diffuse = {
-                .color = {1, 1, 1, 1},
-                .texture = loadColorTexture(diffuse),
-            },
-            .emissive = { 
-                .color = {1, 1, 1, 1},
-                .texture = loadColorTexture(lights),
-            },
-            .normalMap = loadVectorTexture(normalMap),
-            .normalMapStrength = 1,
-        };
+        PhongMaterialProps terrainProps{};
         terrainMat = new PhongMaterial(terrainProps, name+" Terrain", MaterialFlags::None);
 
-        PhongMaterialProps oceanProps{
-            .diffuse = {.color = {1,1,1,1}},
-            .specular = {.color = {0.275, 0.38, 0.6, 0.16}}
-        };
+        PhongMaterialProps oceanProps{};
         oceanMat = new PhongMaterial(oceanProps, name+" Terrain", MaterialFlags::None);
 
-        PhongMaterialProps cloudProps{.diffuse = {.color = {1, 1, 1, 1}}};
+        PhongMaterialProps cloudProps{};
         cloudMat = new PhongMaterial(cloudProps, name+" Terrain", MaterialFlags::None);
     }
 
