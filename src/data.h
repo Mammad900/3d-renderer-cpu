@@ -44,6 +44,7 @@ bool backFaceCulling = true;
 bool reverseAllFaces = false;
 bool fullBright = false;
 bool wireFrame = false;
+bool orbit = false;
 float whitePoint = 1;
 Color fogColor = {0,0,0,0};
 

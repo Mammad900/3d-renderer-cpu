@@ -32,11 +32,14 @@ int main(int argc, char** argv) {
             }
         }
 
-        // lights[0].rotation.x += 0.1;
-        // objects[0].rotation.y += 0.01;
-        render();
-        sf::Image img(frameSize);
+        if(orbit) {
+            lights[0].rotation.x += 0.1;
+            objects[0].rotation.y += 0.01;
+        }
 
+        render();
+
+        sf::Image img(frameSize);
         for (unsigned int y = 0; y < frameSize.y; y++)
             for (unsigned int x = 0; x < frameSize.x; x++)
                 if (renderMode == 0) {// Frame buffer
