@@ -10,7 +10,7 @@ new material EarthMat earth
     oceanSpecularColor      0.275 0.38 0.6 0.16
     cloudDiffuseColor       1 1 1 1
     terrainDiffuseTexture   earth-diffuse-8k.jpg
-    oceanMask               earth-specular-8k.jpg
+    oceanMask               earth-specular-8k.png
     cityLightsTexture       earth-lights-8k.jpg
     cloudTexture            earth-clouds-4k.png
     normalMap               earth-normalmap-8k.jpg 1 -1
