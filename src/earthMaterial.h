@@ -31,7 +31,7 @@ public:
                cloudLighting * cloudIntensity;
     }
 
-    Color getBaseColor(Vector2f uv, Vector2f uv_p) {
+    Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) {
         return textureFilter(terrainMat->mat.diffuse.texture.value(), uv);
     }
 

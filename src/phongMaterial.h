@@ -14,7 +14,7 @@ public:
     PhongMaterial(PhongMaterialProps &mat, std::string name, MaterialFlags flags) 
         : Material(name, flags, mat.normalMap.has_value()), mat(mat) { }
 
-    Color getBaseColor(Vector2f uv, Vector2f uv_p) {
+    Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) {
         return COLORMAP(mat.diffuse);
     }
 
@@ -28,7 +28,7 @@ public:
 
     Color shade(Fragment &f, Color previous, Color matSpecular, Color matEmissive, Color matTint) {
         Vector2f uv = f.uv;
-        Vector3f viewDir = (cam - f.position).normalized();
+        Vector3f viewDir = (cam - f.worldPos).normalized();
         if(!(flags & Transparent) && (flags & DoubleSided) && f.isBackFace)
             f.normal *= -1.0f;
         if(matSpecular.a == 0)
@@ -56,7 +56,7 @@ public:
             Vector3f direction = light.direction;
             float intensity = light.color.a;
             if(light.isPointLight) {
-                Vector3f d = light.direction - f.position; //direction is world pos in this case
+                Vector3f d = light.direction - f.worldPos; //direction is world pos in this case
                 float l2 = d.lengthSquared();
                 direction = d / std::sqrtf(l2);
                 intensity /= l2;

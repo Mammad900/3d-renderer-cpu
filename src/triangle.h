@@ -8,7 +8,7 @@
 #include <iostream>
 
 using sf::Vector2f, sf::Vector2u, sf::Vector2i;
-using std::swap, std::max;
+using std::swap, std::max, std::abs;
 
 struct Triangle {
     Projection s1, s2, s3;
@@ -19,6 +19,9 @@ struct Triangle {
 
 Vector2f v3to2(Vector3f in) {
     return Vector2f{in.x, in.y};
+}
+Vector2f v2abs(Vector2f in) {
+    return Vector2f{abs(in.x), abs(in.y)};
 }
 
 Vector3f v2reflect(Vector3f in, Vector3f normal) {
@@ -129,14 +132,7 @@ void drawTriangle(Color *frame, Triangle tri) {
         }.normalized();
     }
 
-    auto &&pixel = [&](Vector2i p) -> void
-    {
-        if(p.x<0 || p.y<0 || p.x>=(int)frameSize.x || p.y>=(int)frameSize.y)
-            return;
-        size_t index = frameBufferIndex(p);
-        if(index > frameSize.x*frameSize.y)
-            return;
-
+    auto &&getFragment = [&](Vector2i p) -> Fragment {
         Vector2f pp = {(float)p.x + 0.5f, (float)p.y + 0.5f};
         float C1 = -(b-pp).cross(c-pp) / areaOfTriangle;
         float C2 = -(c-pp).cross(a-pp) / areaOfTriangle;
@@ -145,47 +141,63 @@ void drawTriangle(Color *frame, Triangle tri) {
             C2 *= -1;
         }
         float C3 = 1.0f - C1 - C2;
-        if(C1<0 || C2 < 0 || C3 < 0)
-            return;
+        bool inside = true;
+        if (C1 < 0 || C2 < 0 || C3 < 0)
+            inside = false;
         C1 /= tri.s1.screenPos.z;
         C2 /= tri.s2.screenPos.z;
         C3 /= tri.s3.screenPos.z;
         float denom = 1 / (C1 + C2 + C3);
 
-        #define INTERPOLATE_TRI(A,B,C) ((C1*(A) + C2*(B) + C3*(C))*denom)
+#define INTERPOLATE_TRI(A,B,C) ((C1*(A) + C2*(B) + C3*(C))*denom)
         float z = INTERPOLATE_TRI(tri.s1.screenPos.z, tri.s2.screenPos.z, tri.s3.screenPos.z);
         Vector3f normal= INTERPOLATE_TRI(tri.s1.normal, tri.s2.normal, tri.s3.normal).normalized();
         Vector3f worldPos= INTERPOLATE_TRI(tri.s1.worldPos, tri.s2.worldPos, tri.s3.worldPos);
         Vector2f uv= INTERPOLATE_TRI(tri.uv1, tri.uv2, tri.uv3);
         #undef INTERPOLATE_TRI
 
-        Color matDiffuse = tri.mat->getBaseColor(uv, {0,0});
-
-        if(matDiffuse.a < 0.5f)
-            return;
-        if (zBuffer[index] < z || z<0)
-            return;
-        if(!((tri.mat->flags & MaterialFlags::Transparent)))
-            zBuffer[index] = z;
-
-        if(fullBright) {
-            frame[index] = matDiffuse;
-            return;
-        }
-
         Fragment f{
-            .position = worldPos,
+            .screenPos = p,
+            .z = z,
+            .worldPos = worldPos,
             .normal = normal,
             .tangent = tangent,
             .bitangent = bitangent,
             .uv = uv,
-            .baseColor = matDiffuse,
             .mat = tri.mat,
             .isBackFace = tri.cull,
+            .inside = inside
         };
+        return f;
+    };
+    auto &&postFragment = [&](Fragment &f) -> void {
+        if(
+            f.screenPos.x<0 || 
+            f.screenPos.y<0 || 
+            f.screenPos.x>=(int)frameSize.x || 
+            f.screenPos.y>=(int)frameSize.y ||
+            !f.inside
+        )
+            return;
+        size_t index = frameBufferIndex(f.screenPos);
+        if(index > frameSize.x*frameSize.y)
+            return;
 
+        Color baseColor = tri.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
+
+        if(baseColor.a < 0.5f)
+            return;
+        if (zBuffer[index] < f.z || f.z<0)
+            return;
+        if(!((tri.mat->flags & MaterialFlags::Transparent)))
+            zBuffer[index] = f.z;
+
+        if(fullBright) {
+            frame[index] = baseColor;
+            return;
+        }
+        f.baseColor = baseColor;
         frame[index] = tri.mat->shade(f, frame[index]);
-
     };
 
     float minY =(std::min({a.y, b.y, c.y}));
@@ -193,9 +205,25 @@ void drawTriangle(Color *frame, Triangle tri) {
     float minX =(std::min({a.x, b.x, c.x}));
     float maxX =(std::max({a.x, b.x, c.x}));
 
-    for (int y = minY; y < maxY; y++)
-        for (int x = minX; x < maxX; x++)
-            pixel({x,y});
+    for (int y = minY; y < maxY; y+=2)
+        for (int x = minX; x < maxX; x+=2) {
+            Fragment f1 = getFragment({x,y});
+            Fragment f2 = getFragment({x+1,y});
+            Fragment f3 = getFragment({x,y+1});
+            Fragment f4 = getFragment({x+1,y+1});
+            f1.dUVdx = f2.uv - f1.uv;
+            f2.dUVdx = f2.uv - f1.uv;
+            f3.dUVdx = f4.uv - f3.uv;
+            f4.dUVdx = f4.uv - f3.uv;
+            f1.dUVdy = f3.uv - f1.uv;
+            f3.dUVdy = f3.uv - f1.uv;
+            f2.dUVdy = f4.uv - f2.uv;
+            f4.dUVdy = f4.uv - f2.uv;
+            postFragment(f1);
+            postFragment(f2);
+            postFragment(f3);
+            postFragment(f4);
+        }
 }
 
 #endif /* __TRIANGLE_H__ */

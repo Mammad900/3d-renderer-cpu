@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
-using sf::Vector3f, sf::Vector2f, sf::Vector2u, std::optional;
+using sf::Vector3f, sf::Vector2f, sf::Vector2u, sf::Vector2i, std::optional;
 
 
 enum MaterialFlags : uint8_t {
@@ -20,15 +20,18 @@ enum MaterialFlags : uint8_t {
 class Material;
 
 struct Fragment {
-    Vector3f position;
+    Vector2i screenPos;
+    float z;
+    Vector3f worldPos;
     Vector3f normal;
     Vector3f tangent;
     Vector3f bitangent;
     Vector2f uv;
-    Vector2f uv_p;
+    Vector2f dUVdx;
+    Vector2f dUVdy;
     Color baseColor;
     Material *mat;
-    bool isBackFace;
+    bool isBackFace, inside;
 };
 
 class Material {
@@ -38,7 +41,7 @@ public:
     bool needsTBN = false;
     Material(std::string name, MaterialFlags flags, bool needsTBN) : name(name), flags(flags), needsTBN(needsTBN) {}
     virtual Color shade(Fragment &f, Color previous) = 0;
-    virtual Color getBaseColor(Vector2f uv, Vector2f uv_p) = 0;
+    virtual Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) = 0;
     virtual void GUI() = 0;
 };
 
