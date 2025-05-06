@@ -5,7 +5,7 @@
 #include "object.h"
 #include "textureFiltering.h"
 
-#define COLORMAP(x) ((x).color * (((x).texture) ? textureFilter((x).texture.value(), uv) : Color{1,1,1,1} ))
+#define COLORMAP(x) ((x).color * (((x).texture) ? textureSample((x).texture.value(), uv, dUVdx, dUVdy) : Color{1,1,1,1} ))
 
 class PhongMaterial : public Material {
 public:
@@ -27,7 +27,7 @@ public:
     }
 
     Color shade(Fragment &f, Color previous, Color matSpecular, Color matEmissive, Color matTint) {
-        Vector2f uv = f.uv;
+        Vector2f uv = f.uv, dUVdx = f.dUVdx, dUVdy = f.dUVdy;
         Vector3f viewDir = (cam - f.worldPos).normalized();
         if(!(flags & Transparent) && (flags & DoubleSided) && f.isBackFace)
             f.normal *= -1.0f;
@@ -43,7 +43,7 @@ public:
 
         Vector3f normal = f.normal;
         if (mat.normalMap) {
-            normal = ((textureFilter(mat.normalMap.value(), f.uv) * 2.0f) - Vector3f{1.0f,1.0f,1.0f}).componentWiseMul({-1,-1,1});
+            normal = ((textureSample(mat.normalMap.value(), uv, dUVdx, dUVdy) * 2.0f) - Vector3f{1.0f,1.0f,1.0f}).componentWiseMul({-1,-1,1});
             normal = f.tangent * normal.x * mat.normalMapStrength
                    + f.bitangent*normal.y * mat.normalMapStrength
                    + f.normal*normal.z;

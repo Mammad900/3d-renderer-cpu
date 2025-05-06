@@ -51,6 +51,7 @@ struct Texture {
     T* pixels;
     Vector2u size;
     Vector2u atlasSize;
+    Vector2u mipCount;
 };
 struct MaterialMap {
     Color color;

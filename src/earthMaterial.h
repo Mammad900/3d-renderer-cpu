@@ -22,17 +22,17 @@ public:
     }
 
     Color shade(Fragment &f, Color previous) {
-        bool isOcean = textureFilter(oceanMask, f.uv) > 0.5f;
+        bool isOcean = textureSample(oceanMask, f.uv, f.dUVdx, f.dUVdy) > 0.5f;
         Color groundLighting = isOcean ? oceanMat->shade(f, previous) : terrainMat->shade(f, previous);
         f.baseColor = cloudMat->mat.diffuse.color; // Because it contains terrain diffuse and we want white
         Color cloudLighting = cloudMat->shade(f, previous);
-        float cloudIntensity = textureFilter(cloudTexture, f.uv);
+        float cloudIntensity = textureSample(cloudTexture, f.uv, f.dUVdx, f.dUVdy);
         return groundLighting * (1 - cloudIntensity) +
                cloudLighting * cloudIntensity;
     }
 
     Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) {
-        return textureFilter(terrainMat->mat.diffuse.texture.value(), uv);
+        return textureSample(terrainMat->mat.diffuse.texture.value(), uv, dUVdx, dUVdy);
     }
 
     void GUI() {
