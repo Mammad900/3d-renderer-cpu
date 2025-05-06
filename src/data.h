@@ -6,23 +6,12 @@
 
 using sf::Vector3f, sf::Vector2u;
 
-sf::RenderWindow *renderWindow;
-Vector2u frameSize = {500, 500};
-Vector2u frameSizeTemp = frameSize;
-Color *framebuffer;
-float *zBuffer;
-void changeFrameSize(sf::Vector2u newSize) {
-    if(framebuffer != nullptr)
-        delete[] framebuffer;
-    if(zBuffer != nullptr)
-        delete[] zBuffer;
-    framebuffer = new Color[newSize.x * newSize.y];
-    zBuffer = new float[newSize.x * newSize.y];
-    frameSize = frameSizeTemp = newSize;
-    renderWindow->setSize(newSize);
-    sf::FloatRect visibleArea({0.f, 0.f}, sf::Vector2f(newSize));
-    renderWindow->setView(sf::View(visibleArea));
-}
+extern sf::RenderWindow *renderWindow;
+extern Vector2u frameSize;
+extern Vector2u frameSizeTemp;
+extern Color *framebuffer;
+extern float *zBuffer;
+void changeFrameSize(sf::Vector2u newSize);
 
 struct Scene {
     std::vector<Light> lights;
@@ -38,6 +27,7 @@ struct Scene {
     Vector3f camDirection;
     float nearClip = 0.1, farClip = 100;
     float fov = 90;
+    float projectionMatrix[16];
 
     float maximumColor;
 
@@ -52,5 +42,5 @@ struct Scene {
     Color fogColor = {0,0,0,0};
 };
 
-Scene *scene = new Scene();
+extern Scene *scene;
 #endif /* __DATA_H__ */

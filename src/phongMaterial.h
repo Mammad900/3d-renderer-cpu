@@ -5,6 +5,10 @@
 #include "object.h"
 #include "textureFiltering.h"
 
+Vector3f v2reflect(Vector3f in, Vector3f normal) {
+    return in - normal * in.dot(normal) * 2.0f;
+}
+
 #define COLORMAP(x) ((x).color * (((x).texture) ? textureSample((x).texture.value(), uv, dUVdx, dUVdy) : Color{1,1,1,1} ))
 
 class PhongMaterial : public Material {
@@ -26,16 +30,14 @@ public:
         ImGui::SliderFloat("Normal Map Strength", &mat.normalMapStrength, 0, 1.5f);
     }
 
-    Color shade(Fragment &f, Color previous, Color matSpecular, Color matEmissive, Color matTint) {
+    Color shade(Fragment &f, Color previous) {
         Vector2f uv = f.uv, dUVdx = f.dUVdx, dUVdy = f.dUVdy;
         Vector3f viewDir = (scene->cam - f.worldPos).normalized();
         if(!(flags & Transparent) && (flags & DoubleSided) && f.isBackFace)
             f.normal *= -1.0f;
-        if(matSpecular.a == 0)
-            matSpecular = COLORMAP(mat.specular);
+        Color matSpecular = COLORMAP(mat.specular);
         float shininess = pow(2.0f, matSpecular.a * 25.5f);
-        if(matEmissive.a == 0)
-            matEmissive = COLORMAP(mat.emissive);
+        Color matEmissive = COLORMAP(mat.emissive);
 
         Color diffuse = scene->ambientLight * scene->ambientLight.a;
         Color sss = {0, 0, 0, 1};
@@ -86,8 +88,9 @@ public:
                 specular += light.color * specularIntensity * intensity;
             }
         }
-        
-        if(!(flags & Transparent) && (flags & DoubleSided) && matTint.a == 0)
+
+        Color matTint{0,0,0,0};
+        if (!(flags & Transparent) && (flags & DoubleSided))
             matTint = COLORMAP(mat.tint);
         
         Color lighting = 
@@ -106,9 +109,6 @@ public:
             scene->maximumColor = max(scene->maximumColor, lighting.luminance()); // This doesn't take transparency into account
 
         return lighting;
-    }
-    Color shade(Fragment &f, Color previous) {
-        return shade(f, previous, {}, {}, {});
     }
 };
 
