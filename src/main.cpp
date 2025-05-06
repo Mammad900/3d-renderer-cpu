@@ -7,7 +7,7 @@
 #include <SFML/Graphics.hpp>
 #include <filesystem>
 int main(int argc, char** argv) {
-    parseSceneFile(argc > 1 ? argv[1] : "assets/scene.txt");
+    parseSceneFile(argc > 1 ? argv[1] : "assets/scene.txt", scene);
 
     // Scene window
     auto window = sf::RenderWindow(
@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
     sf::Clock deltaClock;
 
     while (window.isOpen() && window2.isOpen()) {
-        guiUpdate(window2, deltaClock); // gui.h
+        guiUpdate(window2, deltaClock, scene); // gui.h
 
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
@@ -39,21 +39,21 @@ int main(int argc, char** argv) {
             }
         }
 
-        if(orbit) {
-            lights[0].rotation.x += 0.1;
-            objects[0].rotation.y += 0.01;
+        if(scene->orbit) {
+            scene->lights[0].rotation.x += 0.1;
+            scene->objects[0].rotation.y += 0.01;
         }
 
-        render();
+        render(scene);
 
         sf::Image img(frameSize);
         for (unsigned int y = 0; y < frameSize.y; y++)
             for (unsigned int x = 0; x < frameSize.x; x++)
-                if (renderMode == 0) {// Frame buffer
+                if (scene->renderMode == 0) {// Frame buffer
                     Color pixel = framebuffer[y * frameSize.x + x];
-                    img.setPixel({x, y}, pixel.reinhardtTonemap(whitePoint==0?maximumColor:whitePoint));
+                    img.setPixel({x, y}, pixel.reinhardtTonemap(scene->whitePoint==0?scene->maximumColor:scene->whitePoint));
                 }
-                else if (renderMode == 1) { // Z buffer
+                else if (scene->renderMode == 1) { // Z buffer
                     // Z buffer range is really display-to-end-user unfriendly
                     float z = zBuffer[y * frameSize.x + x] * 20.0f;
                     img.setPixel({x, y}, sf::Color(z, z, z));

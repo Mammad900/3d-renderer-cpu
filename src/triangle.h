@@ -81,7 +81,7 @@ void plotVertex(Color* frame, Vector2f pos, float depth) {
 
 
 void drawTriangle(Color *frame, Triangle tri) {
-    if(tri.cull && backFaceCulling && !(tri.mat->flags & (MaterialFlags::Transparent | MaterialFlags::DoubleSided)))
+    if(tri.cull && scene->backFaceCulling && !(tri.mat->flags & (MaterialFlags::Transparent | MaterialFlags::DoubleSided)))
         return;
 
     if(
@@ -89,8 +89,8 @@ void drawTriangle(Color *frame, Triangle tri) {
         (tri.s1.screenPos.x >  1 && tri.s2.screenPos.x >  1 && tri.s3.screenPos.x >  1 )||
         (tri.s1.screenPos.y < -1 && tri.s2.screenPos.y < -1 && tri.s3.screenPos.y < -1 )||
         (tri.s1.screenPos.y >  1 && tri.s2.screenPos.y >  1 && tri.s3.screenPos.y >  1 )||
-        (tri.s1.screenPos.z <  nearClip && tri.s2.screenPos.z <  nearClip && tri.s3.screenPos.z <  nearClip )||
-        (tri.s1.screenPos.z >  farClip && tri.s2.screenPos.z >  farClip && tri.s3.screenPos.z >  farClip )
+        (tri.s1.screenPos.z <  scene->nearClip && tri.s2.screenPos.z <  scene->nearClip && tri.s3.screenPos.z <  scene->nearClip )||
+        (tri.s1.screenPos.z >  scene->farClip && tri.s2.screenPos.z >  scene->farClip && tri.s3.screenPos.z >  scene->farClip )
     )
         return;
 
@@ -102,7 +102,7 @@ void drawTriangle(Color *frame, Triangle tri) {
     // plotVertex(frameSize, frame, b, tri.s2.screenPos.z);
     // plotVertex(frameSize, frame, c, tri.s3.screenPos.z);
 
-    if(wireFrame) {
+    if(scene->wireFrame) {
         drawLine(a, b);
         drawLine(c, b);
         drawLine(a, c);
@@ -192,7 +192,7 @@ void drawTriangle(Color *frame, Triangle tri) {
         if(!((tri.mat->flags & MaterialFlags::Transparent)))
             zBuffer[index] = f.z;
 
-        if(fullBright) {
+        if(scene->fullBright) {
             frame[index] = baseColor;
             return;
         }

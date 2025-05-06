@@ -52,21 +52,21 @@ Texture<float> getFloatTexture(std::istream &in, std::filesystem::path &referrer
     return res;
 }
 Material* findMaterial(std::string& name) {
-    for (auto &&mat : materials)
+    for (auto &&mat : scene->materials)
         if(mat->name == name)
             return mat;
     std::cerr << "Could not find material " << name << std::endl;
     return nullptr;
 }
 Mesh* findMesh(std::string& name) {
-    for (auto &&mesh : meshes)
+    for (auto &&mesh : scene->meshes)
         if(mesh->label == name)
             return mesh;
     std::cerr << "Could not find mesh " << name << std::endl;
     return nullptr;
 }
 
-void parseSceneFile(std::filesystem::path path) {
+void parseSceneFile(std::filesystem::path path, Scene *scene) {
     std::ifstream in(path);
     if (!in) {
         std::cerr << "Failed to open scene file.\n";
@@ -83,36 +83,36 @@ void parseSceneFile(std::filesystem::path path) {
         if (word == "import") {
             std::filesystem::path path2;
             in >> path2;
-            parseSceneFile(path.parent_path() / path2);
+            parseSceneFile(path.parent_path() / path2, scene);
         }
         else if (word == "cam") {
             in >> word;
-            if (word == "pos") in >> cam;
+            if (word == "pos") in >> scene->cam;
             else if (word == "rot") {
-                in >> camRotation;
-                camRotation *= M_PIf / 180.0f;
+                in >> scene->camRotation;
+                scene->camRotation *= M_PIf / 180.0f;
             } else {
                 std::cerr << "Invalid cam setting " << word << std::endl;
             }
         } else if (word == "nearFar") {
-            in >> nearClip >> farClip;
+            in >> scene->nearClip >> scene->farClip;
         } else if (word == "fov") {
-            in >> fov;
+            in >> scene->fov;
         } else if (word == "set") {
             in >> word;
-            if (word == "renderMode") in >> renderMode;
-            else if (word == "backFaceCulling") { int x; in >> x; backFaceCulling = x; }
-            else if (word == "reverseAllFaces") { int x; in >> x; reverseAllFaces = x; }
-            else if (word == "fullBright") { int x; in >> x; fullBright = x; }
-            else if (word == "wireFrame") { int x; in >> x; wireFrame = x; }
-            else if (word == "whitePoint") { in >> whitePoint; } 
+            if (word == "renderMode") in >> scene->renderMode;
+            else if (word == "backFaceCulling") { int x; in >> x; scene->backFaceCulling = x; }
+            else if (word == "reverseAllFaces") { int x; in >> x; scene->reverseAllFaces = x; }
+            else if (word == "fullBright") { int x; in >> x; scene->fullBright = x; }
+            else if (word == "wireFrame") { int x; in >> x; scene->wireFrame = x; }
+            else if (word == "whitePoint") { in >> scene->whitePoint; } 
             else {
                 std::cerr << "Invalid setting " << word << std::endl;
             }
         } else if (word == "fog") {
-            in >> fogColor;
+            in >> scene->fogColor;
         } else if (word == "ambientLight") {
-            in >> ambientLight;
+            in >> scene->ambientLight;
         } else if (word == "new") {
             in >> word;
             if (word == "light") {
@@ -131,7 +131,7 @@ void parseSceneFile(std::filesystem::path path) {
                     std::cerr << "Invalid light type " << type << std::endl;
                 }
                 in >> light.color;
-                lights.push_back(light);
+                scene->lights.push_back(light);
             } else if (word == "material") {
                 std::string name, type;
                 in >> name >> type;
@@ -169,7 +169,7 @@ void parseSceneFile(std::filesystem::path path) {
                             std::cerr << "Invalid material property " << key << std::endl;
                         }
                     }
-                    materials.push_back(new PhongMaterial(mat, name, flags));
+                    scene->materials.push_back(new PhongMaterial(mat, name, flags));
                 }
                 else if(type == "earth") {
                     EarthMaterial *mat = new EarthMaterial(name);
@@ -201,7 +201,7 @@ void parseSceneFile(std::filesystem::path path) {
                             std::cerr << "Invalid material property " << key << std::endl;
                         }
                     }
-                    materials.push_back(mat);
+                    scene->materials.push_back(mat);
                 } else {
                     std::cerr << "Invalid material type " << type << std::endl;
                 }
@@ -212,19 +212,19 @@ void parseSceneFile(std::filesystem::path path) {
                     std::string matName, path;
                     in >> matName >> path;
                     Mesh* mesh = loadOBJ(path, findMaterial(matName), name);
-                    meshes.push_back(mesh);
+                    scene->meshes.push_back(mesh);
                 } else if (type == "sphere") {
                     int stacks, sectors;
                     std::string matName;
                     in >> stacks >> sectors >> matName;
                     Mesh* mesh = createSphere(findMaterial(matName), name, stacks, sectors);
-                    meshes.push_back(mesh);
+                    scene->meshes.push_back(mesh);
                 } else if (type == "plane") {
                     uint16_t subDivX, subDivY;
                     std::string matName;
                     in >> subDivX >> subDivY >> matName;
                     Mesh* mesh = createPlane(findMaterial(matName), name, subDivX, subDivY);
-                    meshes.push_back(mesh);
+                    scene->meshes.push_back(mesh);
                 } else if (type == "custom") {
                     std::string key;
                     std::vector<Vertex> vertices;
@@ -256,7 +256,7 @@ void parseSceneFile(std::filesystem::path path) {
                             std::cerr << "Invalid custom mesh entry " << key << std::endl;
                         }
                     }
-                    meshes.push_back(createMesh(faces, vertices, name));
+                    scene->meshes.push_back(createMesh(faces, vertices, name));
                 } else {
                     std::cerr << "Invalid mesh type " << type << std::endl;
                 }
@@ -267,7 +267,7 @@ void parseSceneFile(std::filesystem::path path) {
                 obj.mesh = findMesh(meshName);
                 in >> obj.position >> obj.scale >> obj.rotation;
                 obj.rotation *= M_PIf / 180.0f;
-                objects.push_back(obj);
+                scene->objects.push_back(obj);
             } else {
                 std::cerr << "Invalid command " << word << std::endl;
             }

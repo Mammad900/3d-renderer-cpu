@@ -49,11 +49,11 @@ T textureSample(
     };
 
     // Bilinear filtering
-    if(textureFilteringMode == 1) {
+    if(scene->textureFilteringMode == 1) {
         return textureBilinearFilter(texture, uv, mipLevel);
     }
     // Trilinear (blend mipmaps)
-    if(textureFilteringMode == 2) {
+    if(scene->textureFilteringMode == 2) {
         Vector2u mipLevel2{
             clamp((uint)ceil(mipLevelF.x), 0u, texture.mipCount.x),
             clamp((uint)ceil(mipLevelF.y), 0u, texture.mipCount.y),

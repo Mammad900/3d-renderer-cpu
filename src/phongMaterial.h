@@ -28,7 +28,7 @@ public:
 
     Color shade(Fragment &f, Color previous, Color matSpecular, Color matEmissive, Color matTint) {
         Vector2f uv = f.uv, dUVdx = f.dUVdx, dUVdy = f.dUVdy;
-        Vector3f viewDir = (cam - f.worldPos).normalized();
+        Vector3f viewDir = (scene->cam - f.worldPos).normalized();
         if(!(flags & Transparent) && (flags & DoubleSided) && f.isBackFace)
             f.normal *= -1.0f;
         if(matSpecular.a == 0)
@@ -37,7 +37,7 @@ public:
         if(matEmissive.a == 0)
             matEmissive = COLORMAP(mat.emissive);
 
-        Color diffuse = ambientLight * ambientLight.a;
+        Color diffuse = scene->ambientLight * scene->ambientLight.a;
         Color sss = {0, 0, 0, 1};
         Color specular = {0, 0, 0, 1};
 
@@ -50,9 +50,9 @@ public:
             normal = normal.normalized();
         }
 
-        for (size_t i = 0; i < lights.size(); i++)
+        for (size_t i = 0; i < scene->lights.size(); i++)
         {
-            Light &light = lights[i];
+            Light &light = scene->lights[i];
             Vector3f direction = light.direction;
             float intensity = light.color.a;
             if(light.isPointLight) {
@@ -102,8 +102,8 @@ public:
             lighting = previous * matTint + lighting;
         }
 
-        if(whitePoint == 0) // Don't waste cycles if it won't be used
-            maximumColor = max(maximumColor, lighting.luminance()); // This doesn't take transparency into account
+        if(scene->whitePoint == 0) // Don't waste cycles if it won't be used
+            scene->maximumColor = max(scene->maximumColor, lighting.luminance()); // This doesn't take transparency into account
 
         return lighting;
     }

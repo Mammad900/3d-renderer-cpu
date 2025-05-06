@@ -18,19 +18,19 @@ struct TransparentTriangle{
 
 void fog();
 
-void render() {
+void render(Scene *scene) {
     for (size_t i = 0; i < frameSize.x*frameSize.y; i++)
     {
         framebuffer[i] = Color{0, 0, 0, 1};
-        zBuffer[i]=farClip;
+        zBuffer[i]=scene->farClip;
     }
 
 #pragma region // ===== COUNT VERTICES & FACES =====
 
     int total_vertices = 0;
     int total_faces = 0;
-    for (size_t i = 0; i < objects.size(); i++) {
-        Mesh *mesh = objects[i].mesh;
+    for (size_t i = 0; i < scene->objects.size(); i++) {
+        Mesh *mesh = scene->objects[i].mesh;
         total_vertices += mesh->n_vertices;
         total_faces += mesh->n_faces;
     }
@@ -39,10 +39,10 @@ void render() {
 
     makePerspectiveProjectionMatrix();
 
-    camDirection = rotate({0, 0, 1}, camRotation);
+    scene->camDirection = rotate({0, 0, 1}, scene->camRotation);
 
-    for (size_t i = 0; i < lights.size(); i++) {
-        Light &light = lights[i];
+    for (size_t i = 0; i < scene->lights.size(); i++) {
+        Light &light = scene->lights[i];
         if(!light.isPointLight)
             light.direction = rotate(Vector3f{0, -1, 0}, light.rotation);
     }
@@ -52,8 +52,8 @@ void render() {
     Triangle triangles[total_faces];
     std::vector<TransparentTriangle> transparents;
     int triI = 0;
-    for (size_t i = 0; i < objects.size(); i++) {
-        Object obj = objects[i];
+    for (size_t i = 0; i < scene->objects.size(); i++) {
+        Object obj = scene->objects[i];
         Mesh *mesh = obj.mesh;
         Projection projectedVertices[mesh->n_vertices];
         float objectTransformMatrix[16];
@@ -114,7 +114,7 @@ void render() {
 #pragma endregion
 
 #pragma region // ===== FOG =====
-    if(fogColor.a > 0)
+    if(scene->fogColor.a > 0)
         fog();
 
 #pragma endregion
@@ -122,7 +122,7 @@ void render() {
 
 void fog() {
 
-    float tanFOV = tan(fov * M_PI / 360);
+    float tanFOV = tan(scene->fov * M_PI / 360);
     for (int y = 0; y < (int)frameSize.y; y++) {
         for (int x = 0; x < (int)frameSize.x; x++) {
             size_t i = frameBufferIndex({x, y});
@@ -132,10 +132,10 @@ void fog() {
                 world.lengthSquared() + z * z
             ); // Account for X and Y, to make it radial vs flat
             float visibility = std::clamp(
-                std::powf(0.5f, dist * fogColor.a), 0.0f, 1.0f
+                std::powf(0.5f, dist * scene->fogColor.a), 0.0f, 1.0f
             ); // Exponential falloff
             Color result = framebuffer[i] * visibility +
-                           fogColor * (1 - visibility); // Lerp
+                           scene->fogColor * (1 - visibility); // Lerp
             framebuffer[i] = result;
         }
     }

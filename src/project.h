@@ -16,19 +16,19 @@ struct Projection {
 float projectionMatrix[16];
 
 void makePerspectiveProjectionMatrix() {
-    makeRotationMatrix(-camRotation, projectionMatrix);
-    float S = 1 / tan(fov * M_PI / 360);
-    float f = -farClip / (farClip - nearClip);
+    makeRotationMatrix(-scene->camRotation, projectionMatrix);
+    float S = 1 / tan(scene->fov * M_PI / 360);
+    float f = -scene->farClip / (scene->farClip - scene->nearClip);
     matMul(projectionMatrix, (float[]){
         S, 0, 0, 0,
         0, S, 0, 0,
         0, 0, f,-1,
-        0, 0,-f*nearClip,0
+        0, 0,-f*scene->nearClip,0
     }, projectionMatrix, 4,4,4);
 }
 
 Projection perspectiveProject(Vector3f a) {
-    a -= cam;
+    a -= scene->cam;
     float vM[4] = {a.x, a.y, a.z, 1};
     matMul(vM, projectionMatrix, vM, 1, 4, 4);
     return Projection{

@@ -24,31 +24,33 @@ void changeFrameSize(sf::Vector2u newSize) {
     renderWindow->setView(sf::View(visibleArea));
 }
 
-// struct Scene {
-std::vector<Light> lights;
-Color ambientLight = {1, 1, 1, 0.1};
+struct Scene {
+    std::vector<Light> lights;
+    Color ambientLight = {1, 1, 1, 0.1};
 
-std::vector<Material*> materials;
-std::vector<Mesh*> meshes;
+    std::vector<Material*> materials;
+    std::vector<Mesh*> meshes;
 
-std::vector<Object> objects;
+    std::vector<Object> objects;
 
-Vector3f cam = {0, 0, 0};
-Vector3f camRotation = {0, 0, 0};
-Vector3f camDirection;
-float nearClip = 0.1, farClip = 100;
-float fov = 90;
+    Vector3f cam = {0, 0, 0};
+    Vector3f camRotation = {0, 0, 0};
+    Vector3f camDirection;
+    float nearClip = 0.1, farClip = 100;
+    float fov = 90;
 
-float maximumColor;
+    float maximumColor;
 
-int renderMode = 0;
-bool backFaceCulling = true;
-bool reverseAllFaces = false;
-bool fullBright = false;
-bool wireFrame = false;
-bool orbit = false;
-int textureFilteringMode = 0;
-float whitePoint = 1;
-Color fogColor = {0,0,0,0};
+    int renderMode = 0;
+    bool backFaceCulling = true;
+    bool reverseAllFaces = false;
+    bool fullBright = false;
+    bool wireFrame = false;
+    bool orbit = false;
+    int textureFilteringMode = 0;
+    float whitePoint = 1;
+    Color fogColor = {0,0,0,0};
+};
 
+Scene *scene = new Scene();
 #endif /* __DATA_H__ */
