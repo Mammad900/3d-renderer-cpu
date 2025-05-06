@@ -6,37 +6,39 @@
 
 using sf::Vector3f, sf::Vector2u;
 
-// clang-format off
+sf::RenderWindow *renderWindow;
+Vector2u frameSize = {500, 500};
+Vector2u frameSizeTemp = frameSize;
+Color *framebuffer;
+float *zBuffer;
+void changeFrameSize(sf::Vector2u newSize) {
+    if(framebuffer != nullptr)
+        delete[] framebuffer;
+    if(zBuffer != nullptr)
+        delete[] zBuffer;
+    framebuffer = new Color[newSize.x * newSize.y];
+    zBuffer = new float[newSize.x * newSize.y];
+    frameSize = frameSizeTemp = newSize;
+    renderWindow->setSize(newSize);
+    sf::FloatRect visibleArea({0.f, 0.f}, sf::Vector2f(newSize));
+    renderWindow->setView(sf::View(visibleArea));
+}
 
-// static Material cubeMaterial = {
-//     .diffuseColor= Color{1.0f, 1.0f, 1.0f, 1.0f},
-//     .diffuseTexture= nullptr,
-//     .specularColor= Color{1.0f, 1.0f, 1.0f, 50.0f},
-// };
-
-std::vector<Light> lights = {
-    // Light{
-    //     .direction={0,-1,0},
-    //     .color=Color{1,1,1,1}
-    // }
-};
+// struct Scene {
+std::vector<Light> lights;
 Color ambientLight = {1, 1, 1, 0.1};
 
 std::vector<Material*> materials;
 std::vector<Mesh*> meshes;
 
 std::vector<Object> objects;
-//= {{&cubeMesh, {0, 0, 0}, {0, 0, 0}, {1, 1, 1}}};
 
 Vector3f cam = {0, 0, 0};
 Vector3f camRotation = {0, 0, 0};
 Vector3f camDirection;
 float nearClip = 0.1, farClip = 100;
 float fov = 90;
-constexpr Vector2u frameSize = {800, 800};
 
-Color framebuffer[frameSize.x * frameSize.y];
-float zBuffer[frameSize.x * frameSize.y];
 float maximumColor;
 
 int renderMode = 0;

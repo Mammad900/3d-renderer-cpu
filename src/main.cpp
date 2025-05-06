@@ -12,9 +12,12 @@ int main(int argc, char** argv) {
     // Scene window
     auto window = sf::RenderWindow(
         sf::VideoMode(frameSize), "3D renderer",
-        sf::Style::Titlebar | sf::Style::Close
+        sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize
     );
+    renderWindow = &window;
     window.setFramerateLimit(144);
+
+    changeFrameSize(frameSize);
 
     // Tools window
     sf::RenderWindow window2(sf::VideoMode({1200, 600}), "Tools");
@@ -29,6 +32,10 @@ int main(int argc, char** argv) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
                 window.close();
+            }
+            if (const auto* resized = event->getIf<sf::Event::Resized>())
+            {
+                changeFrameSize(resized->size);
             }
         }
 
