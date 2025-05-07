@@ -13,11 +13,11 @@ new material EarthMat earth
     oceanDiffuseColor       1 1 1 1
     oceanSpecularColor      0.275 0.38 0.6 0.16
     cloudDiffuseColor       1 1 1 1
-    terrainDiffuseTexture   earth-diffuse-8k.jpg
-    oceanMask               earth-specular-8k.png
-    cityLightsTexture       earth-lights-8k.jpg
-    cloudTexture            earth-clouds-4k.png
-    normalMap               earth-normalmap-8k.jpg 1 -1
+    terrainDiffuseTexture   earth-diffuse-2k.jpg
+    oceanMask               earth-specular-2k.png
+    cityLightsTexture       earth-lights-2k.jpg
+    cloudTexture            earth-clouds-2k.png
+    normalMap               earth-normalmap-2k.jpg 1 -1
 end
 
 new mesh EarthMesh sphere 20 20 EarthMat
