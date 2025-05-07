@@ -11,7 +11,7 @@ char objFilePath[500];
 Material *selectedMaterial;
 Mesh *selectedMesh;
 
-void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *scene)
+void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingScene)
 {
     while (const auto event = window.pollEvent())
     {
@@ -28,23 +28,23 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *scene)
     ImGui::ShowDemoWindow();
 
     ImGui::Begin("Options");
-    ImGui::InputFloat("Near", &scene->nearClip);
-    ImGui::InputFloat("Far", &scene->farClip);
-    ImGui::SliderFloat("FOV", &scene->fov, 10, 150);
-    ImGui::SliderFloat3("Camera rotation", (float *)&scene->camRotation, -M_PI, M_PI);
-    ImGui::DragFloat3("Camera position", (float *)&scene->cam, 0.2f);
-    ImGui::RadioButton("Frame buffer", &scene->renderMode, 0);
-    ImGui::RadioButton("Z buffer", &scene->renderMode, 1);
-    ImGui::Checkbox("Back-face culling", &scene->backFaceCulling);
-    ImGui::Checkbox("Reverse all faces", &scene->reverseAllFaces);
-    ImGui::Checkbox("Full-bright mode", &scene->fullBright);
-    ImGui::Checkbox("Show wireframe mesh", &scene->wireFrame);
-    ImGui::Checkbox("Orbit", &scene->orbit);
+    ImGui::InputFloat("Near", &editingScene->nearClip);
+    ImGui::InputFloat("Far", &editingScene->farClip);
+    ImGui::SliderFloat("FOV", &editingScene->fov, 10, 150);
+    ImGui::SliderFloat3("Camera rotation", (float *)&editingScene->camRotation, -M_PI, M_PI);
+    ImGui::DragFloat3("Camera position", (float *)&editingScene->cam, 0.2f);
+    ImGui::RadioButton("Frame buffer", &editingScene->renderMode, 0);
+    ImGui::RadioButton("Z buffer", &editingScene->renderMode, 1);
+    ImGui::Checkbox("Back-face culling", &editingScene->backFaceCulling);
+    ImGui::Checkbox("Reverse all faces", &editingScene->reverseAllFaces);
+    ImGui::Checkbox("Full-bright mode", &editingScene->fullBright);
+    ImGui::Checkbox("Show wireframe mesh", &editingScene->wireFrame);
+    ImGui::Checkbox("Orbit", &editingScene->orbit);
     ImGui::Text("Texture filtering:");
-    ImGui::RadioButton("None", &scene->textureFilteringMode, 0);
-    ImGui::RadioButton("Bilinear", &scene->textureFilteringMode, 1);
-    ImGui::RadioButton("Trilinear", &scene->textureFilteringMode, 2);
-    ImGui::SliderFloat("White point", (float *)&scene->whitePoint, 0, 5);
+    ImGui::RadioButton("None", &editingScene->textureFilteringMode, 0);
+    ImGui::RadioButton("Bilinear", &editingScene->textureFilteringMode, 1);
+    ImGui::RadioButton("Trilinear", &editingScene->textureFilteringMode, 2);
+    ImGui::SliderFloat("White point", (float *)&editingScene->whitePoint, 0, 5);
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     ImGui::DragScalarN("Frame size", ImGuiDataType_U32, &frameSizeTemp, 2);
     if(ImGui::Button("Set frame size")) {
@@ -53,10 +53,10 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *scene)
     ImGui::End();
 
     if(ImGui::Begin("Objects")) {
-        for (size_t i = 0; i < scene->objects.size(); i++) {
+        for (size_t i = 0; i < editingScene->objects.size(); i++) {
             ImGui::PushID(i);
             if(ImGui::TreeNode("Cube")) {
-                Object &obj = scene->objects[i];
+                Object &obj = editingScene->objects[i];
                 ImGui::SliderFloat3("Rotation", (float *)&obj.rotation, -M_PI, M_PI);
                 ImGui::DragFloat3("Position", (float *)&obj.position, 0.2f);
                 ImGui::DragFloat3("Scale", (float *)&obj.scale, 0.1f);
@@ -69,7 +69,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *scene)
             if(selectedMesh == nullptr)
                 ImGui::Text("Select a mesh in the meshes window.");
             if(selectedMesh!= nullptr && ImGui::Button("Create")) {
-                scene->objects.push_back(Object{
+                editingScene->objects.push_back(Object{
                     .mesh = selectedMesh,
                     .scale={1,1,1}
                 });
@@ -80,13 +80,13 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *scene)
     ImGui::End();
 
     ImGui::Begin("Lights");
-    ImGui::ColorEdit4("Ambient lighting", (float*)&scene->ambientLight, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-    ImGui::ColorEdit4("Fog", (float*)&scene->fogColor, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-    for (size_t i = 0; i < scene->lights.size(); i++)
+    ImGui::ColorEdit4("Ambient lighting", (float*)&editingScene->ambientLight, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+    ImGui::ColorEdit4("Fog", (float*)&editingScene->fogColor, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+    for (size_t i = 0; i < editingScene->lights.size(); i++)
     {
         ImGui::PushID(i);
         if(ImGui::TreeNode("Light")) {
-            Light &light = scene->lights[i];
+            Light &light = editingScene->lights[i];
             if(light.isPointLight)
                 ImGui::DragFloat3("Position", (float *)&light.direction);
             else
@@ -97,18 +97,18 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *scene)
         ImGui::PopID();
     }
     if(ImGui::Button("New light")) {
-        scene->lights.push_back(Light{.rotation = {0, 0, 0}, .color = {1, 1, 1, 1}});
+        editingScene->lights.push_back(Light{.rotation = {0, 0, 0}, .color = {1, 1, 1, 1}});
     }
     if(ImGui::Button("New point light")) {
-        scene->lights.push_back(Light{.direction={10,0,0}, .color = {1, 1, 1, 1}, .isPointLight=true});
+        editingScene->lights.push_back(Light{.direction={10,0,0}, .color = {1, 1, 1, 1}, .isPointLight=true});
     }
     ImGui::End();
 
     if(ImGui::Begin("Materials")) {
-        for (size_t i = 0; i < scene->materials.size(); i++)
+        for (size_t i = 0; i < editingScene->materials.size(); i++)
         {
             ImGui::PushID(i);
-            Material *mat = scene->materials[i];
+            Material *mat = editingScene->materials[i];
             if(ImGui::TreeNode(mat->name.c_str())) {
                 mat->GUI();
                 if (mat != selectedMaterial && ImGui::Button("Select"))
@@ -121,10 +121,10 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *scene)
     ImGui::End();
 
     if(ImGui::Begin("Meshes")) {
-        for (size_t i = 0; i < scene->meshes.size(); i++)
+        for (size_t i = 0; i < editingScene->meshes.size(); i++)
         {
             ImGui::PushID(i);
-            Mesh *mesh = scene->meshes[i];
+            Mesh *mesh = editingScene->meshes[i];
             if(ImGui::TreeNode(mesh->label.c_str())) {
                 if(ImGui::TreeNode("Vertices")) {
                     for (uint16_t j = 0; j < mesh->n_vertices; j++)
@@ -151,14 +151,24 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *scene)
             ImGui::InputText("Path", objFilePath, 500);
             if(selectedMaterial!= nullptr && ImGui::Button("Load")) {
                 Mesh *m = loadOBJ(objFilePath, selectedMaterial, std::filesystem::path(objFilePath).filename());
-                scene->meshes.push_back(m);
+                editingScene->meshes.push_back(m);
             }
             ImGui::TreePop();
         }
     }
     ImGui::End();
 
-    // ImGui::ColorEdit4("Color", (float*)&objects[0].mesh->faces[0].c1, ImGuiColorEditFlags_Float);
+    if(ImGui::Begin("Scenes")) {
+        for (size_t i = 0; i < scenes.size(); i++)
+        {
+            ImGui::PushID(i);
+            Scene *s = scenes[i];
+            if(ImGui::Button(s->name.c_str()))
+                scene = s;
+            ImGui::PopID();
+        }
+    }
+    ImGui::End();
 
     window.clear();
     ImGui::SFML::Render(window);

@@ -14,6 +14,8 @@ extern float *zBuffer;
 void changeFrameSize(sf::Vector2u newSize);
 
 struct Scene {
+    std::string name;
+    
     std::vector<Light> lights;
     Color ambientLight = {1, 1, 1, 0.1};
 
@@ -43,4 +45,5 @@ struct Scene {
 };
 
 extern Scene *scene;
+extern std::vector<Scene *> scenes;
 #endif /* __DATA_H__ */

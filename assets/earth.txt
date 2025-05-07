@@ -1,7 +1,11 @@
+scene new earth
+scene edit earth
+
 ambientLight 0.4 0.4 0.4 0.1
 set whitePoint 4
 new light directional 0 0 90 1 1 1 5
 fov 30
+cam pos 0 0 -5
 
 new material EarthMat earth
     terrainDiffuseColor     1 1 1 1

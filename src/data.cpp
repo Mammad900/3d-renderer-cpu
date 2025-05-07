@@ -1,11 +1,12 @@
 #include "data.h"
 
-Scene *scene = new Scene();
+Scene *scene = nullptr;
 sf::RenderWindow *renderWindow;
 Vector2u frameSize = {500, 500};
 Vector2u frameSizeTemp = frameSize;
 Color *framebuffer;
 float *zBuffer;
+std::vector<Scene *> scenes;
 
 void changeFrameSize(sf::Vector2u newSize) {
     if(framebuffer != nullptr)

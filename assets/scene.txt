@@ -1,4 +1,4 @@
-fov 60
-cam pos 0 0 -5
-
+import box.txt
 import earth.txt
+
+scene render box

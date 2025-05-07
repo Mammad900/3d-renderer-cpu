@@ -11,6 +11,25 @@ This is a simple scene description format parsed word by word.
 - All vectors are 3 floats (x y z).
 - All floats are decimal unless otherwise noted.
 
+## Files
+
+To run another scene file:
+
+```txt
+import path/to/file.txt
+```
+
+The opened file will inherit the currently editing scene of the file opening it (caller), but switching to another scene within that file does not affect the caller.
+
+## Scenes
+
+All data below is part of a scene. You must have at least one scene at a time, and switch to a scene before running any other command.
+
+```txt
+scene new MyScene           # Create a new scene with default settings
+scene edit MyScene          # Switch to editing the scene, all following commands in this file will edit this scene
+scene render MyScene        # Set the scene as the one being rendered
+
 ## Camera Settings
 
 ```txt
