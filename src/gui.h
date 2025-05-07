@@ -163,7 +163,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
         {
             ImGui::PushID(i);
             Scene *s = scenes[i];
-            if(ImGui::Button(s->name.c_str()))
+            if(ImGui::RadioButton(s->name.c_str(), s == scene))
                 scene = s;
             ImGui::PopID();
         }
