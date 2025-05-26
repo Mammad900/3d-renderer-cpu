@@ -18,5 +18,5 @@ struct Triangle {
 };
 
 size_t frameBufferIndex(Vector2i pos);
-void drawTriangle(Color *frame, Triangle tri);
+void drawTriangle(RenderTarget *frame, Triangle tri);
 #endif /* __TRIANGLE_H__ */

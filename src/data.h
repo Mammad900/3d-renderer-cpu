@@ -7,11 +7,19 @@
 using sf::Vector3f, sf::Vector2u;
 
 extern sf::RenderWindow *renderWindow;
-extern Vector2u frameSize;
+struct RenderTarget {
+    Vector2u size;
+    Color *framebuffer;
+    float *zBuffer;
+    void changeSize(sf::Vector2u newSize);
+
+    RenderTarget(Vector2u size) { changeSize(size); }
+};
+
+void changeWindowSize(Vector2u size);
+
 extern Vector2u frameSizeTemp;
-extern Color *framebuffer;
-extern float *zBuffer;
-void changeFrameSize(sf::Vector2u newSize);
+extern RenderTarget *frame;
 
 struct Scene {
     std::string name;

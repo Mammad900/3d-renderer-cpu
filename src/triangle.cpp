@@ -18,10 +18,10 @@ Vector2f v2abs(Vector2f in) {
 }
 
 size_t frameBufferIndex(Vector2i pos) {
-    return pos.x + frameSize.x * pos.y;
+    return pos.x + frame->size.x * pos.y;
 }
 
-void plotVertex(Color* frame, Vector2f pos, float depth) {
+void plotVertex(RenderTarget* frame, Vector2f pos, float depth) {
     depth = std::clamp(depth, 0.0f, 1.0f);
     Color heatColor = Color{depth, 0, 1.0f - depth, 1.0f};
     int cx = static_cast<int>(pos.x);
@@ -30,8 +30,8 @@ void plotVertex(Color* frame, Vector2f pos, float depth) {
     for (int dx = -10; dx <= 10; ++dx) {
         for (int dy = -10; dy <= 10; ++dy) {
             Vector2i p = {cx + dx, cy + dy};
-            if (p.x >= 0 && p.y >= 0 && p.x < (int)frameSize.x && p.y < (int)frameSize.y) {
-                frame[frameBufferIndex(p)] = heatColor;
+            if (p.x >= 0 && p.y >= 0 && p.x < (int)frame->size.x && p.y < (int)frame->size.y) {
+                frame->framebuffer[frameBufferIndex(p)] = heatColor;
             }
         }
     }
@@ -50,8 +50,8 @@ void plotVertex(Color* frame, Vector2f pos, float depth) {
     int err = dx - dy;
 
     while (true) {
-        if (x0 >= 0 && y0 >= 0 && x0 < (int)frameSize.x && y0 < (int)frameSize.y)
-            framebuffer[frameBufferIndex({x0, y0})] = color;
+        if (x0 >= 0 && y0 >= 0 && x0 < (int)frame->size.x && y0 < (int)frame->size.y)
+            frame->framebuffer[frameBufferIndex({x0, y0})] = color;
 
         if (x0 == x1 && y0 == y1)
             break;
@@ -68,7 +68,7 @@ void plotVertex(Color* frame, Vector2f pos, float depth) {
     }
 }
 
-void drawTriangle(Color *frame, Triangle tri) {
+void drawTriangle(RenderTarget *frame, Triangle tri) {
     if(tri.cull && scene->backFaceCulling && !(tri.mat->flags & (MaterialFlags::Transparent | MaterialFlags::DoubleSided)))
         return;
 
@@ -82,9 +82,9 @@ void drawTriangle(Color *frame, Triangle tri) {
     )
         return;
 
-    Vector2f a = (v3to2(tri.s1.screenPos) + Vector2f{1, 1}).componentWiseMul(Vector2f{frameSize.x / 2.0f, frameSize.y / 2.0f}),
-             b = (v3to2(tri.s2.screenPos) + Vector2f{1, 1}).componentWiseMul(Vector2f{frameSize.x / 2.0f, frameSize.y / 2.0f}),
-             c = (v3to2(tri.s3.screenPos) + Vector2f{1, 1}).componentWiseMul(Vector2f{frameSize.x / 2.0f, frameSize.y / 2.0f});
+    Vector2f a = (v3to2(tri.s1.screenPos) + Vector2f{1, 1}).componentWiseMul(Vector2f{frame->size.x / 2.0f, frame->size.y / 2.0f}),
+             b = (v3to2(tri.s2.screenPos) + Vector2f{1, 1}).componentWiseMul(Vector2f{frame->size.x / 2.0f, frame->size.y / 2.0f}),
+             c = (v3to2(tri.s3.screenPos) + Vector2f{1, 1}).componentWiseMul(Vector2f{frame->size.x / 2.0f, frame->size.y / 2.0f});
 
     // plotVertex(frameSize, frame, a, tri.s1.screenPos.z);
     // plotVertex(frameSize, frame, b, tri.s2.screenPos.z);
@@ -162,30 +162,30 @@ void drawTriangle(Color *frame, Triangle tri) {
         if(
             f.screenPos.x<0 || 
             f.screenPos.y<0 || 
-            f.screenPos.x>=(int)frameSize.x || 
-            f.screenPos.y>=(int)frameSize.y ||
+            f.screenPos.x>=(int)frame->size.x || 
+            f.screenPos.y>=(int)frame->size.y ||
             !f.inside
         )
             return;
         size_t index = frameBufferIndex(f.screenPos);
-        if(index > frameSize.x*frameSize.y)
+        if(index > frame->size.x*frame->size.y)
             return;
 
         Color baseColor = tri.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
 
         if(baseColor.a < 0.5f)
             return;
-        if (zBuffer[index] < f.z || f.z<0)
+        if (frame->zBuffer[index] < f.z || f.z<0)
             return;
         if(!((tri.mat->flags & MaterialFlags::Transparent)))
-            zBuffer[index] = f.z;
+            frame->zBuffer[index] = f.z;
 
         if(scene->fullBright) {
-            frame[index] = baseColor;
+            frame->framebuffer[index] = baseColor;
             return;
         }
         f.baseColor = baseColor;
-        frame[index] = tri.mat->shade(f, frame[index]);
+        frame->framebuffer[index] = tri.mat->shade(f, frame->framebuffer[index]);
     };
 
     float minY =(std::min({a.y, b.y, c.y}));

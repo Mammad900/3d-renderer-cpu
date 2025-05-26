@@ -48,7 +48,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     ImGui::DragScalarN("Frame size", ImGuiDataType_U32, &frameSizeTemp, 2);
     if(ImGui::Button("Set frame size")) {
-        changeFrameSize(frameSizeTemp);
+        frame->changeSize(frameSizeTemp);
     }
     ImGui::End();
 

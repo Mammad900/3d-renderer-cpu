@@ -11,13 +11,13 @@ int main(int argc, char** argv) {
 
     // Scene window
     auto window = sf::RenderWindow(
-        sf::VideoMode(frameSize), "3D renderer",
+        sf::VideoMode(frame->size), "3D renderer",
         sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize
     );
     renderWindow = &window;
     window.setFramerateLimit(144);
 
-    changeFrameSize(frameSize);
+    // frame->changeSize(frame->size, false);
 
     // Tools window
     sf::RenderWindow window2(sf::VideoMode({1200, 600}), "Tools");
@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
             }
             if (const auto* resized = event->getIf<sf::Event::Resized>())
             {
-                changeFrameSize(resized->size);
+                changeWindowSize(resized->size);
             }
         }
 
@@ -44,18 +44,18 @@ int main(int argc, char** argv) {
             scene->objects[0].rotation.y += 0.01;
         }
 
-        render(scene);
+        render(scene, frame);
 
-        sf::Image img(frameSize);
-        for (unsigned int y = 0; y < frameSize.y; y++)
-            for (unsigned int x = 0; x < frameSize.x; x++)
+        sf::Image img(frame->size);
+        for (unsigned int y = 0; y < frame->size.y; y++)
+            for (unsigned int x = 0; x < frame->size.x; x++)
                 if (scene->renderMode == 0) {// Frame buffer
-                    Color pixel = framebuffer[y * frameSize.x + x];
+                    Color pixel = frame->framebuffer[y * frame->size.x + x];
                     img.setPixel({x, y}, pixel.reinhardtTonemap(scene->whitePoint==0?scene->maximumColor:scene->whitePoint));
                 }
                 else if (scene->renderMode == 1) { // Z buffer
                     // Z buffer range is really display-to-end-user unfriendly
-                    float z = zBuffer[y * frameSize.x + x] * 20.0f;
+                    float z = frame->zBuffer[y * frame->size.x + x] * 20.0f;
                     img.setPixel({x, y}, sf::Color(z, z, z));
                 }
 

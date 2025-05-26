@@ -18,11 +18,11 @@ struct TransparentTriangle{
 
 void fog();
 
-void render(Scene *scene) {
-    for (size_t i = 0; i < frameSize.x*frameSize.y; i++)
+void render(Scene *scene, RenderTarget *frame) {
+    for (size_t i = 0; i < frame->size.x*frame->size.y; i++)
     {
-        framebuffer[i] = Color{0, 0, 0, 1};
-        zBuffer[i]=scene->farClip;
+        frame->framebuffer[i] = Color{0, 0, 0, 1};
+        frame->zBuffer[i]=scene->farClip;
     }
 
 #pragma region // ===== COUNT VERTICES & FACES =====
@@ -101,13 +101,13 @@ void render(Scene *scene) {
 
     for (int i = 0; i < total_faces; i++) {
         if(triangles[1].mat->flags & MaterialFlags::Transparent) continue;
-        drawTriangle(framebuffer, triangles[i]);
+        drawTriangle(frame, triangles[i]);
     }
 
     auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z > b.z; };
     std::sort(transparents.begin(), transparents.end(), compareZ);
     for (auto &&tri : transparents) {
-        drawTriangle(framebuffer, *tri.tri);
+        drawTriangle(frame, *tri.tri);
     }
     
 
@@ -123,20 +123,20 @@ void render(Scene *scene) {
 void fog() {
 
     float tanFOV = tan(scene->fov * M_PI / 360);
-    for (int y = 0; y < (int)frameSize.y; y++) {
-        for (int x = 0; x < (int)frameSize.x; x++) {
+    for (int y = 0; y < (int)frame->size.y; y++) {
+        for (int x = 0; x < (int)frame->size.x; x++) {
             size_t i = frameBufferIndex({x, y});
-            float z = zBuffer[i];
-            Vector2f world = Vector2f{x / (float)frameSize.x, y / (float)frameSize.y} * z * tanFOV; // Reconstruct world space X and Y
+            float z = frame->zBuffer[i];
+            Vector2f world = Vector2f{x / (float)frame->size.x, y / (float)frame->size.y} * z * tanFOV; // Reconstruct world space X and Y
             float dist = std::sqrt(
                 world.lengthSquared() + z * z
             ); // Account for X and Y, to make it radial vs flat
             float visibility = std::clamp(
                 std::powf(0.5f, dist * scene->fogColor.a), 0.0f, 1.0f
             ); // Exponential falloff
-            Color result = framebuffer[i] * visibility +
+            Color result = frame->framebuffer[i] * visibility +
                            scene->fogColor * (1 - visibility); // Lerp
-            framebuffer[i] = result;
+            frame->framebuffer[i] = result;
         }
     }
 }
