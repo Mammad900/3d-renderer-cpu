@@ -18,5 +18,5 @@ struct Triangle {
 };
 
 size_t frameBufferIndex(Vector2i pos);
-void drawTriangle(RenderTarget *frame, Triangle tri);
+void drawTriangle(RenderTarget *frame, Triangle tri, bool defer);
 #endif /* __TRIANGLE_H__ */

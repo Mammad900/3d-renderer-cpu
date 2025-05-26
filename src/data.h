@@ -11,9 +11,12 @@ struct RenderTarget {
     Vector2u size;
     Color *framebuffer;
     float *zBuffer;
-    void changeSize(sf::Vector2u newSize);
+    Fragment *gBuffer;
+    bool deferred;
+    void changeSize(sf::Vector2u newSize, bool deferred);
 
-    RenderTarget(Vector2u size) { changeSize(size); }
+    RenderTarget(Vector2u size, bool deferred = true)
+        { changeSize(size, deferred); }
 };
 
 void changeWindowSize(Vector2u size);

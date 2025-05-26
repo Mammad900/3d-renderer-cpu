@@ -68,7 +68,7 @@ void plotVertex(RenderTarget* frame, Vector2f pos, float depth) {
     }
 }
 
-void drawTriangle(RenderTarget *frame, Triangle tri) {
+void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
     if(tri.cull && scene->backFaceCulling && !(tri.mat->flags & (MaterialFlags::Transparent | MaterialFlags::DoubleSided)))
         return;
 
@@ -180,12 +180,15 @@ void drawTriangle(RenderTarget *frame, Triangle tri) {
         if(!((tri.mat->flags & MaterialFlags::Transparent)))
             frame->zBuffer[index] = f.z;
 
-        if(scene->fullBright) {
-            frame->framebuffer[index] = baseColor;
-            return;
-        }
         f.baseColor = baseColor;
-        frame->framebuffer[index] = tri.mat->shade(f, frame->framebuffer[index]);
+
+        if(defer) {
+            frame->gBuffer[index] = f;
+        } else {
+            frame->framebuffer[index] = scene->fullBright ?
+                baseColor :
+                tri.mat->shade(f, frame->framebuffer[index]);
+        }
     };
 
     float minY =(std::min({a.y, b.y, c.y}));

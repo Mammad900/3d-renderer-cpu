@@ -22,7 +22,7 @@ void render(Scene *scene, RenderTarget *frame) {
     for (size_t i = 0; i < frame->size.x*frame->size.y; i++)
     {
         frame->framebuffer[i] = Color{0, 0, 0, 1};
-        frame->zBuffer[i]=scene->farClip;
+        frame->zBuffer[i]=INFINITY;
     }
 
 #pragma region // ===== COUNT VERTICES & FACES =====
@@ -101,13 +101,24 @@ void render(Scene *scene, RenderTarget *frame) {
 
     for (int i = 0; i < total_faces; i++) {
         if(triangles[1].mat->flags & MaterialFlags::Transparent) continue;
-        drawTriangle(frame, triangles[i]);
+        drawTriangle(frame, triangles[i], frame->deferred);
+    }
+
+    // Deferred pass
+    if(frame->deferred) {
+        for (size_t i = 0; i < frame->size.x*frame->size.y; i++)
+        {
+            if(frame->zBuffer[i] == INFINITY) // No fragment here
+                continue;
+            Fragment &f = frame->gBuffer[i];
+            frame->framebuffer[i] = f.mat->shade(f, frame->framebuffer[i]);
+        }
     }
 
     auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z > b.z; };
     std::sort(transparents.begin(), transparents.end(), compareZ);
     for (auto &&tri : transparents) {
-        drawTriangle(frame, *tri.tri);
+        drawTriangle(frame, *tri.tri, false);
     }
     
 

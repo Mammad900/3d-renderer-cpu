@@ -47,9 +47,10 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     ImGui::SliderFloat("White point", (float *)&editingScene->whitePoint, 0, 5);
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     ImGui::DragScalarN("Frame size", ImGuiDataType_U32, &frameSizeTemp, 2);
-    if(ImGui::Button("Set frame size")) {
-        frame->changeSize(frameSizeTemp);
-    }
+    if(ImGui::Button("Set frame size"))
+        changeWindowSize(frameSizeTemp);
+    if(ImGui::Checkbox("Use Deferred rendering", &frame->deferred))
+        frame->changeSize(frame->size, frame->deferred);
     ImGui::End();
 
     if(ImGui::Begin("Objects")) {
