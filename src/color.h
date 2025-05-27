@@ -72,7 +72,8 @@ struct Color {
         int b = std::clamp((int)(this->b * 255), 0, 255);
         return sf::Color(r, g, b);
     }
-    operator Vector3f() const { return Vector3f{r, g, b}; }
+    operator Vector3f() const { return ((Vector3f{r, g, b} * 2.0f) - Vector3f{1.0f,1.0f,1.0f}).componentWiseMul({-1,-1,1}); }
+    operator float() const { return a; }
 
     friend std::istream& operator>>(std::istream &is, Color &color) {
         is >> color.r >> color.g >> color.b >> color.a;

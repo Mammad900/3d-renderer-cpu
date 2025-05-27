@@ -9,14 +9,13 @@ fov 60
 cam pos 0 0 -5
 
 new material BoxMaterial phong
-diffuseColor 1 1 1 1
-diffuseTexture laminate_floor_02_diff_1k.jpg
-specularColor 0.15 0.15 0.15 0.25
+diffuse texture 1 1 1 1 laminate_floor_02_diff_1k.jpg
+specular color 0.15 0.15 0.15 0.25
 end
 
 new material BoxSticker phong
-diffuseColor 1 1 1 1
-specularColor 0.4 0.4 0.4 0.4
+diffuse color 1 1 1 1
+specular color 0.4 0.4 0.4 0.4
 normalMap 12721-normal.jpg 0.05 -1
 end
 

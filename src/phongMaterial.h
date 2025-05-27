@@ -9,8 +9,6 @@ Vector3f v2reflect(Vector3f in, Vector3f normal) {
     return in - normal * in.dot(normal) * 2.0f;
 }
 
-#define COLORMAP(x) ((x).color * (((x).texture) ? textureSample((x).texture.value(), uv, dUVdx, dUVdy) : Color{1,1,1,1} ))
-
 class PhongMaterial : public Material {
 public:
     PhongMaterialProps mat;
@@ -19,25 +17,25 @@ public:
         : Material(name, flags, mat.normalMap.has_value()), mat(mat) { }
 
     Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) {
-        return COLORMAP(mat.diffuse);
+        return mat.diffuse->sample(uv, dUVdx, dUVdy);
     }
 
     void GUI() {
-        ImGui::ColorEdit4("Diffuse", (float*)&mat.diffuse.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-        ImGui::ColorEdit4("Specular", (float*)&mat.specular.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-        ImGui::ColorEdit4("Tint", (float*)&mat.tint.color, ImGuiColorEditFlags_Float);
-        ImGui::ColorEdit4("Emissive", (float*)&mat.emissive.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-        ImGui::SliderFloat("Normal Map Strength", &mat.normalMapStrength, 0, 1.5f);
+        mat.diffuse->Gui("Diffuse");
+        mat.specular->Gui("Specular");
+        mat.tint->Gui("Tint");
+        mat.emissive->Gui("Emissive");
+        if(mat.normalMap)
+            mat.normalMap.value()->Gui("Normal map");
     }
 
     Color shade(Fragment &f, Color previous) {
-        Vector2f uv = f.uv, dUVdx = f.dUVdx, dUVdy = f.dUVdy;
         Vector3f viewDir = (scene->cam - f.worldPos).normalized();
         if(!(flags & Transparent) && (flags & DoubleSided) && f.isBackFace)
             f.normal *= -1.0f;
-        Color matSpecular = COLORMAP(mat.specular);
+        Color matSpecular = mat.specular->sample(f);
         float shininess = pow(2.0f, matSpecular.a * 25.5f);
-        Color matEmissive = COLORMAP(mat.emissive);
+        Color matEmissive = mat.emissive->sample(f);
 
         Color diffuse = scene->ambientLight * scene->ambientLight.a;
         Color sss = {0, 0, 0, 1};
@@ -45,9 +43,9 @@ public:
 
         Vector3f normal = f.normal;
         if (mat.normalMap) {
-            normal = ((textureSample(mat.normalMap.value(), uv, dUVdx, dUVdy) * 2.0f) - Vector3f{1.0f,1.0f,1.0f}).componentWiseMul({-1,-1,1});
-            normal = f.tangent * normal.x * mat.normalMapStrength
-                   + f.bitangent*normal.y * mat.normalMapStrength
+            normal = mat.normalMap.value()->sample(f);
+            normal = f.tangent * normal.x
+                   + f.bitangent*normal.y
                    + f.normal*normal.z;
             normal = normal.normalized();
         }
@@ -91,7 +89,7 @@ public:
 
         Color matTint{0,0,0,0};
         if (!(flags & Transparent) && (flags & DoubleSided))
-            matTint = COLORMAP(mat.tint);
+            matTint = mat.tint->sample(f);
         
         Color lighting = 
             diffuse * f.baseColor +
@@ -101,7 +99,7 @@ public:
 
         if(flags & MaterialFlags::Transparent) {
             if(matTint.a == 0)
-                matTint = COLORMAP(mat.tint);
+                matTint = mat.tint->sample(f);
             lighting = previous * matTint + lighting;
         }
 

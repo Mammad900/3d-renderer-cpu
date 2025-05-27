@@ -2,13 +2,17 @@
 #define __EARTHMATERIAL_H__
 #include "phongMaterial.h"
 
+SolidTexture<Color> *blankTexture() {
+    return new SolidTexture<Color>({0, 0, 0, 0});
+}
+
 class EarthMaterial : public Material {
 public:
     PhongMaterial *terrainMat;
     PhongMaterial *oceanMat;
     PhongMaterial *cloudMat;
-    Texture<float> oceanMask;
-    Texture<float> cloudTexture;
+    Texture<float> *oceanMask = new SolidTexture<float>(0);
+    Texture<float> *cloudTexture = new SolidTexture<float>(0);
 
     EarthMaterial(std::string name) : Material(name, MaterialFlags::None, true) {
         PhongMaterialProps terrainProps{};
@@ -22,25 +26,25 @@ public:
     }
 
     Color shade(Fragment &f, Color previous) {
-        bool isOcean = textureSample(oceanMask, f.uv, f.dUVdx, f.dUVdy) > 0.5f;
+        bool isOcean = oceanMask->sample(f) > 0.5f;
         Color groundLighting = isOcean ? oceanMat->shade(f, previous) : terrainMat->shade(f, previous);
-        f.baseColor = cloudMat->mat.diffuse.color; // Because it contains terrain diffuse and we want white
+        f.baseColor = ((ImageTexture<Color>*)(cloudMat->mat.diffuse))->value; // Because it contains terrain diffuse and we want white
         Color cloudLighting = cloudMat->shade(f, previous);
-        float cloudIntensity = textureSample(cloudTexture, f.uv, f.dUVdx, f.dUVdy);
+        float cloudIntensity = cloudTexture->sample(f);
         return groundLighting * (1 - cloudIntensity) +
                cloudLighting * cloudIntensity;
     }
 
     Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) {
-        return textureSample(terrainMat->mat.diffuse.texture.value(), uv, dUVdx, dUVdy);
+        return terrainMat->mat.diffuse->sample(uv, dUVdx, dUVdy);
     }
 
     void GUI() {
-        ImGui::ColorEdit4("Terrain base", (float*)&terrainMat->mat.diffuse.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-        ImGui::ColorEdit4("City lights", (float*)&terrainMat->mat.emissive.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-        ImGui::ColorEdit4("Ocean diffuse", (float*)&oceanMat->mat.diffuse.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-        ImGui::ColorEdit4("Ocean specular", (float*)&oceanMat->mat.specular.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-        ImGui::ColorEdit4("Cloud diffuse", (float*)&cloudMat->mat.diffuse.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+        terrainMat->mat.diffuse->Gui("Terrain base");
+        terrainMat->mat.emissive->Gui("City lights");
+        oceanMat->mat.diffuse->Gui("Ocean diffuse");
+        oceanMat->mat.specular->Gui("Ocean specular");
+        cloudMat->mat.diffuse->Gui("Cloud diffuse");
 
         ImGui::PushID(0);
         if(ImGui::TreeNode("Terrain material")) {

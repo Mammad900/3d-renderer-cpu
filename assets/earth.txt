@@ -8,16 +8,14 @@ fov 30
 cam pos 0 0 -5
 
 new material EarthMat earth
-    terrainDiffuseColor     1 1 1 1
-    cityLightsColor         1 1 1 1
-    oceanDiffuseColor       1 1 1 1
-    oceanSpecularColor      0.275 0.38 0.6 0.16
-    cloudDiffuseColor       1 1 1 1
-    terrainDiffuseTexture   earth-diffuse-2k.jpg
-    oceanMask               earth-specular-2k.png
-    cityLightsTexture       earth-lights-2k.jpg
-    cloudTexture            earth-clouds-2k.png
-    normalMap               earth-normalmap-2k.jpg 1 -1
+    terrainDiffuse  texture     1 1 1 1 earth-diffuse-2k.jpg
+    cityLights      texture     1 1 1 1 earth-lights-2k.jpg
+    oceanMask       texture     1       earth-specular-2k.png
+    oceanDiffuse    color       1 1 1 1
+    oceanSpecular   color       0.275 0.38 0.6 0.16
+    cloudDiffuse    color       1 1 1 1 
+    cloud           texture     1       earth-clouds-2k.png
+    normalMap                           earth-normalmap-2k.jpg 1 -1
 end
 
 new mesh EarthMesh sphere 20 20 EarthMat

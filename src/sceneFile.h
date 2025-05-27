@@ -14,15 +14,30 @@ std::istream& operator>>(std::istream& in, Vector2f& v){
     in >> v.x >> v.y;
     return in;
 }
-Texture<Color> getColorTexture(std::istream& in, std::filesystem::path &referrer){
-    std::string path;
-    in >> path;
-    std::cout << "Loading texture " << path; std::cout.flush();
-    sf::Image img(referrer.parent_path() / path);
-    std::cout << "."; std::cout.flush();
-    Texture<Color> res = loadColorTexture(img);
-    std::cout << "." << std::endl;
-    return res;
+template <typename T>
+void getTexture(Texture<T> *&t, std::istream& in, std::filesystem::path &referrer) {
+    if(t != nullptr) {
+        delete t;
+        t = nullptr;
+    }
+    std::string type;
+    T c;
+    in >> type >> c;
+    if(type == "color") {
+        t = new SolidTexture<T>(c);
+    }
+    else if(type == "texture") {
+        std::string path;
+        in >> path;
+        std::cout << "Loading texture " << path; std::cout.flush();
+        sf::Image img(referrer.parent_path() / path);
+        std::cout << "."; std::cout.flush();
+        ImageTexture<T> *res =  new ImageTexture<T>(img, c);
+        std::cout << "." << std::endl;
+        t = res;
+    } else {
+        std::cerr << "Invalid texture type " << type << std::endl;
+    }
 }
 void getNormalMap(std::istream& in, std::filesystem::path &referrer, PhongMaterialProps& mat) {
     std::string filePath;
@@ -32,24 +47,13 @@ void getNormalMap(std::istream& in, std::filesystem::path &referrer, PhongMateri
     std::cout << "Loading normal map " << filePath; std::cout.flush();
     sf::Image img(referrer.parent_path() / filePath);
     std::cout << "."; std::cout.flush();
-    mat.normalMap = loadVectorTexture(img);
-    mat.normalMapStrength = strength;
+    mat.normalMap = new ImageTexture<Vector3f>(img, {strength, strength, 1});
     if (POM != -1) {
         mat.POM = POM;
         std::cout << "."; std::cout.flush();
-        mat.displacementMap = loadFloatTexture(img);
+        mat.displacementMap = new ImageTexture<float>(img, 1);
     }
     std::cout << "." << std::endl;
-}
-Texture<float> getFloatTexture(std::istream &in, std::filesystem::path &referrer) {
-    std::string filePath;
-    in >> filePath;
-    std::cout << "Loading texture " << filePath; std::cout.flush();
-    sf::Image img(referrer.parent_path() / filePath);
-    std::cout << "."; std::cout.flush();
-    Texture<float> res = loadFloatTexture(img);
-    std::cout << "." << std::endl;
-    return res;
 }
 Material* findMaterial(std::string& name, Scene *scene) {
     for (auto &&mat : scene->materials)
@@ -160,22 +164,14 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                     while (in >> key && key != "end") {
                         if (key == "#") { while (in >> key && key != "#"); continue; }
 
-                        if (key == "diffuseColor")
-                            in >> mat.diffuse.color;
-                        else if (key == "specularColor")
-                            in >> mat.specular.color;
-                        else if (key == "tintColor")
-                            in >> mat.tint.color;
-                        else if (key == "emissiveColor")
-                            in >> mat.emissive.color;
-                        else if (key == "diffuseTexture") {
-                            mat.diffuse.texture = getColorTexture(in, path);
-                        } else if (key == "specularTexture") {
-                            mat.specular.texture = getColorTexture(in, path);
-                        } else if (key == "tintTexture") {
-                            mat.tint.texture = getColorTexture(in, path);
-                        } else if (key == "emissiveTexture") {
-                            mat.emissive.texture = getColorTexture(in, path);
+                        else if (key == "diffuse") {
+                            getTexture(mat.diffuse, in, path);
+                        } else if (key == "specular") {
+                            getTexture(mat.specular, in, path);
+                        } else if (key == "tint") {
+                            getTexture(mat.tint, in, path);
+                        } else if (key == "emissive") {
+                            getTexture(mat.emissive, in, path);
                         } else if (key == "normalMap") {
                             getNormalMap(in, path, mat);
                         } else if (key == "transparent") {
@@ -193,25 +189,21 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                     std::string key;
                     while (in >> key && key != "end") {
                         if (key == "#") { while (in >> key && key != "#"); continue; }
-
-                        if(key == "terrainDiffuseColor") {
-                            in >> mat->terrainMat->mat.diffuse.color;
-                        } else if(key == "cityLightsColor") {
-                            in >> mat->terrainMat->mat.emissive.color;
-                        } else if(key == "oceanDiffuseColor") {
-                            in >> mat->oceanMat->mat.diffuse.color;
-                        } else if(key == "oceanSpecularColor") {
-                            in >> mat->oceanMat->mat.specular.color;
-                        } else if(key == "cloudDiffuseColor") {
-                            in >> mat->cloudMat->mat.diffuse.color;
-                        } else if(key == "terrainDiffuseTexture") {
-                            mat->terrainMat->mat.diffuse.texture = getColorTexture(in, path);
+                        
+                        if(key == "terrainDiffuse") {
+                            getTexture(mat->terrainMat->mat.diffuse, in ,path);
+                        } else if(key == "oceanDiffuse") {
+                            getTexture(mat->oceanMat->mat.diffuse, in ,path);
+                        } else if(key == "oceanSpecular") {
+                            getTexture(mat->oceanMat->mat.specular, in ,path);
                         } else if(key == "oceanMask") {
-                            mat->oceanMask = getFloatTexture(in, path);
-                        } else if(key == "cityLightsTexture") {
-                            mat->terrainMat->mat.emissive.texture = getColorTexture(in, path);
-                        } else if(key == "cloudTexture") {
-                            mat->cloudTexture = getFloatTexture(in, path);
+                            getTexture(mat->oceanMask, in ,path);
+                        } else if(key == "cityLights") {
+                            getTexture(mat->terrainMat->mat.emissive, in ,path);
+                        } else if(key == "cloudDiffuse") {
+                            getTexture(mat->cloudMat->mat.diffuse, in ,path);
+                        } else if(key == "cloud") {
+                            getTexture(mat->cloudTexture, in ,path);
                         } else if(key == "normalMap") {
                             getNormalMap(in, path, mat->terrainMat->mat);
                         } else {
