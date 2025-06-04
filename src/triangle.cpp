@@ -17,7 +17,7 @@ Vector2f v2abs(Vector2f in) {
     return Vector2f{abs(in.x), abs(in.y)};
 }
 
-size_t frameBufferIndex(Vector2i pos) {
+inline size_t frameBufferIndex(Vector2i pos) {
     return pos.x + frame->size.x * pos.y;
 }
 
@@ -35,7 +35,9 @@ void plotVertex(RenderTarget* frame, Vector2f pos, float depth) {
             }
         }
     }
-}void drawLine(Vector2f from, Vector2f to) {
+}
+
+void drawLine(Vector2f from, Vector2f to) {
     Color color = Color{0, 0, 0, 1};
 
     int x0 = std::round(from.x);
@@ -96,9 +98,7 @@ void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
         drawLine(a, c);
     }
 
-    Vector2f s1 = b - a, s2 = c - a;
-    float areaOfTriangle =
-        abs(s1.cross(s2)); // Two times the area of the triangle
+    float areaOfTriangle = abs((b - a).cross(c - a)); // Two times the area of the triangle
 
     Vector3f tangent{}, bitangent{};
     if (tri.mat->needsTBN) {
@@ -107,7 +107,7 @@ void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
         Vector2f deltaUV1 = tri.uv2 - tri.uv1;
         Vector2f deltaUV2 = tri.uv3 - tri.uv1; 
 
-        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+        float f = 1.0f / deltaUV1.cross(deltaUV2);
         tangent = Vector3f{
             f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x),
             f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y),
@@ -129,15 +129,13 @@ void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
             C2 *= -1;
         }
         float C3 = 1.0f - C1 - C2;
-        bool inside = true;
-        if (C1 < 0 || C2 < 0 || C3 < 0)
-            inside = false;
+        bool inside = C1 >= 0 && C2 >= 0 && C3 >= 0;
         C1 /= tri.s1.screenPos.z;
         C2 /= tri.s2.screenPos.z;
         C3 /= tri.s3.screenPos.z;
         float denom = 1 / (C1 + C2 + C3);
 
-#define INTERPOLATE_TRI(A,B,C) ((C1*(A) + C2*(B) + C3*(C))*denom)
+        #define INTERPOLATE_TRI(A,B,C) ((C1*(A) + C2*(B) + C3*(C))*denom)
         float z = INTERPOLATE_TRI(tri.s1.screenPos.z, tri.s2.screenPos.z, tri.s3.screenPos.z);
         Vector3f normal= INTERPOLATE_TRI(tri.s1.normal, tri.s2.normal, tri.s3.normal).normalized();
         Vector3f worldPos= INTERPOLATE_TRI(tri.s1.worldPos, tri.s2.worldPos, tri.s3.worldPos);
@@ -160,16 +158,16 @@ void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
     };
     auto &&postFragment = [&](Fragment &f) -> void {
         if(
-            f.screenPos.x<0 || 
-            f.screenPos.y<0 || 
-            f.screenPos.x>=(int)frame->size.x || 
-            f.screenPos.y>=(int)frame->size.y ||
+            f.screenPos.x < 0 || 
+            f.screenPos.y < 0 || 
+            f.screenPos.x >= (int)frame->size.x || 
+            f.screenPos.y >= (int)frame->size.y ||
             !f.inside
         )
             return;
         size_t index = frameBufferIndex(f.screenPos);
-        if(index > frame->size.x*frame->size.y)
-            return;
+        // if(index > frame->size.x * frame->size.y)
+        //     return;
 
         Color baseColor = tri.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
 
@@ -177,7 +175,7 @@ void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
             return;
         if (frame->zBuffer[index] < f.z || f.z<0)
             return;
-        if(!((tri.mat->flags & MaterialFlags::Transparent)))
+        if(!(tri.mat->flags & MaterialFlags::Transparent))
             frame->zBuffer[index] = f.z;
 
         f.baseColor = baseColor;
@@ -191,16 +189,16 @@ void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
         }
     };
 
-    float minY =(std::min({a.y, b.y, c.y}));
-    float maxY =(std::max({a.y, b.y, c.y}));
-    float minX =(std::min({a.x, b.x, c.x}));
-    float maxX =(std::max({a.x, b.x, c.x}));
+    float minY = std::min({a.y, b.y, c.y});
+    float maxY = std::max({a.y, b.y, c.y});
+    float minX = std::min({a.x, b.x, c.x});
+    float maxX = std::max({a.x, b.x, c.x});
 
     for (int y = minY; y < maxY; y+=2)
         for (int x = minX; x < maxX; x+=2) {
-            Fragment f1 = getFragment({x,y});
-            Fragment f2 = getFragment({x+1,y});
-            Fragment f3 = getFragment({x,y+1});
+            Fragment f1 = getFragment({x  ,y  });
+            Fragment f2 = getFragment({x+1,y  });
+            Fragment f3 = getFragment({x  ,y+1});
             Fragment f4 = getFragment({x+1,y+1});
             f1.dUVdx = f2.uv - f1.uv;
             f2.dUVdx = f2.uv - f1.uv;
