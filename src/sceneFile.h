@@ -270,12 +270,22 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                     std::cerr << "Invalid mesh type " << type << std::endl;
                 }
             } else if (word == "object") {
-                std::string meshName;
-                in >> meshName;
-                Object obj;
-                obj.mesh = findMesh(meshName, editingScene);
-                in >> obj.position >> obj.scale >> obj.rotation;
-                obj.rotation *= M_PIf / 180.0f;
+                Object *obj = new Object();
+                in >> obj->position >> obj->scale >> obj->rotation;
+                obj->rotation *= M_PIf / 180.0f;
+                std::string key;
+                while (in >> key && key != "end") {
+                    if (key == "#") { while (in >> key && key != "#"); continue; }
+
+                    if(key == "mesh") {
+                        std::string meshName;
+                        in >> meshName;
+                        obj->components.push_back(new MeshComponent(obj, findMesh(meshName, editingScene)));
+                    }
+                    else {
+                        std::cerr << "Invalid component type " << key << std::endl;
+                    }
+                }
                 editingScene->objects.push_back(obj);
             } else {
                 std::cerr << "Invalid command " << word << std::endl;

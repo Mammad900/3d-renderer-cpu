@@ -66,10 +66,10 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
         for (size_t i = 0; i < editingScene->objects.size(); i++) {
             ImGui::PushID(i);
             if(ImGui::TreeNode("Cube")) {
-                Object &obj = editingScene->objects[i];
-                ImGui::SliderFloat3("Rotation", (float *)&obj.rotation, -M_PI, M_PI);
-                ImGui::DragFloat3("Position", (float *)&obj.position, 0.2f);
-                ImGui::DragFloat3("Scale", (float *)&obj.scale, 0.1f);
+                Object *obj = editingScene->objects[i];
+                ImGui::SliderFloat3("Rotation", (float *)&obj->rotation, -M_PI, M_PI);
+                ImGui::DragFloat3("Position", (float *)&obj->position, 0.2f);
+                ImGui::DragFloat3("Scale", (float *)&obj->scale, 0.1f);
                 ImGui::TreePop();
             }
             ImGui::PopID();
@@ -79,10 +79,9 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
             if(selectedMesh == nullptr)
                 ImGui::Text("Select a mesh in the meshes window.");
             if(selectedMesh!= nullptr && ImGui::Button("Create")) {
-                editingScene->objects.push_back(Object{
-                    .mesh = selectedMesh,
-                    .scale={1,1,1}
-                });
+                Object *obj = new Object();
+                obj->components.push_back(new MeshComponent(obj, selectedMesh));
+                editingScene->objects.push_back(obj);
             }
             ImGui::TreePop();
         }

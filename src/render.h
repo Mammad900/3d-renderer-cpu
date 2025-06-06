@@ -29,12 +29,16 @@ void render(Scene *scene, RenderTarget *frame) {
 
     int total_vertices = 0;
     int total_faces = 0;
-    for (size_t i = 0; i < scene->objects.size(); i++) {
-        Mesh *mesh = scene->objects[i].mesh;
-        total_vertices += mesh->n_vertices;
-        total_faces += mesh->n_faces;
+    for (auto &&obj : scene->objects) {
+        obj->update();
+        for (auto &&comp : obj->components)
+        if(MeshComponent *meshComp = dynamic_cast<MeshComponent*>(comp)) {
+            Mesh *mesh = meshComp->mesh;
+            total_vertices += mesh->n_vertices;
+            total_faces += mesh->n_faces;
+        }
     }
-
+    
 #pragma endregion
 
     makePerspectiveProjectionMatrix();
@@ -49,51 +53,47 @@ void render(Scene *scene, RenderTarget *frame) {
 
 #pragma region // ===== PROJECT VERTICES & BUILD TRIANGLES =====
 
-    Triangle triangles[total_faces];
+    std::vector<Triangle> triangles(total_faces);
     std::vector<TransparentTriangle> transparents;
     int triI = 0;
-    for (size_t i = 0; i < scene->objects.size(); i++) {
-        Object obj = scene->objects[i];
-        Mesh *mesh = obj.mesh;
-        Projection projectedVertices[mesh->n_vertices];
-        float objectTransformMatrix[16];
-        makeTransformMatrix(obj.rotation, obj.scale, obj.position, objectTransformMatrix);
+    for (auto &&obj : scene->objects)
+        for (auto &&comp : obj->components)
+            if(MeshComponent *meshComp = dynamic_cast<MeshComponent*>(comp)) {
+                Mesh *mesh = meshComp->mesh;
+                Projection projectedVertices[mesh->n_vertices];
 
-        for (size_t j = 0; j < mesh->n_vertices; j++) {
-            Vertex vV = mesh->vertices[j];
-            float vM[4] = {vV.position.x, vV.position.y, vV.position.z, 1};
-            matMul(vM, objectTransformMatrix, vM, 1, 4, 4);
-            float normal[4] = {vV.normal.x, vV.normal.y, vV.normal.z, 1};
-            matMul(normal, objectTransformMatrix, normal, 1, 4, 4);
+                for (size_t j = 0; j < mesh->n_vertices; j++) {
+                    Vertex vV = mesh->vertices[j];
 
-            projectedVertices[j] = perspectiveProject({vM[0], vM[1], vM[2]});
-            projectedVertices[j].normal = (Vector3f{normal[0], normal[1], normal[2]} - obj.position).normalized(); 
-            // ^ The transform we applied to the normal vector also scales and translates it, have to undo those.
-        }
+                    projectedVertices[j] = perspectiveProject(vV.position * obj->myTransform);
+                    projectedVertices[j].normal = (vV.normal * obj->myRotation).normalized(); 
+                    // ^ The transform we applied to the normal vector also scales and translates it, have to undo those.
+                }
 
-        for (size_t j = 0; j < mesh->n_faces; j++) {
-            Face face = mesh->faces[j];
-            Projection v1s = projectedVertices[face.v1],
-                       v2s = projectedVertices[face.v2],
-                       v3s = projectedVertices[face.v3];
-            Vector3f normalS = (v3s.screenPos - v1s.screenPos).cross(v2s.screenPos - v1s.screenPos).normalized();
+                for (size_t j = 0; j < mesh->n_faces; j++) {
+                    Face face = mesh->faces[j];
+                    Projection v1s = projectedVertices[face.v1],
+                            v2s = projectedVertices[face.v2],
+                            v3s = projectedVertices[face.v3];
+                    Vector3f normalS = (v3s.screenPos - v1s.screenPos).cross(v2s.screenPos - v1s.screenPos).normalized();
 
-            triangles[triI] = Triangle{
-                .s1 = v1s,
-                .s2 = v2s,
-                .s3 = v3s,
-                .uv1 = mesh->vertices[face.v1].uv,
-                .uv2 = mesh->vertices[face.v2].uv,
-                .uv3 = mesh->vertices[face.v3].uv,
-                .mat = face.material,
-                .cull = normalS.z < 0
-            };
-            if(face.material->flags & MaterialFlags::Transparent) {
-                transparents.push_back(TransparentTriangle{(v1s.screenPos.z + v2s.screenPos.z + v3s.screenPos.z) / 3, &triangles[triI]});
+                    triangles[triI] = Triangle{
+                        .s1 = v1s,
+                        .s2 = v2s,
+                        .s3 = v3s,
+                        .uv1 = mesh->vertices[face.v1].uv,
+                        .uv2 = mesh->vertices[face.v2].uv,
+                        .uv3 = mesh->vertices[face.v3].uv,
+                        .mat = face.material,
+                        .cull = normalS.z < 0
+                    };
+                    if(face.material->flags & MaterialFlags::Transparent) {
+                        transparents.push_back(TransparentTriangle{(v1s.screenPos.z + v2s.screenPos.z + v3s.screenPos.z) / 3, &triangles[triI]});
+                    }
+                    triI++;
+                }
             }
-            triI++;
-        }
-    }
+    
 
 #pragma endregion
 

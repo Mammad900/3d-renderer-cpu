@@ -33,14 +33,14 @@ struct Scene {
     std::vector<Material*> materials;
     std::vector<Mesh*> meshes;
 
-    std::vector<Object> objects;
+    std::vector<Object*> objects;
 
     Vector3f cam = {0, 0, 0};
     Vector3f camRotation = {0, 0, 0};
     Vector3f camDirection;
     float nearClip = 0.1, farClip = 100;
     float fov = 90;
-    float projectionMatrix[16];
+    TransformMatrix projectionMatrix;
 
     float maximumColor;
 

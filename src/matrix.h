@@ -7,14 +7,19 @@
 
 using sf::Vector3f;
 
+using TransformMatrix = std::array<float, 16>;
 void matAdd(float *a, float *b, float *out, int rows, int cols);
 void matSub(float *a, float *b, float *out, int rows, int cols);
 void matScalarMul(float *a, float scalar, float *out, int rows, int cols);
 void matScalarDiv(float *a, float scalar, float *out, int rows, int cols);
-void matMul(float *a, float *b, float *out, int aRows, int aCols, int bCols);
+void matMul(const float *a, const float *b, float *out, int aRows, int aCols, int bCols);
 void makeIdentityMatrix(float *out, int size);
-void makeRotationMatrix(Vector3f R, float *out, bool clear = true);
-void makeTransformMatrix(Vector3f R, Vector3f S, Vector3f T, float *out);
+
+TransformMatrix operator*(const TransformMatrix &a, const TransformMatrix &b);
+Vector3f operator* (const Vector3f &a, const TransformMatrix &b);
+TransformMatrix makeRotationMatrix(Vector3f R);
+TransformMatrix makeTransformMatrix(TransformMatrix R, Vector3f S, Vector3f T);
+TransformMatrix makeTransformMatrix(Vector3f R, Vector3f S, Vector3f T);
 
 sf::Vector3f rotate(sf::Vector3f a, const sf::Vector3f &th);
 

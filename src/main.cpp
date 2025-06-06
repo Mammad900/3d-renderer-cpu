@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
 
         if(scene->orbit) {
             scene->lights[0].rotation.x += 0.1;
-            scene->objects[0].rotation.y += 0.01;
+            scene->objects[0]->rotation.y += 0.01;
         }
 
         render(scene, frame);

@@ -2,6 +2,7 @@
 #include <array>
 #include <math.h>
 #include <vector>
+#include "matrix.h"
 
 using sf::Vector3f;
 
@@ -44,7 +45,7 @@ void matScalarDiv(float *a, float scalar, float *out, int rows, int cols) {
     }
 }
 
-void matMul(float *a, float *b, float *out, int aRows, int aCols, int bCols) {
+void matMul(const float *a, const float *b, float *out, int aRows, int aCols, int bCols) {
     std::vector<float> temp(aRows * bCols);  // Temporary buffer
 
     for (int i = 0; i < aRows; ++i) {
@@ -59,61 +60,62 @@ void matMul(float *a, float *b, float *out, int aRows, int aCols, int bCols) {
     // Copy result back to out
     std::copy(temp.begin(), temp.end(), out);
 }
+
 void makeIdentityMatrix(float *out, int size) {
     for (int i = 0; i < size; i++)
         for (int j = 0; j < size; j++)
             out[i + size * j] = i == j ? 1 : 0;
 }
 
-void makeRotationMatrix(Vector3f R, float *out, bool clear= true) {
+TransformMatrix operator* (const TransformMatrix &a, const TransformMatrix &b) {
+    TransformMatrix res;
+    matMul(a.data(), b.data(), res.data(), 4, 4, 4);
+    return res;
+}
+
+Vector3f operator* (const Vector3f &a, const TransformMatrix &b) {
+    float arr[4] = {a.x, a.y, a.z, 1};
+    matMul(arr, b.data(), arr, 1, 4, 4);
+    return {arr[0], arr[1], arr[2]};
+}
+
+TransformMatrix makeRotationMatrix(Vector3f R) {
     Vector3f s = {sin(R.x), sin(R.y), sin(R.z)};
     Vector3f c = {cos(R.x), cos(R.y), cos(R.z)};
 
     //x
-    std::array<float, 16> rotMatrix = {
+    return TransformMatrix{
         1, 0  , 0  , 0,
         0, c.x, s.x, 0,
         0,-s.x, c.x, 0,
         0, 0  , 0  , 1,
-    };
-    if(clear)
-        std::copy(rotMatrix.begin(), rotMatrix.end(), out);
-    else
-        matMul(out, rotMatrix.data(), out, 4, 4, 4);
-
-    //y
-    rotMatrix = {
+    } * TransformMatrix{
         c.y,0 ,-s.y, 0,
         0  ,1 , 0   ,0,
         s.y,0 , c.y ,0,
         0  ,0 ,0    ,1,
-    };
-    matMul(out, rotMatrix.data(), out, 4, 4, 4);
-    
-    //z
-    rotMatrix = {
+    } * TransformMatrix{
         c.z, s.z, 0, 0,
         -s.z, c.z, 0,0,
         0,0,1,0,
         0,0,0,1,
     };
-    matMul(out, rotMatrix.data(), out, 4, 4, 4);
 }
-void makeTransformMatrix(Vector3f R, Vector3f S, Vector3f T, float *out) {
-    std::array<float, 16> scaleMatrix = {
+TransformMatrix makeTransformMatrix(TransformMatrix R, Vector3f S, Vector3f T) {
+    return TransformMatrix{
         S.x, 0, 0, 0,
         0, S.y, 0, 0,
         0, 0, S.z, 0,
         0, 0, 0, 1,
-    };
-    std::copy(scaleMatrix.begin(), scaleMatrix.end(), out);
-    makeRotationMatrix(R, out, false);
-    matMul(out, (float[]){
+    } * R * TransformMatrix{
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
         T.x, T.y, T.z, 1,
-    }, out, 4,4,4);
+    };
+}
+TransformMatrix makeTransformMatrix(Vector3f R, Vector3f S, Vector3f T) {
+    return makeTransformMatrix(makeRotationMatrix(R), S, T);
 }
 
 sf::Vector3f rotate(sf::Vector3f a, const sf::Vector3f &th)

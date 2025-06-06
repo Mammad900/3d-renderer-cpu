@@ -19,4 +19,9 @@ new material EarthMat earth
 end
 
 new mesh EarthMesh sphere 20 20 EarthMat
-new object EarthMesh  0 0 0  1 1 1  0 0 0
+new object 
+    0 0 0
+    1 1 1
+    0 0 0
+    mesh EarthMesh
+end

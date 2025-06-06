@@ -2,6 +2,7 @@
 #define __OBJECT_H__
 #include "color.h"
 #include "texture.h"
+#include "matrix.h"
 #include <SFML/Graphics.hpp>
 #include <string>
 
@@ -107,11 +108,38 @@ struct Mesh {
     uint16_t n_vertices, n_faces;
 };
 
+struct Object;
+
+class Component {
+  public:
+    Object *obj;
+    Component(Object *obj) : obj(obj) {}
+    virtual void update() = 0;
+    virtual void GUI() = 0;
+};
+
 struct Object {
-    Mesh *mesh;
     Vector3f position;
     Vector3f rotation;
-    Vector3f scale;
+    Vector3f scale = {1,1,1};
+    TransformMatrix myTransform;
+    TransformMatrix myRotation;
+    std::vector<Component *> components;
+    void update() {
+        myRotation = makeRotationMatrix(rotation);
+        myTransform = makeTransformMatrix(myRotation, scale, position);
+
+        for (auto &&c : components)
+            c->update();
+    }
+};
+
+class MeshComponent : public Component {
+  public:
+    Mesh *mesh;
+    MeshComponent(Object *obj, Mesh *mesh) : Component(obj), mesh(mesh) {}
+    void update(){}
+    void GUI(){}
 };
 
 struct Light {
