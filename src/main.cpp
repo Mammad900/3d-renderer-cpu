@@ -1,6 +1,5 @@
 #include "data.h"
 #include "gui.h"
-#include "loadObj.h"
 #include "render.h"
 #include "generateMesh.h"
 #include "sceneFile.h"

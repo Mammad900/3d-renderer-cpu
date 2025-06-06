@@ -2,6 +2,7 @@
 #define __DATA_H__
 
 #include "object.h"
+// #include "light.h"
 #include <SFML/Graphics.hpp>
 
 using sf::Vector3f, sf::Vector2u;

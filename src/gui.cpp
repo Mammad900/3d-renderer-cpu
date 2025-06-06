@@ -1,0 +1,169 @@
+#include "gui.h"
+#include "generateMesh.h"
+
+char objFilePath[500];
+Material *selectedMaterial;
+Mesh *selectedMesh;
+
+void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingScene)
+{
+    while (const auto event = window.pollEvent())
+    {
+        ImGui::SFML::ProcessEvent(window, *event);
+
+        if (event->is<sf::Event::Closed>())
+        {
+            window.close();
+        }
+    }
+
+    ImGui::SFML::Update(window, deltaClock.restart());
+
+    ImGui::ShowDemoWindow();
+
+    ImGui::Begin("Options");
+    ImGui::InputFloat("Near", &editingScene->nearClip);
+    ImGui::InputFloat("Far", &editingScene->farClip);
+    ImGui::SliderFloat("FOV", &editingScene->fov, 10, 150);
+    ImGui::SliderFloat3("Camera rotation", (float *)&editingScene->camRotation, -M_PI, M_PI);
+    ImGui::DragFloat3("Camera position", (float *)&editingScene->cam, 0.2f);
+    ImGui::RadioButton("Frame buffer", &editingScene->renderMode, 0);
+    ImGui::RadioButton("Z buffer", &editingScene->renderMode, 1);
+    ImGui::Checkbox("Back-face culling", &editingScene->backFaceCulling);
+    ImGui::Checkbox("Reverse all faces", &editingScene->reverseAllFaces);
+    ImGui::Checkbox("Full-bright mode", &editingScene->fullBright);
+    ImGui::Checkbox("Show wireframe mesh", &editingScene->wireFrame);
+    ImGui::Checkbox("Orbit", &editingScene->orbit);
+    ImGui::Text("Texture filtering:");
+    ImGui::RadioButton("Nearest Neighbor", &editingScene->textureFilteringMode, TextureFilteringMode::NearestNeighbor);
+    ImGui::RadioButton("Bilinear", &editingScene->textureFilteringMode, TextureFilteringMode::Bilinear);
+    ImGui::RadioButton("Trilinear", &editingScene->textureFilteringMode, TextureFilteringMode::Trilinear);
+    ImGui::SliderFloat("White point", (float *)&editingScene->whitePoint, 0, 5);
+    ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+    ImGui::DragScalarN("Frame size", ImGuiDataType_U32, &frameSizeTemp, 2);
+    if(ImGui::Button("Set frame size"))
+        changeWindowSize(frameSizeTemp);
+    if(ImGui::Checkbox("Use Deferred rendering", &frame->deferred))
+        frame->changeSize(frame->size, frame->deferred);
+    ImGui::End();
+
+    if(ImGui::Begin("Objects")) {
+        for (size_t i = 0; i < editingScene->objects.size(); i++) {
+            ImGui::PushID(i);
+            if(ImGui::TreeNode("Cube")) {
+                Object *obj = editingScene->objects[i];
+                ImGui::SliderFloat3("Rotation", (float *)&obj->rotation, -M_PI, M_PI);
+                ImGui::DragFloat3("Position", (float *)&obj->position, 0.2f);
+                ImGui::DragFloat3("Scale", (float *)&obj->scale, 0.1f);
+                ImGui::TreePop();
+            }
+            ImGui::PopID();
+        }
+        ImGui::Spacing();
+        if (ImGui::TreeNode("Create object")) {
+            if(selectedMesh == nullptr)
+                ImGui::Text("Select a mesh in the meshes window.");
+            if(selectedMesh!= nullptr && ImGui::Button("Create")) {
+                Object *obj = new Object();
+                obj->components.push_back(new MeshComponent(obj, selectedMesh));
+                editingScene->objects.push_back(obj);
+            }
+            ImGui::TreePop();
+        }
+    }
+    ImGui::End();
+
+    ImGui::Begin("Lights");
+    ImGui::ColorEdit4("Ambient lighting", (float*)&editingScene->ambientLight, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+    ImGui::ColorEdit4("Fog", (float*)&editingScene->fogColor, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+    for (size_t i = 0; i < editingScene->lights.size(); i++)
+    {
+        ImGui::PushID(i);
+        if(ImGui::TreeNode("Light")) {
+            Light &light = editingScene->lights[i];
+            if(light.isPointLight)
+                ImGui::DragFloat3("Position", (float *)&light.direction);
+            else
+                ImGui::SliderFloat3("Direction", (float *)&light.rotation, -M_PI, M_PI);
+            ImGui::ColorEdit4("Color", (float*)&light.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+            ImGui::TreePop();
+        }
+        ImGui::PopID();
+    }
+    if(ImGui::Button("New light")) {
+        editingScene->lights.push_back(Light{.rotation = {0, 0, 0}, .color = {1, 1, 1, 1}});
+    }
+    if(ImGui::Button("New point light")) {
+        editingScene->lights.push_back(Light{.direction={10,0,0}, .color = {1, 1, 1, 1}, .isPointLight=true});
+    }
+    ImGui::End();
+
+    if(ImGui::Begin("Materials")) {
+        for (size_t i = 0; i < editingScene->materials.size(); i++)
+        {
+            ImGui::PushID(i);
+            Material *mat = editingScene->materials[i];
+            if(ImGui::TreeNode(mat->name.c_str())) {
+                mat->GUI();
+                if (mat != selectedMaterial && ImGui::Button("Select"))
+                    selectedMaterial = mat;
+                ImGui::TreePop();
+            }
+            ImGui::PopID();
+        }
+    }
+    ImGui::End();
+
+    if(ImGui::Begin("Meshes")) {
+        for (size_t i = 0; i < editingScene->meshes.size(); i++)
+        {
+            ImGui::PushID(i);
+            Mesh *mesh = editingScene->meshes[i];
+            if(ImGui::TreeNode(mesh->label.c_str())) {
+                if(ImGui::TreeNode("Vertices")) {
+                    for (uint16_t j = 0; j < mesh->n_vertices; j++)
+                    {
+                        ImGui::PushID(j);
+                        Vertex &v = mesh->vertices[j];
+                        ImGui::DragFloat3("Position", &v.position.x, 0.2f);
+                        ImGui::DragFloat2("UV", &v.uv.x, 0.2f);
+                        ImGui::PopID();
+                    }
+                    ImGui::TreePop();
+                }
+                if(mesh != selectedMesh && ImGui::Button("Select"))
+                    selectedMesh = mesh;
+                ImGui::TreePop();
+            }
+            ImGui::PopID();
+        }
+        ImGui::Spacing();
+        if (ImGui::TreeNode("Load OBJ")) {
+            ImGui::Text("OBJ file can only contain vertex and face data (no UV) and must be triangulated.");
+            if(selectedMaterial == nullptr)
+                ImGui::Text("Select a material in the materials window.");
+            ImGui::InputText("Path", objFilePath, 500);
+            if(selectedMaterial!= nullptr && ImGui::Button("Load")) {
+                Mesh *m = loadOBJ(objFilePath, selectedMaterial, std::filesystem::path(objFilePath).filename());
+                editingScene->meshes.push_back(m);
+            }
+            ImGui::TreePop();
+        }
+    }
+    ImGui::End();
+
+    if(ImGui::Begin("Scenes")) {
+        for (size_t i = 0; i < scenes.size(); i++)
+        {
+            ImGui::PushID(i);
+            Scene *s = scenes[i];
+            ImGui::RadioButton(s->name.c_str(), &scene, s);
+            ImGui::PopID();
+        }
+    }
+    ImGui::End();
+
+    window.clear();
+    ImGui::SFML::Render(window);
+    window.display();
+}
