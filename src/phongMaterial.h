@@ -10,6 +10,8 @@ Vector3f v2reflect(Vector3f in, Vector3f normal) {
 }
 
 class PhongMaterial : public Material {
+    using enum MaterialFlags;
+
 public:
     PhongMaterialProps mat;
 

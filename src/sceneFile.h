@@ -175,9 +175,9 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                         } else if (key == "normalMap") {
                             getNormalMap(in, path, mat);
                         } else if (key == "transparent") {
-                            flags = static_cast<MaterialFlags>(flags | Transparent);
+                            flags = static_cast<MaterialFlags>(flags | MaterialFlags::Transparent);
                         } else if (key == "doubleSided") {
-                            flags = static_cast<MaterialFlags>(flags | DoubleSided);
+                            flags = static_cast<MaterialFlags>(flags | MaterialFlags::DoubleSided);
                         } else {
                             std::cerr << "Invalid material property " << key << std::endl;
                         }

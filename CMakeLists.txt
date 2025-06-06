@@ -39,7 +39,7 @@ FetchContent_MakeAvailable(imgui-sfml)
 
 file(GLOB main_SRC CONFIGURE_DEPENDS "src/*.cpp")
 add_executable(main ${main_SRC})
-target_compile_features(main PRIVATE cxx_std_17)
+target_compile_features(main PRIVATE cxx_std_20)
 target_link_libraries(main PRIVATE SFML::Graphics ImGui-SFML::ImGui-SFML)
 target_include_directories(main PRIVATE 
     ${imgui_SOURCE_DIR}

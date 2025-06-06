@@ -21,7 +21,9 @@ template <typename T>
 class ImageTexture : public SolidTexture<T> {
 public:
     Vector2u size;
-    ImageTexture(sf::Image &img, T scale) : SolidTexture<T>(scale) {
+    TextureFilteringMode filteringMode;
+    ImageTexture(sf::Image &img, T scale, TextureFilteringMode overrideFilteringMode = TextureFilteringMode::None) 
+    : SolidTexture<T>(scale), filteringMode(overrideFilteringMode) {
         size = img.getSize();
         atlasSize = {size.x * 2 - 1, size.y * 2 - 1};
         mipCount = {(uint)log2(size.x), (uint)log2(size.y)};
@@ -79,6 +81,8 @@ private:
 
 public:
     T sample(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) {
+        TextureFilteringMode mode =
+            filteringMode == TextureFilteringMode::None ? scene->textureFilteringMode : filteringMode;
         // Check mip level
         float rho = max(dUVdx.length(), dUVdy.length());
         Vector2f mipLevelF{
@@ -93,11 +97,11 @@ public:
         T res;
 
         // Bilinear filtering
-        if(scene->textureFilteringMode == 1) {
+        if(mode == TextureFilteringMode::Bilinear) {
             res = bilinearFilter(uv, mipLevel);
         }
         // Trilinear (blend mipmaps)
-        if(scene->textureFilteringMode == 2) {
+        if(mode == TextureFilteringMode::Trilinear) {
             Vector2u mipLevel2{
                 clamp((uint)ceil(mipLevelF.x), 0u, mipCount.x),
                 clamp((uint)ceil(mipLevelF.y), 0u, mipCount.y),

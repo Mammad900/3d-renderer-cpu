@@ -50,7 +50,7 @@ struct Scene {
     bool fullBright = false;
     bool wireFrame = false;
     bool orbit = false;
-    int textureFilteringMode = 0;
+    TextureFilteringMode textureFilteringMode = TextureFilteringMode::NearestNeighbor;
     float whitePoint = 1;
     Color fogColor = {0,0,0,0};
 };

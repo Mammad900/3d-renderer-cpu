@@ -11,6 +11,15 @@ char objFilePath[500];
 Material *selectedMaterial;
 Mesh *selectedMesh;
 
+template <typename T>
+bool ImGui::RadioButton(const char* label, T* v, T v_button)
+{
+    const bool pressed = RadioButton(label, *v == v_button);
+    if (pressed)
+        *v = v_button;
+    return pressed;
+}
+
 void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingScene)
 {
     while (const auto event = window.pollEvent())
@@ -41,9 +50,9 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     ImGui::Checkbox("Show wireframe mesh", &editingScene->wireFrame);
     ImGui::Checkbox("Orbit", &editingScene->orbit);
     ImGui::Text("Texture filtering:");
-    ImGui::RadioButton("None", &editingScene->textureFilteringMode, 0);
-    ImGui::RadioButton("Bilinear", &editingScene->textureFilteringMode, 1);
-    ImGui::RadioButton("Trilinear", &editingScene->textureFilteringMode, 2);
+    ImGui::RadioButton("Nearest Neighbor", &editingScene->textureFilteringMode, TextureFilteringMode::NearestNeighbor);
+    ImGui::RadioButton("Bilinear", &editingScene->textureFilteringMode, TextureFilteringMode::Bilinear);
+    ImGui::RadioButton("Trilinear", &editingScene->textureFilteringMode, TextureFilteringMode::Trilinear);
     ImGui::SliderFloat("White point", (float *)&editingScene->whitePoint, 0, 5);
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     ImGui::DragScalarN("Frame size", ImGuiDataType_U32, &frameSizeTemp, 2);
@@ -164,8 +173,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
         {
             ImGui::PushID(i);
             Scene *s = scenes[i];
-            if(ImGui::RadioButton(s->name.c_str(), s == scene))
-                scene = s;
+            ImGui::RadioButton(s->name.c_str(), &scene, s);
             ImGui::PopID();
         }
     }
