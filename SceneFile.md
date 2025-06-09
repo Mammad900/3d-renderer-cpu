@@ -226,5 +226,4 @@ end
 - Indentation is for readability only. All whitespace is ignored.
 - If the file is missing optional sections, defaults are used:
   - All camera settings, settings and scene globals are optional.
-  - Material colors are optional and default to black/none.
-  - Material textures are optional and default to null pointer.
+  - Material textures/colors are optional and default to black/none.
