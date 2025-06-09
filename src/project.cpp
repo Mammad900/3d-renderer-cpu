@@ -18,8 +18,8 @@ void makePerspectiveProjectionMatrix() {
 }
 
 Projection perspectiveProject(Vector3f a) {
-    a -= scene->cam;
-    float vM[4] = {a.x, a.y, a.z, 1};
+    Vector3f b = a - scene->cam;
+    float vM[4] = {b.x, b.y, b.z, 1};
     matMul(vM, scene->projectionMatrix.data(), vM, 1, 4, 4);
     return Projection{
         .worldPos = a,

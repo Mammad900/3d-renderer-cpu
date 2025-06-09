@@ -2,7 +2,6 @@ scene new box
 scene edit box
 
 ambientLight 0.4 0.4 0.4 0.6
-new light directional -180 0 90 1 1 1 2
 set whitePoint 2
 set fullBright 1
 fov 60
@@ -86,4 +85,11 @@ new object
     1 1 1
     0 -90 0
     mesh Box
+end
+
+new object
+    0 0 0
+    1 1 1
+    -180 0 90
+    light directional 1 1 1 2
 end

@@ -3,7 +3,6 @@ scene edit earth
 
 ambientLight 0.4 0.4 0.4 0.1
 set whitePoint 4
-new light directional 0 0 90 1 1 1 5
 fov 30
 cam pos 0 0 -5
 
@@ -24,4 +23,10 @@ new object
     1 1 1
     0 0 0
     mesh EarthMesh
+end
+new object
+    0 0 0
+    1 1 1
+    0 0 90
+    light directional 1 1 1 5
 end

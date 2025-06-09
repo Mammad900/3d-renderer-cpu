@@ -65,6 +65,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
                 ImGui::Text("Select a mesh in the meshes window.");
             if(selectedMesh!= nullptr && ImGui::Button("Create")) {
                 Object *obj = new Object();
+                obj->scene = editingScene;
                 obj->components.push_back(new MeshComponent(obj, selectedMesh));
                 editingScene->objects.push_back(obj);
             }
@@ -80,21 +81,11 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     {
         ImGui::PushID(i);
         if(ImGui::TreeNode("Light")) {
-            Light &light = editingScene->lights[i];
-            if(light.isPointLight)
-                ImGui::DragFloat3("Position", (float *)&light.direction);
-            else
-                ImGui::SliderFloat3("Direction", (float *)&light.rotation, -M_PI, M_PI);
-            ImGui::ColorEdit4("Color", (float*)&light.color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+            Light *light = editingScene->lights[i];
+            light->GUI();
             ImGui::TreePop();
         }
         ImGui::PopID();
-    }
-    if(ImGui::Button("New light")) {
-        editingScene->lights.push_back(Light{.rotation = {0, 0, 0}, .color = {1, 1, 1, 1}});
-    }
-    if(ImGui::Button("New point light")) {
-        editingScene->lights.push_back(Light{.direction={10,0,0}, .color = {1, 1, 1, 1}, .isPointLight=true});
     }
     ImGui::End();
 

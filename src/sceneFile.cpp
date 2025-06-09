@@ -135,24 +135,7 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
             in >> editingScene->ambientLight;
         } else if (word == "new") {
             in >> word;
-            if (word == "light") {
-                std::string type;
-                in >> type;
-
-                Light light;
-                if (type == "directional") {
-                    in >> light.rotation;
-                    light.rotation *= M_PIf / 180.0f;
-                    light.isPointLight = false;
-                } else if (type == "point") {
-                    in >> light.direction;
-                    light.isPointLight = true;
-                } else {
-                    std::cerr << "Invalid light type " << type << std::endl;
-                }
-                in >> light.color;
-                editingScene->lights.push_back(light);
-            } else if (word == "material") {
+            if (word == "material") {
                 std::string name, type;
                 in >> name >> type;
 
@@ -270,6 +253,7 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                 }
             } else if (word == "object") {
                 Object *obj = new Object();
+                obj->scene = editingScene;
                 in >> obj->position >> obj->scale >> obj->rotation;
                 obj->rotation *= M_PIf / 180.0f;
                 std::string key;
@@ -280,6 +264,30 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                         std::string meshName;
                         in >> meshName;
                         obj->components.push_back(new MeshComponent(obj, findMesh(meshName, editingScene)));
+                    }
+                    else if(key == "light") {
+                        std::string type;
+                        Color color;
+                        in >> type >> color;
+
+                        Light *light;
+                        if (type == "directional") {
+                            light = new DirectionalLight(obj, color);
+                        }
+                        else if (type == "point") {
+                            light = new PointLight(obj, color);
+                        }
+                        else if (type == "spot") {
+                            float spreadA, spreadB;
+                            in >> spreadA >> spreadB;
+                            spreadA *= M_PIf / 180.0f;
+                            spreadB *= M_PIf / 180.0f;
+                            light = new SpotLight(obj, color, spreadA, spreadB);
+                        }
+                        else {
+                            std::cerr << "Invalid light type " << type << std::endl;
+                        }
+                        obj->components.push_back(light);
                     }
                     else {
                         std::cerr << "Invalid component type " << key << std::endl;

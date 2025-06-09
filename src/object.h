@@ -114,9 +114,11 @@ class Component {
   public:
     Object *obj;
     Component(Object *obj) : obj(obj) {}
-    virtual void update() = 0;
-    virtual void GUI() = 0;
+    virtual void update(){};
+    virtual void GUI(){};
 };
+
+struct Scene;
 
 struct Object {
     Vector3f position;
@@ -125,6 +127,7 @@ struct Object {
     TransformMatrix myTransform;
     TransformMatrix myRotation;
     std::vector<Component *> components;
+    Scene *scene;
     void update() {
         myRotation = makeRotationMatrix(rotation);
         myTransform = makeTransformMatrix(myRotation, scale, position);
@@ -138,17 +141,15 @@ class MeshComponent : public Component {
   public:
     Mesh *mesh;
     MeshComponent(Object *obj, Mesh *mesh) : Component(obj), mesh(mesh) {}
-    void update(){}
-    void GUI(){}
 };
 
-struct Light {
-    Vector3f rotation;
-    Vector3f direction;
-    // Use alpha to set intensity
-    Color color;
-    // If false, direction is the vector of the light. If true, direction is its 3D world position.
-    bool isPointLight;
-};
+// struct Light {
+//     Vector3f rotation;
+//     Vector3f direction;
+//     // Use alpha to set intensity
+//     Color color;
+//     // If false, direction is the vector of the light. If true, direction is its 3D world position.
+//     bool isPointLight;
+// };
 
 #endif /* __OBJECT_H__ */

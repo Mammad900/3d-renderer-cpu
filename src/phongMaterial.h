@@ -54,15 +54,9 @@ public:
 
         for (size_t i = 0; i < scene->lights.size(); i++)
         {
-            Light &light = scene->lights[i];
-            Vector3f direction = light.direction;
-            float intensity = light.color.a;
-            if(light.isPointLight) {
-                Vector3f d = light.direction - f.worldPos; //direction is world pos in this case
-                float l2 = d.lengthSquared();
-                direction = d / std::sqrtf(l2);
-                intensity /= l2;
-            }
+            auto [light, direction] = scene->lights[i]->sample(f.worldPos);
+
+            if(light.a == 0) continue; // No light received, don't bother calculating
 
             float receivedLight = normal.dot(direction);
 
@@ -73,11 +67,11 @@ public:
             // Diffuse
             if(receivedLight > 0) {
                 if (f.baseColor.a > 0)
-                    diffuse += light.color * max(receivedLight, 0.0f) * intensity;
+                    diffuse += light * max(receivedLight, 0.0f);
             }
             // Or subsurface scattering
             else if(!(flags & Transparent) && (flags & DoubleSided)) {
-                sss += light.color * max(-receivedLight, 0.0f) * intensity;
+                sss += light * max(-receivedLight, 0.0f);
             }
 
             // Specular highlights
@@ -85,7 +79,7 @@ public:
                 float specularIntensity = pow(max(viewDir.dot(v2reflect(direction, normal)), 0.0f), shininess);
                 if(receivedLight <= 0)
                     specularIntensity = 0;
-                specular += light.color * specularIntensity * intensity;
+                specular += light * specularIntensity;
             }
         }
 

@@ -45,11 +45,11 @@ void render(Scene *scene, RenderTarget *frame) {
 
     scene->camDirection = rotate({0, 0, 1}, scene->camRotation);
 
-    for (size_t i = 0; i < scene->lights.size(); i++) {
-        Light &light = scene->lights[i];
-        if(!light.isPointLight)
-            light.direction = rotate(Vector3f{0, -1, 0}, light.rotation);
-    }
+    // for (size_t i = 0; i < scene->lights.size(); i++) {
+    //     Light &light = scene->lights[i];
+    //     if(!light.isPointLight)
+    //         light.direction = rotate(Vector3f{0, -1, 0}, light.rotation);
+    // }
 
 #pragma region // ===== PROJECT VERTICES & BUILD TRIANGLES =====
 
