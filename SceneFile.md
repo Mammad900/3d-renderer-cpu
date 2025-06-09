@@ -57,15 +57,6 @@ fog <r> <g> <b> <a>              # fog color (a defines intensity)
 ambientLight <r> <g> <b> <a>     # ambient lighting color (a defines intensity)
 ```
 
-## Lights
-
-Alpha is light intensity.
-
-```txt
-new light directional <x> <y> <z>  <r> <g> <b> <a>   # x y z is rotation
-new light point <x> <y> <z>  <r> <g> <b> <a>         # x y z is position
-```
-
 ## Materials
 
 All fields are optional unless otherwise noted.  
@@ -147,11 +138,54 @@ new mesh <name> plane <subdivision x> <subdivision y> <material-name>
 ## Objects
 
 ```txt
-new object <mesh-name>
+new object
     <x> <y> <z>         # position
     <sx> <sy> <sz>      # scale
     <rx> <ry> <rz>      # rotation (degrees)
+    <components>
+end
 ```
+
+Each object contains one or more components. No components is allowed but pointless.
+
+### Possible components
+
+#### Mesh
+
+```txt
+...
+    mesh <mesh name>
+...
+```
+
+#### Light
+
+Alpha is light intensity.
+
+```txt
+...
+    light directional <r> <g> <b> <a>
+    light point <r> <g> <b> <a>
+    light spot <r> <g> <b> <a> <spread inner> <spread outer> # Spread angle in degrees #
+...
+```
+
+- Directional lights:
+  - Fastest
+  - Same intensity and direction everywhere
+  - Example: The sun
+  - Use object rotation to adjust light direction
+- Point lights:
+  - Medium speed
+  - Intensity is proportional to inverse square of distance to light, direction is always from light
+  - Example: A light bulb
+  - Uses object position
+- Spot light:
+  - Like a point light but limited to a cone
+  - Slower than point lights per area affected, but lower affected area can make it much faster than point lights + shadows
+  - Intensity and direction behaves like point lights
+  - Example: Street lights, car headlights
+  - Use object rotation and position to adjust light cone
 
 ## Example
 
@@ -164,7 +198,12 @@ fov 70
 
 # Lighting #
 ambientLight 0.2 0.2 0.2 1
-new light directional 1 -1 -1 1 1 1 1
+new object
+    0 0 0
+    1 1 1
+    0 90 0
+    light directional 1 1 1 2
+end
 
 # Material #
 new material MyMaterial phong
@@ -173,10 +212,12 @@ end
 
 # Mesh and object #
 new mesh MyMesh sphere 16 32 MyMaterial
-new object MyMesh
+new object
     0 0 0
     1 1 1
     30 45 60
+    mesh MyMesh
+end
 ```
 
 ## Notes
