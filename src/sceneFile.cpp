@@ -108,20 +108,20 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                 editingScene = findScene(name);
             else if(verb == "render")
                 scene = findScene(name);
-        }
-        else if (word == "cam") {
-            in >> word;
-            if (word == "pos") in >> editingScene->cam;
-            else if (word == "rot") {
-                in >> editingScene->camRotation;
-                editingScene->camRotation *= M_PIf / 180.0f;
-            } else {
-                cerr << "Invalid cam setting " << word << endl;
-            }
-        } else if (word == "nearFar") {
-            in >> editingScene->nearClip >> editingScene->farClip;
-        } else if (word == "fov") {
-            in >> editingScene->fov;
+        // }
+        // else if (word == "cam") {
+        //     in >> word;
+        //     if (word == "pos") in >> editingScene->cam;
+        //     else if (word == "rot") {
+        //         in >> editingScene->camRotation;
+        //         editingScene->camRotation *= M_PIf / 180.0f;
+        //     } else {
+        //         cerr << "Invalid cam setting " << word << endl;
+        //     }
+        // } else if (word == "nearFar") {
+        //     in >> editingScene->nearClip >> editingScene->farClip;
+        // } else if (word == "fov") {
+        //     in >> editingScene->fov;
         } else if (word == "set") {
             in >> word;
             if (word == "renderMode") in >> editingScene->renderMode;
@@ -129,7 +129,7 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
             else if (word == "reverseAllFaces") { int x; in >> x; editingScene->reverseAllFaces = x; }
             else if (word == "fullBright") { int x; in >> x; editingScene->fullBright = x; }
             else if (word == "wireFrame") { int x; in >> x; editingScene->wireFrame = x; }
-            else if (word == "whitePoint") { in >> editingScene->whitePoint; } 
+            // else if (word == "whitePoint") { in >> editingScene->whitePoint; } 
             else {
                 cerr << "Invalid setting " << word << endl;
             }
@@ -292,6 +292,23 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                             cerr << "Invalid light type " << type << endl;
                         }
                         obj->components.push_back(light);
+                    }
+                    else if(key == "camera") {
+                        Camera *cam = new Camera(obj);
+
+                        while (in >> key && key != "end") {
+                            if (key == "#") { while (in >> key && key != "#"); continue; }
+
+                            if(key == "fov") {
+                                in >> cam->fov;
+                            } else if(key == "nearFar") {
+                                in >> cam->nearClip >> cam->farClip;
+                            } else if(key == "whitePoint") {
+                                in >> cam->whitePoint;
+                            }
+                        }
+                        editingScene->camera = cam;
+                        obj->components.push_back(cam);
                     }
                     else {
                         cerr << "Invalid component type " << key << endl;

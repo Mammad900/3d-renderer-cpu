@@ -2,10 +2,6 @@ scene new box
 scene edit box
 
 ambientLight 0.4 0.4 0.4 0.6
-set whitePoint 2
-set fullBright 1
-fov 60
-cam pos 0 0 -5
 
 new material BoxMaterial phong
 diffuse texture 1 1 1 1 laminate_floor_02_diff_1k.jpg
@@ -92,4 +88,14 @@ new object
     1 1 1
     0 0 0
     light directional 1 1 1 1
+end
+
+new object
+    0 0 -5
+    1 1 1
+    0 0 0
+    camera
+        fov 60
+        whitePoint 2
+    end
 end

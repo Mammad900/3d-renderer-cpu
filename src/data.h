@@ -3,6 +3,7 @@
 
 #include "object.h"
 #include "light.h"
+#include "camera.h"
 #include <SFML/Graphics.hpp>
 
 using sf::Vector3f, sf::Vector2u;
@@ -25,6 +26,8 @@ void changeWindowSize(Vector2u size);
 extern Vector2u frameSizeTemp;
 extern RenderTarget *frame;
 
+class Camera;
+
 struct Scene {
     std::string name;
     
@@ -36,13 +39,7 @@ struct Scene {
 
     std::vector<Object*> objects;
 
-    Vector3f cam = {0, 0, 0};
-    Vector3f camRotation = {0, 0, 0};
-    Vector3f camDirection;
-    float nearClip = 0.1, farClip = 100;
-    float fov = 90;
-    TransformMatrix projectionMatrix;
-
+    Camera *camera;
     float maximumColor;
 
     int renderMode = 0;
@@ -52,7 +49,6 @@ struct Scene {
     bool wireFrame = false;
     bool orbit = false;
     TextureFilteringMode textureFilteringMode = TextureFilteringMode::NearestNeighbor;
-    float whitePoint = 1;
     Color fogColor = {0,0,0,0};
 };
 

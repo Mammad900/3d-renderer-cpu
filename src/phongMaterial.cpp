@@ -17,7 +17,7 @@ void PhongMaterial::GUI() {
 }
 
 Color PhongMaterial::shade(Fragment &f, Color previous) {
-    Vector3f viewDir = (scene->cam - f.worldPos).normalized();
+    Vector3f viewDir = (scene->camera->obj->position - f.worldPos).normalized();
     if(!(flags & Transparent) && (flags & DoubleSided) && f.isBackFace)
         f.normal *= -1.0f;
     Color matSpecular = mat.specular->sample(f);
@@ -84,7 +84,7 @@ Color PhongMaterial::shade(Fragment &f, Color previous) {
         lighting = previous * matTint + lighting;
     }
 
-    if(scene->whitePoint == 0) // Don't waste cycles if it won't be used
+    if(scene->camera->whitePoint == 0) // Don't waste cycles if it won't be used
         scene->maximumColor = max(scene->maximumColor, lighting.luminance()); // This doesn't take transparency into account
 
     return lighting;

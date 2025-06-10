@@ -1,7 +1,7 @@
 #ifndef __TRIANGLE_H__
 #define __TRIANGLE_H__
 #include "color.h"
-#include "project.h"
+#include "camera.h"
 #include "textureFiltering.h"
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Image.hpp>

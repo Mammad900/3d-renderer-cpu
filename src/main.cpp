@@ -1,6 +1,5 @@
 #include "data.h"
 #include "gui.h"
-#include "render.h"
 #include "generateMesh.h"
 #include "sceneFile.h"
 #include <SFML/Graphics.hpp>
@@ -43,14 +42,14 @@ int main(int argc, char** argv) {
             scene->objects[0]->rotation.y += 0.01;
         }
 
-        render(scene, frame);
+        scene->camera->render(frame);
 
         sf::Image img(frame->size);
         for (unsigned int y = 0; y < frame->size.y; y++)
             for (unsigned int x = 0; x < frame->size.x; x++)
                 if (scene->renderMode == 0) {// Frame buffer
                     Color pixel = frame->framebuffer[y * frame->size.x + x];
-                    img.setPixel({x, y}, pixel.reinhardtTonemap(scene->whitePoint==0?scene->maximumColor:scene->whitePoint));
+                    img.setPixel({x, y}, pixel.reinhardtTonemap(scene->camera->whitePoint==0?scene->maximumColor:scene->camera->whitePoint));
                 }
                 else if (scene->renderMode == 1) { // Z buffer
                     // Z buffer range is really display-to-end-user unfriendly

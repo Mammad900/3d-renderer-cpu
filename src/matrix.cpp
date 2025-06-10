@@ -118,6 +118,16 @@ TransformMatrix makeTransformMatrix(Vector3f R, Vector3f S, Vector3f T) {
     return makeTransformMatrix(makeRotationMatrix(R), S, T);
 }
 
+TransformMatrix transposeMatrix(TransformMatrix &mat) {
+    TransformMatrix transposed;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            transposed[i * 4 + j] = mat[j * 4 + i];
+        }
+    }
+    return transposed;
+}
+
 sf::Vector3f rotate(sf::Vector3f a, const sf::Vector3f &th)
 {
     float sinX = sin(th.x);

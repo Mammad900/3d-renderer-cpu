@@ -2,9 +2,6 @@ scene new earth
 scene edit earth
 
 ambientLight 0.4 0.4 0.4 0.1
-set whitePoint 4
-fov 30
-cam pos 0 0 -5
 
 new material EarthMat earth
     terrainDiffuse  texture     1 1 1 1 earth-diffuse-2k.jpg
@@ -29,4 +26,13 @@ new object
     1 1 1
     0 80 0
     light directional 1 1 1 5
+end
+new object
+    0 0 -5
+    1 1 1
+    0 0 0
+    camera
+        fov 30
+        whitePoint 4
+    end
 end

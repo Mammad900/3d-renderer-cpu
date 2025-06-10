@@ -29,14 +29,6 @@ All data below is part of a scene. You must have at least one scene at a time, a
 scene new MyScene           # Create a new scene with default settings
 scene edit MyScene          # Switch to editing the scene, all following commands in this file will edit this scene
 scene render MyScene        # Set the scene as the one being rendered
-
-## Camera Settings
-
-```txt
-cam pos <x> <y> <z>         # camera position
-cam rot <x> <y> <z>         # camera rotation (in degrees)
-nearFar <near> <far>        # near and far clipping planes
-fov <float>                 # field of view in degrees
 ```
 
 ## Settings
@@ -174,7 +166,7 @@ Alpha is light intensity.
   - Fastest
   - Same intensity and direction everywhere
   - Example: The sun
-  - Use object rotation to adjust light direction
+  - Use object rotation to adjust light direction. At 0 rotation, the light shines at +Z.
 - Point lights:
   - Medium speed
   - Intensity is proportional to inverse square of distance to light, direction is always from light
@@ -185,16 +177,33 @@ Alpha is light intensity.
   - Slower than point lights per area affected, but lower affected area can make it much faster than point lights + shadows
   - Intensity and direction behaves like point lights
   - Example: Street lights, car headlights
-  - Use object rotation and position to adjust light cone
+  - Use object rotation and position to adjust light cone. At 0 rotation, the light shines at +Z.
+
+#### Camera
+
+There must be at least one camera per scene. The last camera created is used to render the scene. At 0 rotation, the camera looks at +Z.
+
+```txt
+...
+    camera
+        fov <fov>             # in degrees, default is 60 #
+        nearFar <near> <far>  # Default is 0.1 and 100 #
+    end
+...
+```
 
 ## Example
 
 ```txt
 # Camera setup #
-cam pos 0 0 5
-cam rot 0 0 0
-nearFar 0.1 100
-fov 70
+new object
+    0 0 5
+    1 1 1
+    0 0 0
+    camera
+      fov 70
+    end
+end
 
 # Lighting #
 ambientLight 0.2 0.2 0.2 1

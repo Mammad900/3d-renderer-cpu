@@ -20,6 +20,7 @@ Vector3f operator* (const Vector3f &a, const TransformMatrix &b);
 TransformMatrix makeRotationMatrix(Vector3f R);
 TransformMatrix makeTransformMatrix(TransformMatrix R, Vector3f S, Vector3f T);
 TransformMatrix makeTransformMatrix(Vector3f R, Vector3f S, Vector3f T);
+TransformMatrix transposeMatrix(TransformMatrix &mat);
 
 sf::Vector3f rotate(sf::Vector3f a, const sf::Vector3f &th);
 

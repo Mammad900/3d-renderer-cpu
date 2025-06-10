@@ -1,6 +1,5 @@
 #include "triangle.h"
 #include "color.h"
-#include "project.h"
 #include "textureFiltering.h"
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Image.hpp>
@@ -79,8 +78,8 @@ void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
         (tri.s1.screenPos.x >  1 && tri.s2.screenPos.x >  1 && tri.s3.screenPos.x >  1 )||
         (tri.s1.screenPos.y < -1 && tri.s2.screenPos.y < -1 && tri.s3.screenPos.y < -1 )||
         (tri.s1.screenPos.y >  1 && tri.s2.screenPos.y >  1 && tri.s3.screenPos.y >  1 )||
-        (tri.s1.screenPos.z <  scene->nearClip && tri.s2.screenPos.z <  scene->nearClip && tri.s3.screenPos.z <  scene->nearClip )||
-        (tri.s1.screenPos.z >  scene->farClip && tri.s2.screenPos.z >  scene->farClip && tri.s3.screenPos.z >  scene->farClip )
+        (tri.s1.screenPos.z <  scene->camera->nearClip && tri.s2.screenPos.z <  scene->camera->nearClip && tri.s3.screenPos.z <  scene->camera->nearClip )||
+        (tri.s1.screenPos.z >  scene->camera->farClip && tri.s2.screenPos.z >  scene->camera->farClip && tri.s3.screenPos.z >  scene->camera->farClip )
     )
         return;
 

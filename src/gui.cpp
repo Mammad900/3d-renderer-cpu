@@ -22,11 +22,11 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     ImGui::ShowDemoWindow();
 
     ImGui::Begin("Options");
-    ImGui::InputFloat("Near", &editingScene->nearClip);
-    ImGui::InputFloat("Far", &editingScene->farClip);
-    ImGui::SliderFloat("FOV", &editingScene->fov, 10, 150);
-    ImGui::SliderFloat3("Camera rotation", (float *)&editingScene->camRotation, -M_PI, M_PI);
-    ImGui::DragFloat3("Camera position", (float *)&editingScene->cam, 0.2f);
+    ImGui::InputFloat("Near", &editingScene->camera->nearClip);
+    ImGui::InputFloat("Far", &editingScene->camera->farClip);
+    ImGui::SliderFloat("FOV", &editingScene->camera->fov, 10, 150);
+    // ImGui::SliderFloat3("Camera rotation", (float *)&editingScene->camRotation, -M_PI, M_PI);
+    // ImGui::DragFloat3("Camera position", (float *)&editingScene->cam, 0.2f);
     ImGui::RadioButton("Frame buffer", &editingScene->renderMode, 0);
     ImGui::RadioButton("Z buffer", &editingScene->renderMode, 1);
     ImGui::Checkbox("Back-face culling", &editingScene->backFaceCulling);
@@ -38,7 +38,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     ImGui::RadioButton("Nearest Neighbor", &editingScene->textureFilteringMode, TextureFilteringMode::NearestNeighbor);
     ImGui::RadioButton("Bilinear", &editingScene->textureFilteringMode, TextureFilteringMode::Bilinear);
     ImGui::RadioButton("Trilinear", &editingScene->textureFilteringMode, TextureFilteringMode::Trilinear);
-    ImGui::SliderFloat("White point", (float *)&editingScene->whitePoint, 0, 5);
+    ImGui::SliderFloat("White point", (float *)&editingScene->camera->whitePoint, 0, 5);
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     ImGui::DragScalarN("Frame size", ImGuiDataType_U32, &frameSizeTemp, 2);
     if(ImGui::Button("Set frame size"))
