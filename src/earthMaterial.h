@@ -1,6 +1,7 @@
 #ifndef __EARTHMATERIAL_H__
 #define __EARTHMATERIAL_H__
 #include "phongMaterial.h"
+#include "textureFiltering.h"
 
 SolidTexture<Color> *blankTexture() {
     return new SolidTexture<Color>({0, 0, 0, 0});

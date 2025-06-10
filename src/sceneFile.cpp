@@ -1,9 +1,11 @@
 #include <fstream>
+#include <iostream>
 #include <filesystem>
 #include "data.h"
 #include "phongMaterial.h"
 #include "earthMaterial.h"
 #include "generateMesh.h"
+#include "textureFiltering.h"
 
 using std::istream, std::cout, std::cerr, std::endl, std::string, std::flush;
 
