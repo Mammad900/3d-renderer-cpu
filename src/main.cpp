@@ -15,8 +15,6 @@ int main(int argc, char** argv) {
     renderWindow = &window;
     window.setFramerateLimit(144);
 
-    // frame->changeSize(frame->size, false);
-
     // Tools window
     sf::RenderWindow window2(sf::VideoMode({1200, 600}), "Tools");
     window2.setFramerateLimit(60);

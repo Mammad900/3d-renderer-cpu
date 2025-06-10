@@ -25,8 +25,6 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     ImGui::InputFloat("Near", &editingScene->camera->nearClip);
     ImGui::InputFloat("Far", &editingScene->camera->farClip);
     ImGui::SliderFloat("FOV", &editingScene->camera->fov, 10, 150);
-    // ImGui::SliderFloat3("Camera rotation", (float *)&editingScene->camRotation, -M_PI, M_PI);
-    // ImGui::DragFloat3("Camera position", (float *)&editingScene->cam, 0.2f);
     ImGui::RadioButton("Frame buffer", &editingScene->renderMode, 0);
     ImGui::RadioButton("Z buffer", &editingScene->renderMode, 1);
     ImGui::Checkbox("Back-face culling", &editingScene->backFaceCulling);

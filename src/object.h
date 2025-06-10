@@ -19,13 +19,15 @@ struct Object {
     Vector3f position;
     Vector3f rotation;
     Vector3f scale = {1,1,1};
-    TransformMatrix myTransform;
-    TransformMatrix myRotation;
+    TransformMatrix transform;
+    TransformMatrix transformRotation;
     std::vector<Component *> components;
+    std::vector<Object *> children;
+    Object *parent;
     Scene *scene;
     void update() {
-        myRotation = makeRotationMatrix(rotation);
-        myTransform = makeTransformMatrix(myRotation, scale, position);
+        transformRotation = makeRotationMatrix(rotation);
+        transform = makeTransformMatrix(transformRotation, scale, position);
 
         for (auto &&c : components)
             c->update();

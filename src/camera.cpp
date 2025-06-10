@@ -20,7 +20,7 @@ Projection Camera::perspectiveProject(Vector3f a) {
 void Camera::makePerspectiveProjectionMatrix() {
     float S = 1 / tan(fov * M_PI / 360);
     float f = -farClip / (farClip - nearClip);
-    matMul(transposeMatrix(obj->myRotation).data(), (float[]){
+    matMul(transposeMatrix(obj->transformRotation).data(), (float[]){
         S, 0, 0, 0,
         0, S, 0, 0,
         0, 0, f,-1,
@@ -53,8 +53,6 @@ void Camera::render(RenderTarget *frame) {
 
     makePerspectiveProjectionMatrix();
 
-    // scene->camDirection = rotate({0, 0, 1}, scene->camRotation);
-
 #pragma region // ===== PROJECT VERTICES & BUILD TRIANGLES =====
 
     std::vector<Triangle> triangles(total_faces);
@@ -69,9 +67,8 @@ void Camera::render(RenderTarget *frame) {
                 for (size_t j = 0; j < mesh->n_vertices; j++) {
                     Vertex vV = mesh->vertices[j];
 
-                    projectedVertices[j] = perspectiveProject(vV.position * obj->myTransform);
-                    projectedVertices[j].normal = (vV.normal * obj->myRotation).normalized(); 
-                    // ^ The transform we applied to the normal vector also scales and translates it, have to undo those.
+                    projectedVertices[j] = perspectiveProject(vV.position * obj->transform);
+                    projectedVertices[j].normal = (vV.normal * obj->transformRotation).normalized(); 
                 }
 
                 for (size_t j = 0; j < mesh->n_faces; j++) {

@@ -127,30 +127,3 @@ TransformMatrix transposeMatrix(TransformMatrix &mat) {
     }
     return transposed;
 }
-
-sf::Vector3f rotate(sf::Vector3f a, const sf::Vector3f &th)
-{
-    float sinX = sin(th.x);
-    float cosX = cos(th.x);
-    float sinY = sin(th.y);
-    float cosY = cos(th.y);
-    float sinZ = sin(th.z);
-    float cosZ = cos(th.z);
-
-    // Rotate around X (pitch)
-    float x1 = a.x;
-    float y1 = cosX * a.y - sinX * a.z;
-    float z1 = sinX * a.y + cosX * a.z;
-
-    // Rotate around Y (yaw)
-    float x2 = cosY * x1 + sinY * z1;
-    float y2 = y1;
-    float z2 = -sinY * x1 + cosY * z1;
-
-    // Rotate around Z (roll)
-    float x3 = cosZ * x2 - sinZ * y2;
-    float y3 = sinZ * x2 + cosZ * y2;
-    float z3 = z2;
-
-    return {x3, y3, z3};
-}

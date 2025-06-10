@@ -22,6 +22,4 @@ TransformMatrix makeTransformMatrix(TransformMatrix R, Vector3f S, Vector3f T);
 TransformMatrix makeTransformMatrix(Vector3f R, Vector3f S, Vector3f T);
 TransformMatrix transposeMatrix(TransformMatrix &mat);
 
-sf::Vector3f rotate(sf::Vector3f a, const sf::Vector3f &th);
-
 #endif /* __MATRIX_H__ */
