@@ -27,6 +27,6 @@ end
 new object
     0 0 0
     1 1 1
-    0 0 90
+    0 80 0
     light directional 1 1 1 5
 end

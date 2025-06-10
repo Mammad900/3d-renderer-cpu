@@ -83,13 +83,13 @@ end
 new object
     0 0 0
     1 1 1
-    0 -90 0
+    0 0 0
     mesh Box
 end
 
 new object
     0 0 0
     1 1 1
-    -180 0 90
-    light directional 1 1 1 2
+    0 0 0
+    light directional 1 1 1 1
 end

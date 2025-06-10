@@ -34,7 +34,7 @@ class DirectionalLight : public Light {
         return {color * color.a, direction};
     }
     void update() {
-        direction = Vector3f{0, -1, 0} * obj->myRotation;
+        direction = Vector3f{0, 0, 1} * obj->myRotation;
     }
   private:
     Vector3f direction;
@@ -55,7 +55,7 @@ class SpotLight : public Light {
         spreadOuterCos = std::cos(spreadOuter);
         if(spreadInnerCos < spreadOuterCos)
             std::swap(spreadInnerCos, spreadOuterCos);
-        direction = Vector3f{0, -1, 0} * obj->myRotation;
+        direction = Vector3f{0, 0, 1} * obj->myRotation;
     }
     void GUI();
   private:
