@@ -7,7 +7,7 @@ void fog() {
     float tanFOV = std::tan(scene->camera->fov * M_PI / 360);
     for (int y = 0; y < (int)frame->size.y; y++) {
         for (int x = 0; x < (int)frame->size.x; x++) {
-            size_t i = frameBufferIndex({x, y});
+            size_t i = x + frame->size.x * y;
             float z = frame->zBuffer[i];
             Vector2f world = Vector2f{x / (float)frame->size.x, y / (float)frame->size.y} * z * tanFOV; // Reconstruct world space X and Y
             float dist = std::sqrt(
