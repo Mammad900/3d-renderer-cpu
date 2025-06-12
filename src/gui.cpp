@@ -38,6 +38,9 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     ImGui::RadioButton("Trilinear", &editingScene->textureFilteringMode, TextureFilteringMode::Trilinear);
     ImGui::SliderFloat("White point", (float *)&editingScene->camera->whitePoint, 0, 5);
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+    ImGui::Text("Geometry time: %.1f", geometryTime);
+    ImGui::Text("Lighting time: %.1f", lightingTime);
+    ImGui::Text("Forward time: %.1f", forwardTime);
     ImGui::DragScalarN("Frame size", ImGuiDataType_U32, &frameSizeTemp, 2);
     if(ImGui::Button("Set frame size"))
         changeWindowSize(frameSizeTemp);

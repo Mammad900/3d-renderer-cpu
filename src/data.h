@@ -25,7 +25,7 @@ void changeWindowSize(Vector2u size);
 
 extern Vector2u frameSizeTemp;
 extern RenderTarget *frame;
-extern float deltaTime;
+extern float deltaTime, geometryTime, lightingTime, forwardTime;
 
 class Camera;
 

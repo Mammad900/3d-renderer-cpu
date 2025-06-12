@@ -5,7 +5,7 @@ sf::RenderWindow *renderWindow;
 std::vector<Scene *> scenes;
 RenderTarget *frame = new RenderTarget({500, 500});
 Vector2u frameSizeTemp = frame->size;
-float deltaTime;
+float deltaTime, geometryTime, lightingTime, forwardTime;
 
 void RenderTarget::changeSize(sf::Vector2u newSize, bool deferred) {
     if(framebuffer != nullptr)

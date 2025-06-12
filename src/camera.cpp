@@ -3,11 +3,14 @@
 #include "fog.h"
 #include <imgui.h>
 #include <functional>
+#include <SFML/System/Clock.hpp>
 
 struct TransparentTriangle{
     float z;
     Triangle tri;
 };
+
+sf::Clock performanceClock;
 
 Projection Camera::perspectiveProject(Vector3f a) {
     Vector3f b = a - obj->globalPosition;
@@ -95,8 +98,12 @@ void Camera::render(RenderTarget *frame) {
 
 #pragma region // ===== DRAW TRIANGLES =====
 
+    performanceClock.restart();
+
     for (auto &&tri : triangles)
         drawTriangle(frame, tri, frame->deferred);
+
+    geometryTime = performanceClock.restart().asMilliseconds();
 
     // Deferred pass
     if(frame->deferred) {
@@ -109,11 +116,15 @@ void Camera::render(RenderTarget *frame) {
         }
     }
 
+    lightingTime = performanceClock.restart().asMilliseconds();
+
     auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z > b.z; };
     std::sort(transparents.begin(), transparents.end(), compareZ);
     for (auto &&tri : transparents)
         drawTriangle(frame, tri.tri, false);
     
+    forwardTime = performanceClock.restart().asMilliseconds();
+    performanceClock.stop();
 
 #pragma endregion
 
