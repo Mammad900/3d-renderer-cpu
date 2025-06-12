@@ -7,6 +7,13 @@
 int main(int argc, char** argv) {
     parseSceneFile(argc > 1 ? argv[1] : "assets/scene.txt", scene);
 
+    // Tools window
+    sf::RenderWindow window2(sf::VideoMode({1200, 600}), "Tools");
+    window2.setFramerateLimit(60);
+    if (!ImGui::SFML::Init(window2))
+        return -1;
+    sf::Clock deltaClock;
+
     // Scene window
     auto window = sf::RenderWindow(
         sf::VideoMode(frame->size), "3D renderer",
@@ -14,13 +21,6 @@ int main(int argc, char** argv) {
     );
     renderWindow = &window;
     window.setFramerateLimit(144);
-
-    // Tools window
-    sf::RenderWindow window2(sf::VideoMode({1200, 600}), "Tools");
-    window2.setFramerateLimit(60);
-    if (!ImGui::SFML::Init(window2))
-        return -1;
-    sf::Clock deltaClock;
 
     while (window.isOpen() && window2.isOpen()) {
         guiUpdate(window2, deltaClock, scene); // gui.h
