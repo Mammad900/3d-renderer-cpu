@@ -48,13 +48,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     if(ImGui::Begin("Objects")) {
         for (size_t i = 0; i < editingScene->objects.size(); i++) {
             ImGui::PushID(i);
-            if(ImGui::TreeNode("Cube")) {
-                Object *obj = editingScene->objects[i];
-                ImGui::SliderFloat3("Rotation", (float *)&obj->rotation, -M_PI, M_PI);
-                ImGui::DragFloat3("Position", (float *)&obj->position, 0.2f);
-                ImGui::DragFloat3("Scale", (float *)&obj->scale, 0.1f);
-                ImGui::TreePop();
-            }
+            editingScene->objects[i]->GUI();
             ImGui::PopID();
         }
         ImGui::Spacing();

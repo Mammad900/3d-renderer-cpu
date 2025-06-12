@@ -18,6 +18,9 @@ class Camera : public Component {
     float fov = 60, nearClip = 0.1, farClip = 100;
     float whitePoint = 0;
     void render(RenderTarget *frame);
+    std::string name() { return "Camera"; }
+    void GUI();
+
   private:
     Projection perspectiveProject(Vector3f a);
     void makePerspectiveProjectionMatrix();

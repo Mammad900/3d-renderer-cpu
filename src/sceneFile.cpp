@@ -6,8 +6,11 @@
 #include "earthMaterial.h"
 #include "generateMesh.h"
 #include "textureFiltering.h"
+#include "sceneFile.h"
 
 using std::istream, std::cout, std::cerr, std::endl, std::string, std::flush;
+
+void parseObject(Scene *editingScene, std::ifstream &in, Object *parent);
 
 istream& operator>>(istream& in, Vector3f& v){
     in >> v.x >> v.y >> v.z;
@@ -241,69 +244,80 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                     cerr << "Invalid mesh type " << type << endl;
                 }
             } else if (word == "object") {
-                Object *obj = new Object();
-                obj->scene = editingScene;
-                in >> obj->position >> obj->scale >> obj->rotation;
-                obj->rotation *= M_PIf / 180.0f;
-                string key;
-                while (in >> key && key != "end") {
-                    if (key == "#") { while (in >> key && key != "#"); continue; }
-
-                    if(key == "mesh") {
-                        string meshName;
-                        in >> meshName;
-                        obj->components.push_back(new MeshComponent(obj, findMesh(meshName, editingScene)));
-                    }
-                    else if(key == "light") {
-                        string type;
-                        Color color;
-                        in >> type >> color;
-
-                        Light *light;
-                        if (type == "directional") {
-                            light = new DirectionalLight(obj, color);
-                        }
-                        else if (type == "point") {
-                            light = new PointLight(obj, color);
-                        }
-                        else if (type == "spot") {
-                            float spreadA, spreadB;
-                            in >> spreadA >> spreadB;
-                            spreadA *= M_PIf / 180.0f;
-                            spreadB *= M_PIf / 180.0f;
-                            light = new SpotLight(obj, color, spreadA, spreadB);
-                        }
-                        else {
-                            cerr << "Invalid light type " << type << endl;
-                        }
-                        obj->components.push_back(light);
-                    }
-                    else if(key == "camera") {
-                        Camera *cam = new Camera(obj);
-
-                        while (in >> key && key != "end") {
-                            if (key == "#") { while (in >> key && key != "#"); continue; }
-
-                            if(key == "fov") {
-                                in >> cam->fov;
-                            } else if(key == "nearFar") {
-                                in >> cam->nearClip >> cam->farClip;
-                            } else if(key == "whitePoint") {
-                                in >> cam->whitePoint;
-                            }
-                        }
-                        editingScene->camera = cam;
-                        obj->components.push_back(cam);
-                    }
-                    else {
-                        cerr << "Invalid component type " << key << endl;
-                    }
-                }
-                editingScene->objects.push_back(obj);
+                parseObject(editingScene, in, nullptr);
             } else {
                 cerr << "Invalid command " << word << endl;
             }
         }
     }
     in.close();
+}
+
+void parseObject(Scene* editingScene, std::ifstream &in, Object *parent) {
+    Object *obj = new Object();
+    obj->scene = editingScene;
+    obj->parent = parent;
+    if(parent)
+        parent->children.push_back(obj);
+    else
+        editingScene->objects.push_back(obj);
+    in >> obj->name >> obj->position >> obj->scale >> obj->rotation;
+    obj->rotation *= M_PIf / 180.0f;
+    string key;
+    while (in >> key && key != "end") {
+        if (key == "#") { while (in >> key && key != "#"); continue; }
+
+        if(key == "object") {
+            parseObject(editingScene, in, obj);
+        } 
+        else if(key == "mesh") {
+            string meshName;
+            in >> meshName;
+            obj->components.push_back(new MeshComponent(obj, findMesh(meshName, editingScene)));
+        }
+        else if(key == "light") {
+            string type;
+            Color color;
+            in >> type >> color;
+
+            Light *light;
+            if (type == "directional") {
+                light = new DirectionalLight(obj, color);
+            }
+            else if (type == "point") {
+                light = new PointLight(obj, color);
+            }
+            else if (type == "spot") {
+                float spreadA, spreadB;
+                in >> spreadA >> spreadB;
+                spreadA *= M_PIf / 180.0f;
+                spreadB *= M_PIf / 180.0f;
+                light = new SpotLight(obj, color, spreadA, spreadB);
+            }
+            else {
+                cerr << "Invalid light type " << type << endl;
+            }
+            obj->components.push_back(light);
+        }
+        else if(key == "camera") {
+            Camera *cam = new Camera(obj);
+
+            while (in >> key && key != "end") {
+                if (key == "#") { while (in >> key && key != "#"); continue; }
+
+                if(key == "fov") {
+                    in >> cam->fov;
+                } else if(key == "nearFar") {
+                    in >> cam->nearClip >> cam->farClip;
+                } else if(key == "whitePoint") {
+                    in >> cam->whitePoint;
+                }
+            }
+            editingScene->camera = cam;
+            obj->components.push_back(cam);
+        }
+        else {
+            cerr << "Invalid component type " << key << endl;
+        }
+    }
 }

@@ -76,21 +76,21 @@ f 25 27 26
 
 end
 
-new object
+new object Box
     0 0 0
     1 1 1
     0 0 0
     mesh Box
 end
 
-new object
+new object Light
     0 0 0
     1 1 1
     0 0 0
     light directional 1 1 1 1
 end
 
-new object
+new object Camera
     0 0 -5
     1 1 1
     0 0 0

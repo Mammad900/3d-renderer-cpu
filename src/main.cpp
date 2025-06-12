@@ -40,6 +40,8 @@ int main(int argc, char** argv) {
             scene->objects[0]->rotation.y += 0.01;
         }
 
+        for (auto &&obj : scene->objects)
+            obj->update();
         scene->camera->render(frame);
 
         sf::Image img(frame->size);

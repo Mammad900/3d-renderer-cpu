@@ -1,14 +1,16 @@
 #include "camera.h"
 #include "triangle.h"
 #include "fog.h"
+#include <imgui.h>
+#include <functional>
 
 struct TransparentTriangle{
     float z;
-    Triangle *tri;
+    Triangle tri;
 };
 
 Projection Camera::perspectiveProject(Vector3f a) {
-    Vector3f b = a - obj->position;
+    Vector3f b = a - obj->globalPosition;
     float vM[4] = {b.x, b.y, b.z, 1};
     matMul(vM, projectionMatrix.data(), vM, 1, 4, 4);
     return Projection{
@@ -29,37 +31,20 @@ void Camera::makePerspectiveProjectionMatrix() {
 }
 
 void Camera::render(RenderTarget *frame) {
-    for (size_t i = 0; i < frame->size.x*frame->size.y; i++)
-    {
+    for (size_t i = 0; i < frame->size.x*frame->size.y; i++) {
         frame->framebuffer[i] = Color{0, 0, 0, 1};
         frame->zBuffer[i]=INFINITY;
     }
-
-#pragma region // ===== COUNT VERTICES & FACES =====
-
-    int total_vertices = 0;
-    int total_faces = 0;
-    for (auto &&obj : scene->objects) {
-        obj->update();
-        for (auto &&comp : obj->components)
-        if(MeshComponent *meshComp = dynamic_cast<MeshComponent*>(comp)) {
-            Mesh *mesh = meshComp->mesh;
-            total_vertices += mesh->n_vertices;
-            total_faces += mesh->n_faces;
-        }
-    }
-    
-#pragma endregion
 
     makePerspectiveProjectionMatrix();
 
 #pragma region // ===== PROJECT VERTICES & BUILD TRIANGLES =====
 
-    std::vector<Triangle> triangles(total_faces);
+    std::vector<Triangle> triangles;
     std::vector<TransparentTriangle> transparents;
-    int triI = 0;
-    for (auto &&obj : scene->objects)
-        for (auto &&comp : obj->components)
+
+    std::function<void(Object*)> handleObject = [&](Object *obj) {
+        for (auto &&comp : obj->components) {
             if(MeshComponent *meshComp = dynamic_cast<MeshComponent*>(comp)) {
                 Mesh *mesh = meshComp->mesh;
                 Projection projectedVertices[mesh->n_vertices];
@@ -68,17 +53,18 @@ void Camera::render(RenderTarget *frame) {
                     Vertex vV = mesh->vertices[j];
 
                     projectedVertices[j] = perspectiveProject(vV.position * obj->transform);
-                    projectedVertices[j].normal = (vV.normal * obj->transformRotation).normalized(); 
+                    auto normal = (vV.normal * obj->transformRotation).normalized();
+                    projectedVertices[j].normal = normal;
                 }
 
                 for (size_t j = 0; j < mesh->n_faces; j++) {
                     Face face = mesh->faces[j];
                     Projection v1s = projectedVertices[face.v1],
-                            v2s = projectedVertices[face.v2],
-                            v3s = projectedVertices[face.v3];
+                               v2s = projectedVertices[face.v2],
+                               v3s = projectedVertices[face.v3];
                     Vector3f normalS = (v3s.screenPos - v1s.screenPos).cross(v2s.screenPos - v1s.screenPos).normalized();
 
-                    triangles[triI] = Triangle{
+                    Triangle tri = {
                         .s1 = v1s,
                         .s2 = v2s,
                         .s3 = v3s,
@@ -89,22 +75,28 @@ void Camera::render(RenderTarget *frame) {
                         .cull = normalS.z < 0
                     };
                     if(face.material->flags & MaterialFlags::Transparent) {
-                        transparents.push_back(TransparentTriangle{(v1s.screenPos.z + v2s.screenPos.z + v3s.screenPos.z) / 3, &triangles[triI]});
+                        transparents.push_back(TransparentTriangle{(v1s.screenPos.z + v2s.screenPos.z + v3s.screenPos.z) / 3, tri});
                     }
-                    triI++;
+                    else {
+                        triangles.push_back(tri);
+                    }
                 }
             }
-    
+        }
+        for (auto &&child : obj->children)
+            handleObject(child);
+    };
+
+    for (auto &&obj : scene->objects)
+        handleObject(obj);
 
 #pragma endregion
 
 
 #pragma region // ===== DRAW TRIANGLES =====
 
-    for (int i = 0; i < total_faces; i++) {
-        if(triangles[1].mat->flags & MaterialFlags::Transparent) continue;
-        drawTriangle(frame, triangles[i], frame->deferred);
-    }
+    for (auto &&tri : triangles)
+        drawTriangle(frame, tri, frame->deferred);
 
     // Deferred pass
     if(frame->deferred) {
@@ -119,13 +111,18 @@ void Camera::render(RenderTarget *frame) {
 
     auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z > b.z; };
     std::sort(transparents.begin(), transparents.end(), compareZ);
-    for (auto &&tri : transparents) {
-        drawTriangle(frame, *tri.tri, false);
-    }
+    for (auto &&tri : transparents)
+        drawTriangle(frame, tri.tri, false);
     
 
 #pragma endregion
 
     if(scene->fogColor.a > 0)
         fog();
+}
+
+void Camera::GUI() {
+    if(ImGui::Button("Set as scene camera")) {
+        obj->scene->camera = this;
+    }
 }

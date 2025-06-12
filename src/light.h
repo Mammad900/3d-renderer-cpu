@@ -18,8 +18,10 @@ class PointLight : public Light {
     PointLight(Object *obj, Color color)
         : Light(obj, color) {}
 
+    std::string name() { return "Point Light"; }
+
     std::pair<Color, Vector3f> sample(Vector3f pos) {
-        Vector3f dist = pos - obj->position;
+        Vector3f dist = pos - obj->globalPosition;
         float distSq = dist.lengthSquared();
         return {color * (color.a / distSq), dist / std::sqrt(distSq)};
     }
@@ -29,6 +31,8 @@ class DirectionalLight : public Light {
   public:
     DirectionalLight(Object *obj, Color color)
         : Light(obj, color) {}
+
+    std::string name() { return "Directional Light"; }
 
     std::pair<Color, Vector3f> sample(Vector3f pos) {
         return {color * color.a, direction};
@@ -47,6 +51,8 @@ class SpotLight : public Light {
 
     SpotLight(Object *obj, Color color, float spreadInner, float spreadOuter) 
     : Light(obj, color), spreadInner(spreadInner), spreadOuter(spreadOuter) {}
+
+    std::string name() { return "Spotlight"; }
 
     std::pair<Color, Vector3f> sample(Vector3f pos);
 

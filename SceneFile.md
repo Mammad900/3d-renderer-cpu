@@ -130,15 +130,17 @@ new mesh <name> plane <subdivision x> <subdivision y> <material-name>
 ## Objects
 
 ```txt
-new object
+new object <name>
     <x> <y> <z>         # position
     <sx> <sy> <sz>      # scale
     <rx> <ry> <rz>      # rotation (degrees)
-    <components>
+    <components and children>
 end
 ```
 
-Each object contains one or more components. No components is allowed but pointless.
+Each object contains one or more components, or one or more children, or both, or neither.
+
+Object transforms propagate. This means that position, scale and rotation affect the children as well. For example, rotating an object causes its children to rotate around its center.s
 
 ### Possible components
 

@@ -17,7 +17,7 @@ void PhongMaterial::GUI() {
 }
 
 Color PhongMaterial::shade(Fragment &f, Color previous) {
-    Vector3f viewDir = (scene->camera->obj->position - f.worldPos).normalized();
+    Vector3f viewDir = (scene->camera->obj->globalPosition - f.worldPos).normalized();
     if(!(flags & Transparent) && (flags & DoubleSided) && f.isBackFace)
         f.normal *= -1.0f;
     Color matSpecular = mat.specular->sample(f);

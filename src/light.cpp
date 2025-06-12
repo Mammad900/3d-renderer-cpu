@@ -21,7 +21,7 @@ Light::~Light() {
 }
 
 std::pair<Color, Vector3f> SpotLight::sample(Vector3f pos) {
-    Vector3f dist = pos - obj->position;
+    Vector3f dist = pos - obj->globalPosition;
     float distSq = dist.lengthSquared();
     Vector3f distNormalized = dist / std::sqrt(distSq);
     float cos = distNormalized.dot(direction);

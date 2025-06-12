@@ -15,19 +15,19 @@ new material EarthMat earth
 end
 
 new mesh EarthMesh sphere 20 20 EarthMat
-new object 
+new object Earth
     0 0 0
     1 1 1
     0 0 0
     mesh EarthMesh
 end
-new object
+new object Light
     0 0 0
     1 1 1
     0 80 0
     light directional 1 1 1 5
 end
-new object
+new object Camera
     0 0 -5
     1 1 1
     0 0 0

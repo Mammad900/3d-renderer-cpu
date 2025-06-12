@@ -1,4 +1,4 @@
 import box.txt
 import earth.txt
 
-scene render box
+scene render earth
