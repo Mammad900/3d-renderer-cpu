@@ -4,12 +4,16 @@
 #include "miscTypes.h"
 
 struct Object;
+extern float deltaTime;
 
 class Component {
   public:
     Object *obj;
     Component(Object *obj) : obj(obj) {}
+    // Called after object transform updates
     virtual void update(){};
+    // Called before object transform updates
+    virtual void preUpdate(){};
     virtual void GUI(){};
     virtual std::string name() = 0;
 };

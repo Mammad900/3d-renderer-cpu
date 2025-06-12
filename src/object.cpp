@@ -2,6 +2,9 @@
 #include <imgui.h>
 
 void Object::update() {
+    for (auto &&c : components)
+        c->preUpdate();
+
     myTransformRotation = makeRotationMatrix(rotation);
     myTransform = makeTransformMatrix(myTransformRotation, scale, position);
     if(parent) {

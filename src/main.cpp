@@ -23,6 +23,7 @@ int main(int argc, char** argv) {
     window.setFramerateLimit(144);
 
     while (window.isOpen() && window2.isOpen()) {
+        deltaTime = deltaClock.getElapsedTime().asSeconds();
         guiUpdate(window2, deltaClock, scene); // gui.h
 
         while (const std::optional event = window.pollEvent()) {
@@ -35,7 +36,7 @@ int main(int argc, char** argv) {
             }
         }
 
-        if(scene->orbit) {
+        if (scene->orbit) {
             scene->lights[0]->obj->rotation.y += 0.1;
             scene->objects[0]->rotation.y += 0.01;
         }
