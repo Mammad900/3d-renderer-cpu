@@ -75,5 +75,6 @@
         "bitangent",
         "Phong",
         "SFML"
-    ]
+    ],
+    "editor.detectIndentation": false
 }
