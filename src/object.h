@@ -48,4 +48,16 @@ class MeshComponent : public Component {
     std::string name() { return "Mesh: " + mesh->label; }
 };
 
+class RotatorComponent : public Component {
+  public:
+    Vector3f rotatePerSecond;
+    bool enable = true;
+    RotatorComponent(Object *obj, Vector3f rotatePerSecond)
+        : Component(obj), rotatePerSecond(rotatePerSecond) {}
+
+    void preUpdate() { if(enable) obj->rotation += rotatePerSecond * deltaTime; }
+    void GUI();
+    std::string name() { return "Rotator"; }
+};
+
 #endif /* __OBJECT_H__ */

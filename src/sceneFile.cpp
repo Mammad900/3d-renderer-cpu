@@ -316,6 +316,12 @@ void parseObject(Scene* editingScene, std::ifstream &in, Object *parent) {
             editingScene->camera = cam;
             obj->components.push_back(cam);
         }
+        else if(key == "rotator") {
+            Vector3f rotatePerSecond;
+            in >> rotatePerSecond;
+            rotatePerSecond *= M_PIf / 180.0f;
+            obj->components.push_back(new RotatorComponent(obj, rotatePerSecond));
+        }
         else {
             cerr << "Invalid component type " << key << endl;
         }

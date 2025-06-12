@@ -51,3 +51,8 @@ void Object::GUI() {
         ImGui::TreePop();
     }
 }
+
+void RotatorComponent::GUI() {
+    ImGui::Checkbox("Enable", &enable);
+    ImGui::DragFloat3("Rotation per second", &rotatePerSecond.x, 0.05f);
+}
