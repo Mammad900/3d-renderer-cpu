@@ -13,26 +13,89 @@ new material EarthMat earth
     cloud           texture     1       earth-clouds-2k.png
     normalMap                           earth-normalmap-2k.jpg 1 -1
 end
-
 new mesh EarthMesh sphere 20 20 EarthMat
-new object Earth
-    0 0 0
-    1 1 1
-    0 0 0
-    mesh EarthMesh
+
+new material SunMat phong
+    diffuse  color              0 0 1 1
+    emissive texture            3 3 3 1 sun-emissive-1k.jpg
 end
-new object Light
-    0 0 0
-    1 1 1
-    0 80 0
-    light directional 1 1 1 5
+new mesh SunMesh sphere 20 20 SunMat
+
+new material MoonMat phong
+    diffuse texture             1 1 1 1 moon-diffuse-1k.jpg
 end
+new mesh MoonMesh sphere 20 20 MoonMat
+
 new object Camera
-    0 0 -5
+    0 0 -40
     1 1 1
     0 0 0
     camera
-        fov 30
+        fov 60
         whitePoint 4
+    end
+end
+
+new object SolarSystem
+    0 0 0
+    1 1 1
+    -20 0 0
+
+    object Sol
+        0 0 0
+        5 5 5
+        0 0 0
+        mesh SunMesh
+        light point 1 1 1 2000
+    end
+
+    object EarthOrbit
+        0 0 0
+        1 1 1
+        0 0 0
+
+        rotator 0 3 0
+        object EarthSystem
+            20 0 0
+            1 1 1
+            0 0 0
+
+            object Earth
+                0 0 0
+                1 1 1
+                0 0 0
+                mesh EarthMesh
+                rotator 0 30 0
+            end
+
+            object MoonOrbit
+                0 0 0
+                1 1 1
+                0 0 0
+
+                rotator 0 5 0
+                object Moon
+                    3 0 0
+                    0.3 0.3 0.3
+                    0 0 0
+                    mesh MoonMesh
+                end
+            end
+
+            object EarthCamOrbit
+                0 0 0
+                1 1 1
+                0 -41 0
+                object EarthCam
+                    0 0 -10
+                    1 1 1
+                    0 0 0
+                    camera EarthCam
+                        fov 30
+                        whitePoint 4
+                    end
+                end
+            end
+        end
     end
 end
