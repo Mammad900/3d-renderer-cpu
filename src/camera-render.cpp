@@ -4,6 +4,8 @@
 #include <imgui.h>
 #include <functional>
 #include <SFML/System/Clock.hpp>
+#include <thread>
+#include <condition_variable>
 
 struct TransparentTriangle{
     float z;
@@ -11,6 +13,16 @@ struct TransparentTriangle{
 };
 
 sf::Clock performanceClock;
+
+void deferredPass(uint n, uint i0, RenderTarget *frame);
+void threadLoop(uint n, uint i0, RenderTarget *frame);
+const uint numThreads = std::thread::hardware_concurrency();
+std::vector<std::thread> threads(numThreads);
+std::vector<bool> jobReady(numThreads, false);
+std::vector<std::condition_variable> cvs(numThreads);
+std::mutex mtx;
+bool shutdown = false;
+bool init = false;
 
 void Camera::render(RenderTarget *frame) {
     for (size_t i = 0; i < frame->size.x*frame->size.y; i++) {
@@ -84,16 +96,29 @@ void Camera::render(RenderTarget *frame) {
 
     geometryTime = performanceClock.restart().asMilliseconds();
 
+
     // Deferred pass
     if(frame->deferred) {
-        for (size_t i = 0; i < frame->size.x*frame->size.y; i++)
+        if(!init) {
+            for (uint i = 0; i < numThreads; i++)
+                threads[i] = std::thread(threadLoop, numThreads, i, frame);
+            init = true;
+        }
+        
         {
-            if(frame->zBuffer[i] == INFINITY) // No fragment here
-                continue;
-            Fragment &f = frame->gBuffer[i];
-            if (frame->deferred && !(f.mat->flags & MaterialFlags::AlphaCutout))
-                f.baseColor = f.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
-            frame->framebuffer[i] = f.mat->shade(f, frame->framebuffer[i]);
+            std::lock_guard<std::mutex> lock(mtx);
+            for (uint i = 0; i < numThreads; i++)
+                jobReady[i] = true;
+        }
+
+        for (uint i = 0; i < numThreads; i++)
+            cvs[i].notify_one();
+
+        bool allDone = false;
+        while(!allDone) {
+            std::this_thread::yield();
+            std::lock_guard<std::mutex> lock(mtx);
+            allDone = std::all_of(jobReady.begin(), jobReady.end(), [](bool v) {return !v;});
         }
     }
 
@@ -111,4 +136,27 @@ void Camera::render(RenderTarget *frame) {
 
     if(scene->fogColor.a > 0)
         fog();
+}
+
+void threadLoop(uint n, uint i, RenderTarget *frame) {
+    while (true) {
+        std::unique_lock<std::mutex> lock(mtx);
+        cvs[i].wait(lock, [&] { return jobReady[i] || shutdown; });
+        if(shutdown) break;
+        lock.unlock();
+        deferredPass(n, i, frame);
+        lock.lock();
+        jobReady[i] = false;
+    }
+}
+
+void deferredPass(uint n, uint i0, RenderTarget *frame) {
+    for (size_t i = i0; i < frame->size.x * frame->size.y; i+=n) {
+        if (frame->zBuffer[i] == INFINITY) // No fragment here
+            continue;
+        Fragment &f = frame->gBuffer[i];
+        if (frame->deferred && !(f.mat->flags & MaterialFlags::AlphaCutout))
+            f.baseColor = f.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
+        frame->framebuffer[i] = f.mat->shade(f, frame->framebuffer[i]);
+    }
 }
