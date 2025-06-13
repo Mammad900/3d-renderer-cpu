@@ -168,7 +168,10 @@ void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
         // if(index > frame->size.x * frame->size.y)
         //     return;
 
-        Color baseColor = tri.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
+        Color baseColor = f.baseColor =
+            (frame->deferred && !(tri.mat->flags & MaterialFlags::AlphaCutout))
+                ? Color{0, 0, 0, 1}
+                : tri.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
 
         if(baseColor.a < 0.5f)
             return;
@@ -176,8 +179,6 @@ void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
             return;
         if(!(tri.mat->flags & MaterialFlags::Transparent))
             frame->zBuffer[index] = f.z;
-
-        f.baseColor = baseColor;
 
         if(defer) {
             frame->gBuffer[index] = f;

@@ -112,6 +112,8 @@ void Camera::render(RenderTarget *frame) {
             if(frame->zBuffer[i] == INFINITY) // No fragment here
                 continue;
             Fragment &f = frame->gBuffer[i];
+            if (frame->deferred && !(f.mat->flags & MaterialFlags::AlphaCutout))
+                f.baseColor = f.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
             frame->framebuffer[i] = f.mat->shade(f, frame->framebuffer[i]);
         }
     }

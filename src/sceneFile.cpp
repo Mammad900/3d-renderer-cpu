@@ -150,9 +150,13 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                         } else if (key == "normalMap") {
                             getNormalMap(in, path, mat);
                         } else if (key == "transparent") {
-                            flags = static_cast<MaterialFlags>(flags | MaterialFlags::Transparent);
+                            flags = flags | MaterialFlags::Transparent;
                         } else if (key == "doubleSided") {
-                            flags = static_cast<MaterialFlags>(flags | MaterialFlags::DoubleSided);
+                            flags = flags | MaterialFlags::DoubleSided;
+                        } else if (key == "doubleSided") {
+                            flags = flags | MaterialFlags::DoubleSided;
+                        } else if (key == "alphaCutout") {
+                            flags = flags | MaterialFlags::AlphaCutout;
                         } else {
                             cerr << "Invalid material property " << key << endl;
                         }
