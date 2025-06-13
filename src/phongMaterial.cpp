@@ -14,6 +14,7 @@ void PhongMaterial::GUI() {
     mat.emissive->Gui("Emissive");
     if(mat.normalMap)
         mat.normalMap.value()->Gui("Normal map");
+    Material::GUI();
 }
 
 Color PhongMaterial::shade(Fragment &f, Color previous) {

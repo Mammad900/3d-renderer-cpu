@@ -1,30 +1,12 @@
 #ifndef __MISCTYPES_H__
 #define __MISCTYPES_H__
 #include <SFML/Graphics.hpp>
-#include <SFML/Graphics.hpp>
 #include <string>
 #include "color.h"
 #include "texture.h"
+#include "material.h"
 
 using sf::Vector3f, sf::Vector2f, sf::Vector2u, sf::Vector2i, std::optional;
-
-enum class MaterialFlags : uint8_t {
-    None = 0,
-    // Causes the polygons to be rasterized last, and allows polygons behind them to be partially visible. 
-    // Slightly worse for performance, and polygons can't intersect.
-    // Not needed for alpha cutout.
-    Transparent = 1 << 0,
-    // Enable for flat materials. This allows back-faces which would normally be culled to be visible.
-    DoubleSided = 1 << 1
-};
-
-constexpr bool operator& (MaterialFlags a, MaterialFlags b) {
-    return static_cast<uint8_t>(a) & static_cast<uint8_t>(b);
-}
-
-constexpr MaterialFlags operator| (MaterialFlags a, MaterialFlags b) {
-    return static_cast<MaterialFlags>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
-}
 
 enum class TextureFilteringMode : uint8_t {
     None = 0,
@@ -48,17 +30,6 @@ struct Fragment {
     Color baseColor;
     Material *mat;
     bool isBackFace, inside;
-};
-
-class Material {
-public:
-    std::string name;
-    MaterialFlags flags;
-    bool needsTBN = false;
-    Material(std::string name, MaterialFlags flags, bool needsTBN) : name(name), flags(flags), needsTBN(needsTBN) {}
-    virtual Color shade(Fragment &f, Color previous) = 0;
-    virtual Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) = 0;
-    virtual void GUI() = 0;
 };
 
 struct Vertex {
