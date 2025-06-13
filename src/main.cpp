@@ -70,8 +70,9 @@ int main(int argc, char** argv) {
         window.clear();
         window.draw(spr);
         window.display();
-        
+
         timing.postProcessTIme.push(timing.clock);
     }
     ImGui::SFML::Shutdown();
+    shutdownThreads();
 }

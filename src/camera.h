@@ -27,4 +27,6 @@ class Camera : public Component {
     TransformMatrix projectionMatrix;
 };
 
+void shutdownThreads();
+
 #endif /* __CAMERA_H__ */

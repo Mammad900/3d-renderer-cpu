@@ -159,3 +159,16 @@ void deferredPass(uint n, uint i0, RenderTarget *frame) {
         frame->framebuffer[i] = f.mat->shade(f, frame->framebuffer[i]);
     }
 }
+
+void shutdownThreads() {
+    if(!init)
+        return;
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        shutdown = true;
+    }
+    for(auto &cv : cvs)
+        cv.notify_all();
+    for(auto &t : threads)
+        t.join();
+}
