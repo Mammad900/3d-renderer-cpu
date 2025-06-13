@@ -77,6 +77,7 @@ new material <name>
     normalMap <path> <POM>
     transparent
     doubleSided
+    alphaCutout
 end
 ```
 
@@ -88,7 +89,7 @@ All colors can have a texture.
 If no texture is set, only the color is used.  
 If a texture is set, texture samples are multiplied by the color, so make sure to set both.
 
-- **Diffuse**: Aka albedo, aka base. If alpha < 0.5, fragments will not be drawn. (alpha cutout)
+- **Diffuse**: Aka albedo, aka base. If `alphaCutout` is enabled and alpha < 0.5, fragments will not be drawn and whatever is behind them will remain.
 - **Specular**: Specular highlights. Alpha = 0 disables specular. Otherwise alpha is `10 * log2(shininess)`.
 - **Tint**: Depends on whether the material is transparent:
   - **Transparent materials**: Filters light coming from behind the material (the existing pixels).  
@@ -111,9 +112,12 @@ POM parameter control Parallax [Occlusion] mapping:
 ### Flags
 
 - **Transparent**: Used for partially transparent materials like glass, but not needed for alpha cutout.  
-  Causes object using this material to be rendered last so blending works.  
-  Slightly worse for performance, and doesn't support intersecting polygons.
+  Causes object using this material to be rendered last so blending works. When deferred rendering is active, it will be drawn in forward.  
+  Worse for performance, and doesn't support intersecting polygons, so only use for materials that need it.
 - **Double Sided**: Disables back-face culling for flat materials (like fences and foliage, or a sphere with alpha-cutout), and makes transparent materials hollow so the inside surface reflects light.
+- **Alpha Cutout**: When enabled, any fragment with base color (diffuse color in case of phong) less than 0.5 will be rejected.  
+  In other words, transparent pixels in the base color texture will make the material transparent in the respective positions.  
+  This will reduce some of the performance savings of deferred rendering, so use only on materials that use it. It's faster than the transparent flag, however.
 
 ## Meshes
 
