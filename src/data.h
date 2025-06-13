@@ -25,7 +25,34 @@ void changeWindowSize(Vector2u size);
 
 extern Vector2u frameSizeTemp;
 extern RenderTarget *frame;
-extern float deltaTime, geometryTime, lightingTime, forwardTime;
+
+template<typename T>
+struct Metric {
+    std::vector<T> history = std::vector<T>(100, 0);
+    T last, total, maximum;
+    int n = 0;
+    T average() { return total / 100; }
+    void push(T value) {
+        total -= history[n];
+        total += last = history[n] = value;
+        n = (n + 1) % 100;
+        maximum = 0;
+        for (auto &&v : history)
+            if(v > maximum)
+                maximum = v;
+    }
+    void push(sf::Clock &cl) {
+        push(cl.restart().asSeconds() * 1000.0f);
+    }
+};
+
+struct FrameTimings {
+    sf::Clock clock;
+    float deltaTime;
+    Metric<float> windowTime, updateTime, renderPrepareTime, geometryTime, lightingTime, forwardTime, postProcessTIme;
+};
+
+extern FrameTimings timing;
 
 class Camera;
 

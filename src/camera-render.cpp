@@ -12,8 +12,6 @@ struct TransparentTriangle{
     Triangle tri;
 };
 
-sf::Clock performanceClock;
-
 void deferredPass(uint n, uint i0, RenderTarget *frame);
 void threadLoop(uint n, uint i0, RenderTarget *frame);
 const uint numThreads = std::thread::hardware_concurrency();
@@ -25,6 +23,7 @@ bool shutdown = false;
 bool init = false;
 
 void Camera::render(RenderTarget *frame) {
+    timing.clock.restart();
     for (size_t i = 0; i < frame->size.x*frame->size.y; i++) {
         frame->framebuffer[i] = Color{0, 0, 0, 1};
         frame->zBuffer[i]=INFINITY;
@@ -84,17 +83,17 @@ void Camera::render(RenderTarget *frame) {
     for (auto &&obj : scene->objects)
         handleObject(obj);
 
+    timing.renderPrepareTime.push(timing.clock);
+
 #pragma endregion
 
 
 #pragma region // ===== DRAW TRIANGLES =====
 
-    performanceClock.restart();
-
     for (auto &&tri : triangles)
         drawTriangle(frame, tri, frame->deferred);
 
-    geometryTime = performanceClock.restart().asMilliseconds();
+    timing.geometryTime.push(timing.clock);
 
 
     // Deferred pass
@@ -122,15 +121,15 @@ void Camera::render(RenderTarget *frame) {
         }
     }
 
-    lightingTime = performanceClock.restart().asMilliseconds();
+    timing.lightingTime.push(timing.clock);
 
     auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z > b.z; };
     std::sort(transparents.begin(), transparents.end(), compareZ);
     for (auto &&tri : transparents)
         drawTriangle(frame, tri.tri, false);
     
-    forwardTime = performanceClock.restart().asMilliseconds();
-    performanceClock.stop();
+    timing.forwardTime.push(timing.clock);
+    timing.clock.stop();
 
 #pragma endregion
 

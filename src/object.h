@@ -4,7 +4,6 @@
 #include "miscTypes.h"
 
 struct Object;
-extern float deltaTime;
 
 class Component {
   public:
@@ -55,7 +54,7 @@ class RotatorComponent : public Component {
     RotatorComponent(Object *obj, Vector3f rotatePerSecond)
         : Component(obj), rotatePerSecond(rotatePerSecond) {}
 
-    void preUpdate() { if(enable) obj->rotation += rotatePerSecond * deltaTime; }
+    void preUpdate();
     void GUI();
     std::string name() { return "Rotator"; }
 };

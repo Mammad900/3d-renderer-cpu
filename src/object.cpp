@@ -1,5 +1,6 @@
 #include "object.h"
 #include <imgui.h>
+#include "data.h"
 
 void Object::update() {
     for (auto &&c : components)
@@ -51,6 +52,8 @@ void Object::GUI() {
         ImGui::TreePop();
     }
 }
+
+void RotatorComponent::preUpdate() { if(enable) obj->rotation += rotatePerSecond * timing.deltaTime; }
 
 void RotatorComponent::GUI() {
     ImGui::Checkbox("Enable", &enable);

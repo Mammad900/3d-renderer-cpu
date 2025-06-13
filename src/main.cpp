@@ -23,7 +23,8 @@ int main(int argc, char** argv) {
     window.setFramerateLimit(144);
 
     while (window.isOpen() && window2.isOpen()) {
-        deltaTime = deltaClock.getElapsedTime().asSeconds();
+        timing.deltaTime = deltaClock.getElapsedTime().asSeconds();
+        timing.clock.restart();
         guiUpdate(window2, deltaClock, scene); // gui.h
 
         while (const std::optional event = window.pollEvent()) {
@@ -35,6 +36,7 @@ int main(int argc, char** argv) {
                 changeWindowSize(resized->size);
             }
         }
+        timing.windowTime.push(timing.clock);
 
         if (scene->orbit) {
             scene->lights[0]->obj->rotation.y += 0.1;
@@ -43,7 +45,12 @@ int main(int argc, char** argv) {
 
         for (auto &&obj : scene->objects)
             obj->update();
+
+        timing.updateTime.push(timing.clock);
+
         scene->camera->render(frame);
+
+        timing.clock.restart();
 
         sf::Image img(frame->size);
         for (unsigned int y = 0; y < frame->size.y; y++)
@@ -63,6 +70,8 @@ int main(int argc, char** argv) {
         window.clear();
         window.draw(spr);
         window.display();
+        
+        timing.postProcessTIme.push(timing.clock);
     }
     ImGui::SFML::Shutdown();
 }

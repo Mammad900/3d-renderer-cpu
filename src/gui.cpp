@@ -5,6 +5,10 @@ char objFilePath[500];
 Material *selectedMaterial;
 Mesh *selectedMesh;
 
+void Timing(Metric<float> &m, const char *name) {
+    ImGui::Text("%s: Last %04.1f / Mean %04.1f / Max %04.1f", name, m.last, m.average(), m.maximum);
+}
+
 void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingScene)
 {
     while (const auto event = window.pollEvent())
@@ -37,10 +41,17 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     ImGui::RadioButton("Bilinear", &editingScene->textureFilteringMode, TextureFilteringMode::Bilinear);
     ImGui::RadioButton("Trilinear", &editingScene->textureFilteringMode, TextureFilteringMode::Trilinear);
     ImGui::SliderFloat("White point", (float *)&editingScene->camera->whitePoint, 0, 5);
+    ImGui::End();
+
+    ImGui::Begin("Performance");
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-    ImGui::Text("Geometry time: %.1f", geometryTime);
-    ImGui::Text("Lighting time: %.1f", lightingTime);
-    ImGui::Text("Forward time: %.1f", forwardTime);
+    Timing(timing.windowTime, "Window");
+    Timing(timing.updateTime, "Update");
+    Timing(timing.renderPrepareTime, "Render prepare");
+    Timing(timing.geometryTime, "Geometry");
+    Timing(timing.lightingTime, "Lighting");
+    Timing(timing.forwardTime, "Forward pass");
+    Timing(timing.postProcessTIme, "Post processing");
     ImGui::DragScalarN("Frame size", ImGuiDataType_U32, &frameSizeTemp, 2);
     if(ImGui::Button("Set frame size"))
         changeWindowSize(frameSizeTemp);
