@@ -25,7 +25,7 @@ bool init = false;
 void Camera::render(RenderTarget *frame) {
     timing.clock.restart();
     for (size_t i = 0; i < frame->size.x*frame->size.y; i++) {
-        frame->framebuffer[i] = Color{0, 0, 0, 1};
+        frame->framebuffer[i] = scene->fogColor;
         frame->zBuffer[i]=INFINITY;
     }
 
@@ -133,8 +133,10 @@ void Camera::render(RenderTarget *frame) {
 
 #pragma endregion
 
-    if(scene->fogColor.a > 0)
-        fog();
+    if(scene->fogColor.a > 0 && !frame->deferred)
+        for (int y = 0; y < (int)frame->size.y; y++)
+            for (int x = 0; x < (int)frame->size.x; x++)
+                fogPixel(x, y, frame);
 }
 
 void threadLoop(uint n, uint i, RenderTarget *frame) {
@@ -157,6 +159,8 @@ void deferredPass(uint n, uint i0, RenderTarget *frame) {
         if (frame->deferred && !(f.mat->flags & MaterialFlags::AlphaCutout))
             f.baseColor = f.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
         frame->framebuffer[i] = f.mat->shade(f, frame->framebuffer[i]);
+        if(scene->fogColor.a > 0)
+            frame->framebuffer[i] = sampleFog(scene->camera->obj->globalPosition, f.worldPos, frame->framebuffer[i]);
     }
 }
 

@@ -15,7 +15,7 @@ Projection Camera::perspectiveProject(Vector3f a) {
 }
 
 void Camera::makePerspectiveProjectionMatrix() {
-    float S = 1 / tan(fov * M_PI / 360);
+    float S = 1 / (tanHalfFov = tan(fov * M_PI / 360));
     float f = -farClip / (farClip - nearClip);
     matMul(transposeMatrix(obj->transformRotation).data(), (float[]){
         S, 0, 0, 0,

@@ -20,11 +20,13 @@ class Camera : public Component {
     void render(RenderTarget *frame);
     std::string name() { return "Camera"; }
     void GUI();
+    void fogPixel(int x, int y, RenderTarget *frame);
 
   private:
     Projection perspectiveProject(Vector3f a);
     void makePerspectiveProjectionMatrix();
     TransformMatrix projectionMatrix;
+    float tanHalfFov;
 };
 
 void shutdownThreads();
