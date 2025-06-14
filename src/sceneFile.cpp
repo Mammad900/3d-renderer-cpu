@@ -244,7 +244,9 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                             cerr << "Invalid custom mesh entry " << key << endl;
                         }
                     }
-                    editingScene->meshes.push_back(createMesh(faces, vertices, name));
+                    Mesh *mesh = new Mesh(name, vertices, faces);
+                    bakeMeshNormals(*mesh);
+                    editingScene->meshes.push_back(mesh);
                 } else {
                     cerr << "Invalid mesh type " << type << endl;
                 }

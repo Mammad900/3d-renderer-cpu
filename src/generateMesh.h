@@ -4,7 +4,7 @@
 #include <string>
 #include "object.h"
 
-Mesh *createMesh(std::vector<Face> &faces, std::vector<Vertex> &vertices, std::string &name);
+void bakeMeshNormals(Mesh &mesh);
 
 // Constructs a UV sphere as a Mesh pointer.
 // Parameters:

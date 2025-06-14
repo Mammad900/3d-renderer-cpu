@@ -40,9 +40,9 @@ void Camera::render(RenderTarget *frame) {
         for (auto &&comp : obj->components) {
             if(MeshComponent *meshComp = dynamic_cast<MeshComponent*>(comp)) {
                 Mesh *mesh = meshComp->mesh;
-                Projection projectedVertices[mesh->n_vertices];
+                Projection projectedVertices[mesh->vertices.size()];
 
-                for (size_t j = 0; j < mesh->n_vertices; j++) {
+                for (size_t j = 0; j < mesh->vertices.size(); j++) {
                     Vertex vV = mesh->vertices[j];
 
                     projectedVertices[j] = perspectiveProject(vV.position * obj->transform);
@@ -50,7 +50,7 @@ void Camera::render(RenderTarget *frame) {
                     projectedVertices[j].normal = normal;
                 }
 
-                for (size_t j = 0; j < mesh->n_faces; j++) {
+                for (size_t j = 0; j < mesh->faces.size(); j++) {
                     Face face = mesh->faces[j];
                     Projection v1s = projectedVertices[face.v1],
                                v2s = projectedVertices[face.v2],

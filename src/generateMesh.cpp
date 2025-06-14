@@ -3,11 +3,11 @@
 #include <iostream>
 #include <fstream>
 
-Mesh *createMesh(std::vector<Face> &faces, std::vector<Vertex> &vertices, std::string &name) {
-    for (auto &&face : faces) {
-        Vertex &v1 = vertices[face.v1];
-        Vertex &v2 = vertices[face.v2];
-        Vertex &v3 = vertices[face.v3];
+void bakeMeshNormals(Mesh &mesh) {
+    for (auto &&face : mesh.faces) {
+        Vertex &v1 = mesh.vertices[face.v1];
+        Vertex &v2 = mesh.vertices[face.v2];
+        Vertex &v3 = mesh.vertices[face.v3];
         Vector3f normal = (v3.position - v1.position)
                               .cross(v2.position - v1.position)
                               .normalized();
@@ -17,26 +17,12 @@ Mesh *createMesh(std::vector<Face> &faces, std::vector<Vertex> &vertices, std::s
     }
 
 #ifndef NDEBUG
-    for (auto &&vertex : vertices)
+    for (auto &&vertex : mesh.vertices)
         if(vertex.normal.lengthSquared() == 0)
             std::cerr << "A vertex has zero normal! "
                          "This usually happens when a face is winded incorrectly "
                          "and cancels out another face's normal." << std::endl;
 #endif
-
-    // CREATE MESH OBJECT
-    Mesh *mesh = new Mesh;
-
-    mesh->n_vertices = vertices.size();
-    mesh->n_faces = faces.size();
-    mesh->vertices = new Vertex[vertices.size()];
-    mesh->faces = new Face[faces.size()];
-    mesh->label = name;
-
-    std::copy(vertices.begin(), vertices.end(), mesh->vertices);
-    std::copy(faces.begin(), faces.end(), mesh->faces);
-
-    return mesh;
 }
 
 
@@ -55,8 +41,7 @@ Mesh* createSphere(Material* material, std::string name, uint16_t stacks, uint16
     // Calculate number of vertices:
     // There will be (stacks + 1) rows and (sectors + 1) columns of vertices.
     uint16_t numVertices = (stacks + 1) * (sectors + 1);
-    mesh->n_vertices = numVertices;
-    mesh->vertices = new Vertex[numVertices];
+    mesh->vertices = vector<Vertex>(numVertices);
     
     // Create vertices using spherical coordinates.
     // The sphere is assumed to have a radius of 1.
@@ -90,8 +75,7 @@ Mesh* createSphere(Material* material, std::string name, uint16_t stacks, uint16
     //   For each sector, add the triangles if they are not degenerate.
     // The total face count comes out to 2 * sectors * (stacks - 1).
     uint16_t numFaces = 2 * sectors * (stacks - 1);
-    mesh->n_faces = numFaces;
-    mesh->faces = new Face[numFaces];
+    mesh->faces = vector<Face>(numFaces);
 
     // Build faces (triangles) using indices of the vertices.
     // We use counter-clockwise winding order (when looking from the outside)
@@ -139,10 +123,8 @@ Mesh* createPlane(Material* material, std::string name, uint16_t subdivisionsX, 
     uint16_t numFaces = subdivisionsX * subdivisionsY * 2;
 
     // Allocate memory for vertices and faces.
-    mesh->vertices = new Vertex[numVertices];
-    mesh->faces = new Face[numFaces];
-    mesh->n_vertices = numVertices;
-    mesh->n_faces = numFaces;
+    mesh->faces = vector<Face>(numFaces);
+    mesh->vertices = vector<Vertex>(numVertices);
 
     // Calculate step sizes for subdivisions.
     float stepX = 1.0f / subdivisionsX;
@@ -217,6 +199,10 @@ Mesh *loadOBJ(const std::string &filename, Material *mat, std::string name) {
     }
 
     // BAKE NORMALS
-    return createMesh(faces, vertices, name);
+    Mesh *mesh = new Mesh;
+    mesh->label = name;
+    mesh->faces = faces;
+    mesh->vertices = vertices;
+    bakeMeshNormals(*mesh);
+    return mesh;
 }
-

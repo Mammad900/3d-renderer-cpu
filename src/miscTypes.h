@@ -6,7 +6,7 @@
 #include "texture.h"
 #include "material.h"
 
-using sf::Vector3f, sf::Vector2f, sf::Vector2u, sf::Vector2i, std::optional;
+using sf::Vector3f, sf::Vector2f, sf::Vector2u, sf::Vector2i, std::optional, std::shared_ptr, std::unique_ptr, std::vector;
 
 enum class TextureFilteringMode : uint8_t {
     None = 0,
@@ -45,9 +45,10 @@ struct Face {
 
 struct Mesh {
     std::string label;
-    Vertex *vertices;
-    Face *faces;
-    uint16_t n_vertices, n_faces;
-};
+    vector<Vertex> vertices;
+    vector<Face> faces;
 
+    Mesh(const std::string& label = "", const vector<Vertex>& vertices = {}, const vector<Face>& faces = {})
+        : label(label), vertices(vertices), faces(faces) {}
+};
 #endif /* __MISCTYPES_H__ */

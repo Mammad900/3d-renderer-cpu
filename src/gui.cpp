@@ -118,7 +118,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
             Mesh *mesh = editingScene->meshes[i];
             if(ImGui::TreeNode(mesh->label.c_str())) {
                 if(ImGui::TreeNode("Vertices")) {
-                    for (uint16_t j = 0; j < mesh->n_vertices; j++)
+                    for (uint16_t j = 0; j < mesh->vertices.size(); j++)
                     {
                         ImGui::PushID(j);
                         Vertex &v = mesh->vertices[j];
