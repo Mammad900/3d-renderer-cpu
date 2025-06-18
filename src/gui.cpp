@@ -49,6 +49,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     Timing(timing.windowTime, "Window");
     Timing(timing.updateTime, "Update");
+    Timing(timing.skyBoxTime, "SkyBox");
     Timing(timing.renderPrepareTime, "Render prepare");
     Timing(timing.geometryTime, "Geometry");
     Timing(timing.lightingTime, "Lighting");

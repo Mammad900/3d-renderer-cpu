@@ -52,6 +52,7 @@ void Camera::render() {
             tFrame->zBuffer[i] = INFINITY;
         }
     }
+    timing.skyBoxTime.push(timing.clock);
 
     makePerspectiveProjectionMatrix();
 
