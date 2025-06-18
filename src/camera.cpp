@@ -27,6 +27,8 @@ void Camera::makePerspectiveProjectionMatrix() {
 
 void Camera::GUI() {
     if(ImGui::Button("Set as scene camera")) {
+        obj->scene->camera->tFrame = nullptr;
         obj->scene->camera = this;
+        tFrame = frame;
     }
 }

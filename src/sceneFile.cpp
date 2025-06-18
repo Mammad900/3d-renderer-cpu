@@ -322,6 +322,9 @@ void parseObject(Scene* editingScene, std::ifstream &in, Object *parent) {
                     in >> cam->whitePoint;
                 }
             }
+            if(editingScene->camera)
+                editingScene->camera->tFrame = nullptr;
+            cam->tFrame = frame;
             editingScene->camera = cam;
             obj->components.push_back(cam);
         }

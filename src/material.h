@@ -28,13 +28,15 @@ constexpr MaterialFlags operator^= (MaterialFlags &a, const MaterialFlags &b) {
     return a = static_cast<MaterialFlags>(static_cast<uint8_t>(a) ^ static_cast<uint8_t>(b));
 }
 
+struct Scene;
+
 class Material {
 public:
     std::string name;
     MaterialFlags flags;
     bool needsTBN = false;
     Material(std::string name, MaterialFlags flags, bool needsTBN) : name(name), flags(flags), needsTBN(needsTBN) {}
-    virtual Color shade(Fragment &f, Color previous) = 0;
+    virtual Color shade(Fragment &f, Color previous, Scene *scene) = 0;
     virtual Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) = 0;
     virtual void GUI();
 };

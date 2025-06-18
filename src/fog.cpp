@@ -1,29 +1,30 @@
 #include "data.h"
 #include "fog.h"
 
-void Camera::fogPixel(int x, int y, RenderTarget *frame) {
-    size_t i = x + frame->size.x * y;
-    float z = frame->zBuffer[i];
+void Camera::fogPixel(int x, int y) {
+    size_t i = x + tFrame->size.x * y;
+    float z = tFrame->zBuffer[i];
 
     if(z == INFINITY) {
-        if(scene->godRays)
-            z = scene->camera->farClip;
+        if(obj->scene->godRays)
+            z = farClip;
         else
             return;
     }
 
     // Reconstruct world space X and Y
-    Vector2f worldPos{x / (float)frame->size.x, y / (float)frame->size.y};
+    Vector2f worldPos{x / (float)tFrame->size.x, y / (float)tFrame->size.y};
     worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * z * tanHalfFov; 
 
-    frame->framebuffer[i] = sampleFog(
-        Vector3f{worldPos.x, worldPos.y, z} * scene->camera->obj->transform, 
-        scene->camera->obj->globalPosition,
-        frame->framebuffer[i]
+    tFrame->framebuffer[i] = sampleFog(
+        Vector3f{worldPos.x, worldPos.y, z} * obj->transform, 
+        obj->globalPosition,
+        tFrame->framebuffer[i],
+        obj->scene
     );
 }
 
-Color sampleFog(Vector3f start, Vector3f end, Color background) {
+Color sampleFog(Vector3f start, Vector3f end, Color background, Scene *scene) {
     if(scene->godRays) {
         float sampleLength = scene->godRaysSampleSize;
         float visibility = std::clamp(std::powf(0.5f, sampleLength * scene->fogColor.a), 0.0f, 1.0f); // Exponential falloff

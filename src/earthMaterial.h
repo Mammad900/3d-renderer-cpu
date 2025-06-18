@@ -26,11 +26,11 @@ public:
         cloudMat = new PhongMaterial(cloudProps, name+" Terrain", MaterialFlags::None);
     }
 
-    Color shade(Fragment &f, Color previous) {
+    Color shade(Fragment &f, Color previous, Scene *scene) {
         bool isOcean = oceanMask->sample(f) > 0.5f;
-        Color groundLighting = isOcean ? oceanMat->shade(f, previous) : terrainMat->shade(f, previous);
+        Color groundLighting = isOcean ? oceanMat->shade(f, previous, scene) : terrainMat->shade(f, previous, scene);
         f.baseColor = ((ImageTexture<Color>*)(cloudMat->mat.diffuse))->value; // Because it contains terrain diffuse and we want white
-        Color cloudLighting = cloudMat->shade(f, previous);
+        Color cloudLighting = cloudMat->shade(f, previous, scene);
         float cloudIntensity = cloudTexture->sample(f);
         return groundLighting * (1 - cloudIntensity) +
                cloudLighting * cloudIntensity;

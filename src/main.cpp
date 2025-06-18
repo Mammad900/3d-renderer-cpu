@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 
         timing.updateTime.push(timing.clock);
 
-        scene->camera->render(frame);
+        scene->camera->render();
 
         timing.clock.restart();
 

@@ -14,9 +14,9 @@ Light::Light(Object *obj, Color color) : Component(obj), color(color) {
 }
 
 Light::~Light() {
-    auto it = std::find(scene->lights.begin(), scene->lights.end(), this);
-    if (it != scene->lights.end()) {
-        scene->lights.erase(it);
+    auto it = std::find(obj->scene->lights.begin(), obj->scene->lights.end(), this);
+    if (it != obj->scene->lights.end()) {
+        obj->scene->lights.erase(it);
     }
 }
 

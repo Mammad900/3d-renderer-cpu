@@ -17,7 +17,7 @@ void PhongMaterial::GUI() {
     Material::GUI();
 }
 
-Color PhongMaterial::shade(Fragment &f, Color previous) {
+Color PhongMaterial::shade(Fragment &f, Color previous, Scene *scene) {
     Vector3f viewDir = (scene->camera->obj->globalPosition - f.worldPos).normalized();
     if(!(flags & Transparent) && (flags & DoubleSided) && f.isBackFace)
         f.normal *= -1.0f;

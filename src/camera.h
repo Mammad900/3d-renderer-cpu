@@ -17,10 +17,11 @@ class Camera : public Component {
     Camera(Object *obj) : Component(obj) {}
     float fov = 60, nearClip = 0.1, farClip = 100;
     float whitePoint = 0;
-    void render(RenderTarget *frame);
+    RenderTarget *tFrame;
+    void render();
     std::string name() { return "Camera"; }
     void GUI();
-    void fogPixel(int x, int y, RenderTarget *frame);
+    void fogPixel(int x, int y);
 
   private:
     Projection perspectiveProject(Vector3f a);

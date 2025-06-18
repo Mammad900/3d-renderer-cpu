@@ -46,7 +46,7 @@ public:
 
     void GUI();
 
-    Color shade(Fragment &f, Color previous);
+    Color shade(Fragment &f, Color previous, Scene *scene);
 };
 
 #endif /* __PHONGMATERIAL_H__ */

@@ -16,10 +16,6 @@ Vector2f v2abs(Vector2f in) {
     return Vector2f{abs(in.x), abs(in.y)};
 }
 
-inline size_t frameBufferIndex(Vector2i pos) {
-    return pos.x + frame->size.x * pos.y;
-}
-
 void plotVertex(RenderTarget* frame, Vector2f pos, float depth) {
     depth = std::clamp(depth, 0.0f, 1.0f);
     Color heatColor = Color{depth, 0, 1.0f - depth, 1.0f};
@@ -30,13 +26,13 @@ void plotVertex(RenderTarget* frame, Vector2f pos, float depth) {
         for (int dy = -10; dy <= 10; ++dy) {
             Vector2i p = {cx + dx, cy + dy};
             if (p.x >= 0 && p.y >= 0 && p.x < (int)frame->size.x && p.y < (int)frame->size.y) {
-                frame->framebuffer[frameBufferIndex(p)] = heatColor;
+                frame->framebuffer[p.x + p.y * frame->size.x] = heatColor;
             }
         }
     }
 }
 
-void drawLine(Vector2f from, Vector2f to) {
+void drawLine(Vector2f from, Vector2f to, RenderTarget *frame) {
     Color color = Color{0, 0, 0, 1};
 
     int x0 = std::round(from.x);
@@ -52,7 +48,7 @@ void drawLine(Vector2f from, Vector2f to) {
 
     while (true) {
         if (x0 >= 0 && y0 >= 0 && x0 < (int)frame->size.x && y0 < (int)frame->size.y)
-            frame->framebuffer[frameBufferIndex({x0, y0})] = color;
+            frame->framebuffer[x0 + y0 * frame->size.x] = color;
 
         if (x0 == x1 && y0 == y1)
             break;
@@ -69,7 +65,10 @@ void drawLine(Vector2f from, Vector2f to) {
     }
 }
 
-void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
+void drawTriangle(Camera *camera, Triangle tri, bool defer) {
+    RenderTarget *frame = camera->tFrame;
+    Scene *scene = camera->obj->scene;
+
     if(tri.cull && scene->backFaceCulling && !(tri.mat->flags & (MaterialFlags::Transparent | MaterialFlags::DoubleSided)))
         return;
 
@@ -78,8 +77,8 @@ void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
         (tri.s1.screenPos.x >  1 && tri.s2.screenPos.x >  1 && tri.s3.screenPos.x >  1 )||
         (tri.s1.screenPos.y < -1 && tri.s2.screenPos.y < -1 && tri.s3.screenPos.y < -1 )||
         (tri.s1.screenPos.y >  1 && tri.s2.screenPos.y >  1 && tri.s3.screenPos.y >  1 )||
-        (tri.s1.screenPos.z <  scene->camera->nearClip && tri.s2.screenPos.z <  scene->camera->nearClip && tri.s3.screenPos.z <  scene->camera->nearClip )||
-        (tri.s1.screenPos.z >  scene->camera->farClip && tri.s2.screenPos.z >  scene->camera->farClip && tri.s3.screenPos.z >  scene->camera->farClip )
+        (tri.s1.screenPos.z <  camera->nearClip && tri.s2.screenPos.z <  camera->nearClip && tri.s3.screenPos.z <  camera->nearClip )||
+        (tri.s1.screenPos.z >  camera->farClip && tri.s2.screenPos.z >  camera->farClip && tri.s3.screenPos.z >  camera->farClip )
     )
         return;
 
@@ -92,9 +91,9 @@ void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
     // plotVertex(frameSize, frame, c, tri.s3.screenPos.z);
 
     if(scene->wireFrame) {
-        drawLine(a, b);
-        drawLine(c, b);
-        drawLine(a, c);
+        drawLine(a, b, frame);
+        drawLine(c, b, frame);
+        drawLine(a, c, frame);
     }
 
     float areaOfTriangle = abs((b - a).cross(c - a)); // Two times the area of the triangle
@@ -164,7 +163,7 @@ void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
             !f.inside
         )
             return;
-        size_t index = frameBufferIndex(f.screenPos);
+        size_t index = f.screenPos.x + f.screenPos.y * frame->size.x;
         // if(index > frame->size.x * frame->size.y)
         //     return;
 
@@ -185,7 +184,7 @@ void drawTriangle(RenderTarget *frame, Triangle tri, bool defer) {
         } else {
             frame->framebuffer[index] = scene->fullBright ?
                 baseColor :
-                tri.mat->shade(f, frame->framebuffer[index]);
+                tri.mat->shade(f, frame->framebuffer[index], camera->obj->scene);
         }
     };
 

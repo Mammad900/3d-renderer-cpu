@@ -13,43 +13,43 @@ struct TransparentTriangle{
     Triangle tri;
 };
 
-void deferredPass(uint n, uint i0, RenderTarget *frame);
-void threadLoop(uint n, uint i0, RenderTarget *frame);
+void deferredPass(uint n, uint i0, Camera *camera);
+void threadLoop(uint n, uint i0);
 const uint numThreads = std::thread::hardware_concurrency();
 std::vector<std::thread> threads(numThreads);
-std::vector<bool> jobReady(numThreads, false);
+std::vector<Camera*> jobReady(numThreads, nullptr);
 std::vector<std::condition_variable> cvs(numThreads);
 std::mutex mtx;
 bool shutdown = false;
 bool init = false;
 
-void Camera::render(RenderTarget *frame) {
+void Camera::render() {
     timing.clock.restart();
     SolidTexture<Color> *solidSkyBox = nullptr;
     {   // dynamic_cast alone doesn't work because we don't want derived classes
-        std::type_index ti(typeid(*scene->skyBox));
+        std::type_index ti(typeid(*obj->scene->skyBox));
         if(ti == std::type_index(typeid(SolidTexture<Color>)))
-            solidSkyBox = dynamic_cast<SolidTexture<Color> *>(scene->skyBox);
+            solidSkyBox = dynamic_cast<SolidTexture<Color> *>(obj->scene->skyBox);
     }
-    for (uint y = 0; y < frame->size.y; y++) {
-        for (uint x = 0; x < frame->size.x; x++) {
-            size_t i = y * frame->size.x + x;
+    for (uint y = 0; y < tFrame->size.y; y++) {
+        for (uint x = 0; x < tFrame->size.x; x++) {
+            size_t i = y * tFrame->size.x + x;
             if (solidSkyBox) {
-                frame->framebuffer[i] = solidSkyBox->value; // No need to compute UV
+                tFrame->framebuffer[i] = solidSkyBox->value; // No need to compute UV
             } else {
-                Vector2f worldPos{x / (float)frame->size.x, y / (float)frame->size.y};
+                Vector2f worldPos{x / (float)tFrame->size.x, y / (float)tFrame->size.y};
                 worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * tanHalfFov;
                 Vector3f lookVector = Vector3f{worldPos.x, worldPos.y, 1} * obj->transformRotation;
                 lookVector = lookVector.normalized();
 
                 Vector2f uv{
-                    0.5f + (atan2(lookVector.z, lookVector.x) / (2.0f * M_PI)),
-                    0.5f - (asin(lookVector.y) / M_PI)
+                    0.5f + (atan2f(lookVector.z, lookVector.x) / (2.0f * M_PIf)),
+                    0.5f - (asinf(lookVector.y) / M_PIf)
                 };
 
-                frame->framebuffer[i] = scene->skyBox->sample(uv, {0, 0}, {0, 0});
+                tFrame->framebuffer[i] = obj->scene->skyBox->sample(uv, {0, 0}, {0, 0});
             }
-            frame->zBuffer[i] = INFINITY;
+            tFrame->zBuffer[i] = INFINITY;
         }
     }
 
@@ -104,7 +104,7 @@ void Camera::render(RenderTarget *frame) {
             handleObject(child);
     };
 
-    for (auto &&obj : scene->objects)
+    for (auto &&obj : obj->scene->objects)
         handleObject(obj);
 
     timing.renderPrepareTime.push(timing.clock);
@@ -115,23 +115,23 @@ void Camera::render(RenderTarget *frame) {
 #pragma region // ===== DRAW TRIANGLES =====
 
     for (auto &&tri : triangles)
-        drawTriangle(frame, tri, frame->deferred);
+        drawTriangle(this, tri, tFrame->deferred);
 
     timing.geometryTime.push(timing.clock);
 
 
     // Deferred pass
-    if(frame->deferred) {
+    if(tFrame->deferred) {
         if(!init) {
             for (uint i = 0; i < numThreads; i++)
-                threads[i] = std::thread(threadLoop, numThreads, i, frame);
+                threads[i] = std::thread(threadLoop, numThreads, i);
             init = true;
         }
         
         {
             std::lock_guard<std::mutex> lock(mtx);
             for (uint i = 0; i < numThreads; i++)
-                jobReady[i] = true;
+                jobReady[i] = this;
         }
 
         for (uint i = 0; i < numThreads; i++)
@@ -141,7 +141,7 @@ void Camera::render(RenderTarget *frame) {
         while(!allDone) {
             std::this_thread::yield();
             std::lock_guard<std::mutex> lock(mtx);
-            allDone = std::all_of(jobReady.begin(), jobReady.end(), [](bool v) {return !v;});
+            allDone = std::all_of(jobReady.begin(), jobReady.end(), [](Camera *v) {return !v;});
         }
     }
 
@@ -150,47 +150,45 @@ void Camera::render(RenderTarget *frame) {
     auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z > b.z; };
     std::sort(transparents.begin(), transparents.end(), compareZ);
     for (auto &&tri : transparents)
-        drawTriangle(frame, tri.tri, false);
+        drawTriangle(this, tri.tri, false);
     
     timing.forwardTime.push(timing.clock);
     timing.clock.stop();
 
 #pragma endregion
 
-    if(scene->fogColor.a > 0 && !frame->deferred)
-        for (int y = 0; y < (int)frame->size.y; y++)
-            for (int x = 0; x < (int)frame->size.x; x++)
-                fogPixel(x, y, frame);
+    if(obj->scene->fogColor.a > 0 && !tFrame->deferred)
+        for (int y = 0; y < (int)tFrame->size.y; y++)
+            for (int x = 0; x < (int)tFrame->size.x; x++)
+                fogPixel(x, y);
 }
 
-void threadLoop(uint n, uint i, RenderTarget *frame) {
+void threadLoop(uint n, uint i) {
     while (true) {
         std::unique_lock<std::mutex> lock(mtx);
         cvs[i].wait(lock, [&] { return jobReady[i] || shutdown; });
         if(shutdown) break;
         lock.unlock();
-        deferredPass(n, i, frame);
+        deferredPass(n, i, jobReady[i]);
         lock.lock();
-        jobReady[i] = false;
+        jobReady[i] = nullptr;
     }
 }
 
-void deferredPass(uint n, uint i0, RenderTarget *frame) {
-    for (size_t i = i0; i < frame->size.x * frame->size.y; i+=n) {
+void deferredPass(uint n, uint i0, Camera *camera) {
+    RenderTarget *frame = camera->tFrame;
+    for (size_t i = i0; i < frame->size.x * frame->size.y; i += n) {
         if (frame->zBuffer[i] == INFINITY) { // No fragment here
-            if(scene->godRays)
-                scene->camera->fogPixel(
-                    i % frame->size.x,
-                    i / frame->size.x,
-                    frame);
+            if(camera->obj->scene->godRays)
+                camera->fogPixel(i % frame->size.x, i / frame->size.x);
             continue;
         }
         Fragment &f = frame->gBuffer[i];
         if (frame->deferred && !(f.mat->flags & MaterialFlags::AlphaCutout))
             f.baseColor = f.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
-        frame->framebuffer[i] = f.mat->shade(f, frame->framebuffer[i]);
-        if(scene->fogColor.a > 0)
-            frame->framebuffer[i] = sampleFog(f.worldPos, scene->camera->obj->globalPosition, frame->framebuffer[i]);
+        frame->framebuffer[i] = f.mat->shade(f, frame->framebuffer[i], camera->obj->scene);
+        if(camera->obj->scene->fogColor.a > 0)
+            frame->framebuffer[i] = sampleFog(f.worldPos, camera->obj->globalPosition, frame->framebuffer[i], camera->obj->scene);
     }
 }
 
