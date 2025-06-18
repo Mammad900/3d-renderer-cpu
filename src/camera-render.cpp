@@ -153,14 +153,20 @@ void threadLoop(uint n, uint i, RenderTarget *frame) {
 
 void deferredPass(uint n, uint i0, RenderTarget *frame) {
     for (size_t i = i0; i < frame->size.x * frame->size.y; i+=n) {
-        if (frame->zBuffer[i] == INFINITY) // No fragment here
+        if (frame->zBuffer[i] == INFINITY) { // No fragment here
+            if(scene->godRays)
+                scene->camera->fogPixel(
+                    i % frame->size.x,
+                    i / frame->size.x,
+                    frame);
             continue;
+        }
         Fragment &f = frame->gBuffer[i];
         if (frame->deferred && !(f.mat->flags & MaterialFlags::AlphaCutout))
             f.baseColor = f.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
         frame->framebuffer[i] = f.mat->shade(f, frame->framebuffer[i]);
         if(scene->fogColor.a > 0)
-            frame->framebuffer[i] = sampleFog(scene->camera->obj->globalPosition, f.worldPos, frame->framebuffer[i]);
+            frame->framebuffer[i] = sampleFog(f.worldPos, scene->camera->obj->globalPosition, frame->framebuffer[i]);
     }
 }
 

@@ -76,6 +76,8 @@ struct Scene {
     bool fullBright = false;
     bool wireFrame = false;
     bool orbit = false;
+    bool godRays = true;
+    float godRaysSampleSize = 1.0f;
     TextureFilteringMode textureFilteringMode = TextureFilteringMode::NearestNeighbor;
     Color fogColor = {0,0,0,0};
 };

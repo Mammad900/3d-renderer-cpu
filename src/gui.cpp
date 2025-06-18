@@ -36,6 +36,8 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     ImGui::Checkbox("Full-bright mode", &editingScene->fullBright);
     ImGui::Checkbox("Show wireframe mesh", &editingScene->wireFrame);
     ImGui::Checkbox("Orbit", &editingScene->orbit);
+    ImGui::Checkbox("God-rays", &editingScene->godRays);
+    ImGui::SliderFloat("Sample size", &editingScene->godRaysSampleSize, 0.01, 1, "%.3f", ImGuiSliderFlags_Logarithmic);
     ImGui::Text("Texture filtering:");
     ImGui::RadioButton("Nearest Neighbor", &editingScene->textureFilteringMode, TextureFilteringMode::NearestNeighbor);
     ImGui::RadioButton("Bilinear", &editingScene->textureFilteringMode, TextureFilteringMode::Bilinear);

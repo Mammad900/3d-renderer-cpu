@@ -4,13 +4,45 @@
 void Camera::fogPixel(int x, int y, RenderTarget *frame) {
     size_t i = x + frame->size.x * y;
     float z = frame->zBuffer[i];
-    if(z==INFINITY)
-        return;
-    Vector2f world = (Vector2f{x / (float)frame->size.x, y / (float)frame->size.y} - Vector2f{0.5,0.5}) * 2.0f * z * tanHalfFov; // Reconstruct world space X and Y
-    frame->framebuffer[i] = sampleFog({0,0,0}, {world.x, world.y, z}, frame->framebuffer[i]);
+
+    if(z == INFINITY) {
+        if(scene->godRays)
+            z = scene->camera->farClip;
+        else
+            return;
+    }
+
+    // Reconstruct world space X and Y
+    Vector2f worldPos{x / (float)frame->size.x, y / (float)frame->size.y};
+    worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * z * tanHalfFov; 
+
+    frame->framebuffer[i] = sampleFog(
+        Vector3f{worldPos.x, worldPos.y, z} * scene->camera->obj->transform, 
+        scene->camera->obj->globalPosition,
+        frame->framebuffer[i]
+    );
 }
 
 Color sampleFog(Vector3f start, Vector3f end, Color background) {
+    if(scene->godRays) {
+        float sampleLength = scene->godRaysSampleSize;
+        float visibility = std::clamp(std::powf(0.5f, sampleLength * scene->fogColor.a), 0.0f, 1.0f); // Exponential falloff
+        Vector3f diff = end - start;
+        Vector3f now = start;
+        float remaining = diff.length();
+        Vector3f step = diff * (sampleLength / remaining); // diff.normalized()
+        Color color = background;
+        while (remaining > 0) {
+            now += step;
+            float visibilityNow = remaining > sampleLength ? visibility : std::clamp(std::powf(0.5f, remaining * scene->fogColor.a), 0.0f, 1.0f);
+            Color lighting = {0,0,0,1};
+            for (size_t i = 0; i < scene->lights.size(); i++)
+                lighting += scene->lights[i]->sample(now).first;
+            color = color * visibilityNow + scene->fogColor * lighting * (1 - visibilityNow);
+            remaining-= sampleLength;
+        }
+        return color;
+    }
     float dist = (start - end).length();
     float visibility = std::clamp(std::powf(0.5f, dist * scene->fogColor.a), 0.0f, 1.0f); // Exponential falloff
     return background * visibility + scene->fogColor * (1 - visibility); // Lerp
