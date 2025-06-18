@@ -2,6 +2,7 @@ scene new earth
 scene edit earth
 
 ambientLight 0.4 0.4 0.4 0.1
+skyBox              texture     1 1 1 1 skybox-star-1k.jpg
 
 new material EarthMat earth
     terrainDiffuse  texture     1 1 1 1 earth-diffuse-2k.jpg

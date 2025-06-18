@@ -6,6 +6,7 @@
 #include <SFML/System/Clock.hpp>
 #include <thread>
 #include <condition_variable>
+#include <typeindex>
 
 struct TransparentTriangle{
     float z;
@@ -24,9 +25,32 @@ bool init = false;
 
 void Camera::render(RenderTarget *frame) {
     timing.clock.restart();
-    for (size_t i = 0; i < frame->size.x*frame->size.y; i++) {
-        frame->framebuffer[i] = scene->fogColor;
-        frame->zBuffer[i]=INFINITY;
+    SolidTexture<Color> *solidSkyBox = nullptr;
+    {   // dynamic_cast alone doesn't work because we don't want derived classes
+        std::type_index ti(typeid(*scene->skyBox));
+        if(ti == std::type_index(typeid(SolidTexture<Color>)))
+            solidSkyBox = dynamic_cast<SolidTexture<Color> *>(scene->skyBox);
+    }
+    for (uint y = 0; y < frame->size.y; y++) {
+        for (uint x = 0; x < frame->size.x; x++) {
+            size_t i = y * frame->size.x + x;
+            if (solidSkyBox) {
+                frame->framebuffer[i] = solidSkyBox->value; // No need to compute UV
+            } else {
+                Vector2f worldPos{x / (float)frame->size.x, y / (float)frame->size.y};
+                worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * tanHalfFov;
+                Vector3f lookVector = Vector3f{worldPos.x, worldPos.y, 1} * obj->transformRotation;
+                lookVector = lookVector.normalized();
+
+                Vector2f uv{
+                    0.5f + (atan2(lookVector.z, lookVector.x) / (2.0f * M_PI)),
+                    0.5f - (asin(lookVector.y) / M_PI)
+                };
+
+                frame->framebuffer[i] = scene->skyBox->sample(uv, {0, 0}, {0, 0});
+            }
+            frame->zBuffer[i] = INFINITY;
+        }
     }
 
     makePerspectiveProjectionMatrix();

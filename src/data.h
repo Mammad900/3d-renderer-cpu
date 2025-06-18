@@ -76,10 +76,11 @@ struct Scene {
     bool fullBright = false;
     bool wireFrame = false;
     bool orbit = false;
-    bool godRays = true;
+    bool godRays = false;
     float godRaysSampleSize = 1.0f;
     TextureFilteringMode textureFilteringMode = TextureFilteringMode::NearestNeighbor;
     Color fogColor = {0,0,0,0};
+    Texture<Color> *skyBox = new SolidTexture(Color{0,0,0,0});
 };
 
 extern Scene *scene;

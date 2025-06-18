@@ -124,6 +124,8 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
             }
         } else if (word == "fog") {
             in >> editingScene->fogColor;
+        } else if (word == "skyBox") {
+            getTexture(editingScene->skyBox, in, path);
         } else if (word == "ambientLight") {
             in >> editingScene->ambientLight;
         } else if (word == "new") {
