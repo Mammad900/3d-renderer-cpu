@@ -19,63 +19,67 @@ bool shutdown = false;
 bool init = false;
 
 void Camera::render() {
-    if(!shadowMap)
+    if(shadowMap) {
+        drawSkyBox();
+
+        makePerspectiveProjectionMatrix();
+
+        std::vector<Triangle> triangles;
+        std::vector<TransparentTriangle> transparents;
+
+        buildTriangles(transparents, triangles);
+
+        for (auto &&tri : triangles)
+            drawTriangle(this, tri, tFrame->deferred);
+    } 
+    else {
         timing.clock.restart();
-    drawSkyBox();
-    if(!shadowMap)
+        drawSkyBox();
         timing.skyBoxTime.push(timing.clock);
 
-    makePerspectiveProjectionMatrix();
 
-#pragma region // ===== PROJECT VERTICES & BUILD TRIANGLES =====
+        makePerspectiveProjectionMatrix();
 
-    std::vector<Triangle> triangles;
-    std::vector<TransparentTriangle> transparents;
+        std::vector<Triangle> triangles;
+        std::vector<TransparentTriangle> transparents;
+        buildTriangles(transparents, triangles);
 
-    buildTriangles(transparents, triangles);
-
-    if(!shadowMap)
         timing.renderPrepareTime.push(timing.clock);
 
-#pragma endregion
 
+        for (auto &&tri : triangles)
+            drawTriangle(this, tri, tFrame->deferred);
 
-#pragma region // ===== DRAW TRIANGLES =====
-
-    for (auto &&tri : triangles)
-        drawTriangle(this, tri, tFrame->deferred);
-
-    if(!shadowMap)
         timing.geometryTime.push(timing.clock);
 
 
-    // Deferred pass
-    if(tFrame->deferred && !shadowMap) {
-        if(!init) {
+        // Deferred pass
+        if(tFrame->deferred) {
+            if(!init) {
+                for (uint i = 0; i < numThreads; i++)
+                    threads[i] = std::thread(threadLoop, numThreads, i);
+                init = true;
+            }
+            
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                for (uint i = 0; i < numThreads; i++)
+                    jobReady[i] = this;
+            }
+
             for (uint i = 0; i < numThreads; i++)
-                threads[i] = std::thread(threadLoop, numThreads, i);
-            init = true;
-        }
-        
-        {
-            std::lock_guard<std::mutex> lock(mtx);
-            for (uint i = 0; i < numThreads; i++)
-                jobReady[i] = this;
+                cvs[i].notify_one();
+
+            bool allDone = false;
+            while(!allDone) {
+                std::this_thread::yield();
+                std::lock_guard<std::mutex> lock(mtx);
+                allDone = std::all_of(jobReady.begin(), jobReady.end(), [](Camera *v) {return !v;});
+            }
         }
 
-        for (uint i = 0; i < numThreads; i++)
-            cvs[i].notify_one();
-
-        bool allDone = false;
-        while(!allDone) {
-            std::this_thread::yield();
-            std::lock_guard<std::mutex> lock(mtx);
-            allDone = std::all_of(jobReady.begin(), jobReady.end(), [](Camera *v) {return !v;});
-        }
-    }
-
-    if(!shadowMap) {
         timing.lightingTime.push(timing.clock);
+
 
         auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z > b.z; };
         std::sort(transparents.begin(), transparents.end(), compareZ);
@@ -84,14 +88,13 @@ void Camera::render() {
         
         timing.forwardTime.push(timing.clock);
         timing.clock.stop();
+
+
+        if(obj->scene->fogColor.a > 0 && !tFrame->deferred)
+            for (int y = 0; y < (int)tFrame->size.y; y++)
+                for (int x = 0; x < (int)tFrame->size.x; x++)
+                    fogPixel(x, y);
     }
-
-#pragma endregion
-
-    if(obj->scene->fogColor.a > 0 && !tFrame->deferred && !shadowMap)
-        for (int y = 0; y < (int)tFrame->size.y; y++)
-            for (int x = 0; x < (int)tFrame->size.x; x++)
-                fogPixel(x, y);
 }
 
 void Camera::buildTriangles(
