@@ -11,13 +11,13 @@ using sf::Vector3f, sf::Vector2u;
 extern sf::RenderWindow *renderWindow;
 struct RenderTarget {
     Vector2u size;
-    Color *framebuffer;
-    float *zBuffer;
-    Fragment *gBuffer;
-    bool deferred;
+    Color *framebuffer = nullptr;
+    float *zBuffer = nullptr;
+    Fragment *gBuffer = nullptr;
+    bool deferred, shadowMap;
     void changeSize(sf::Vector2u newSize, bool deferred);
 
-    RenderTarget(Vector2u size, bool deferred = true)
+    RenderTarget(Vector2u size, bool deferred = true, bool shadowMap = false) : shadowMap(shadowMap)
         { changeSize(size, deferred); }
 };
 

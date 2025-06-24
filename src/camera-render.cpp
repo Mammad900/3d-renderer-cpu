@@ -8,11 +8,6 @@
 #include <condition_variable>
 #include <typeindex>
 
-struct TransparentTriangle{
-    float z;
-    Triangle tri;
-};
-
 void deferredPass(uint n, uint i0, Camera *camera);
 void threadLoop(uint n, uint i0);
 const uint numThreads = std::thread::hardware_concurrency();
@@ -24,35 +19,11 @@ bool shutdown = false;
 bool init = false;
 
 void Camera::render() {
-    timing.clock.restart();
-    SolidTexture<Color> *solidSkyBox = nullptr;
-    {   // dynamic_cast alone doesn't work because we don't want derived classes
-        std::type_index ti(typeid(*obj->scene->skyBox));
-        if(ti == std::type_index(typeid(SolidTexture<Color>)))
-            solidSkyBox = dynamic_cast<SolidTexture<Color> *>(obj->scene->skyBox);
-    }
-    for (uint y = 0; y < tFrame->size.y; y++) {
-        for (uint x = 0; x < tFrame->size.x; x++) {
-            size_t i = y * tFrame->size.x + x;
-            if (solidSkyBox) {
-                tFrame->framebuffer[i] = solidSkyBox->value; // No need to compute UV
-            } else {
-                Vector2f worldPos{x / (float)tFrame->size.x, y / (float)tFrame->size.y};
-                worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * tanHalfFov;
-                Vector3f lookVector = Vector3f{worldPos.x, worldPos.y, 1} * obj->transformRotation;
-                lookVector = lookVector.normalized();
-
-                Vector2f uv{
-                    0.5f + (atan2f(lookVector.z, lookVector.x) / (2.0f * M_PIf)),
-                    0.5f - (asinf(lookVector.y) / M_PIf)
-                };
-
-                tFrame->framebuffer[i] = obj->scene->skyBox->sample(uv, {0, 0}, {0, 0});
-            }
-            tFrame->zBuffer[i] = INFINITY;
-        }
-    }
-    timing.skyBoxTime.push(timing.clock);
+    if(!shadowMap)
+        timing.clock.restart();
+    drawSkyBox();
+    if(!shadowMap)
+        timing.skyBoxTime.push(timing.clock);
 
     makePerspectiveProjectionMatrix();
 
@@ -61,9 +32,75 @@ void Camera::render() {
     std::vector<Triangle> triangles;
     std::vector<TransparentTriangle> transparents;
 
-    std::function<void(Object*)> handleObject = [&](Object *obj) {
+    buildTriangles(transparents, triangles);
+
+    if(!shadowMap)
+        timing.renderPrepareTime.push(timing.clock);
+
+#pragma endregion
+
+
+#pragma region // ===== DRAW TRIANGLES =====
+
+    for (auto &&tri : triangles)
+        drawTriangle(this, tri, tFrame->deferred);
+
+    if(!shadowMap)
+        timing.geometryTime.push(timing.clock);
+
+
+    // Deferred pass
+    if(tFrame->deferred && !shadowMap) {
+        if(!init) {
+            for (uint i = 0; i < numThreads; i++)
+                threads[i] = std::thread(threadLoop, numThreads, i);
+            init = true;
+        }
+        
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            for (uint i = 0; i < numThreads; i++)
+                jobReady[i] = this;
+        }
+
+        for (uint i = 0; i < numThreads; i++)
+            cvs[i].notify_one();
+
+        bool allDone = false;
+        while(!allDone) {
+            std::this_thread::yield();
+            std::lock_guard<std::mutex> lock(mtx);
+            allDone = std::all_of(jobReady.begin(), jobReady.end(), [](Camera *v) {return !v;});
+        }
+    }
+
+    if(!shadowMap) {
+        timing.lightingTime.push(timing.clock);
+
+        auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z > b.z; };
+        std::sort(transparents.begin(), transparents.end(), compareZ);
+        for (auto &&tri : transparents)
+            drawTriangle(this, tri.tri, false);
+        
+        timing.forwardTime.push(timing.clock);
+        timing.clock.stop();
+    }
+
+#pragma endregion
+
+    if(obj->scene->fogColor.a > 0 && !tFrame->deferred && !shadowMap)
+        for (int y = 0; y < (int)tFrame->size.y; y++)
+            for (int x = 0; x < (int)tFrame->size.x; x++)
+                fogPixel(x, y);
+}
+
+void Camera::buildTriangles(
+    std::vector<TransparentTriangle> &transparents,
+    std::vector<Triangle> &triangles
+) {
+    std::function<void(Object *)> handleObject = [&](Object *obj) {
         for (auto &&comp : obj->components) {
-            if(MeshComponent *meshComp = dynamic_cast<MeshComponent*>(comp)) {
+            if (MeshComponent *meshComp = dynamic_cast<MeshComponent *>(comp)) {
                 Mesh *mesh = meshComp->mesh;
                 Projection projectedVertices[mesh->vertices.size()];
 
@@ -92,10 +129,10 @@ void Camera::render() {
                         .mat = face.material,
                         .cull = normalS.z < 0
                     };
-                    if(face.material->flags & MaterialFlags::Transparent) {
-                        transparents.push_back(TransparentTriangle{(v1s.screenPos.z + v2s.screenPos.z + v3s.screenPos.z) / 3, tri});
-                    }
-                    else {
+                    if (face.material->flags & MaterialFlags::Transparent) {
+                        transparents.push_back(TransparentTriangle{
+                            (v1s.screenPos.z + v2s.screenPos.z + v3s.screenPos.z) / 3, tri });
+                    } else {
                         triangles.push_back(tri);
                     }
                 }
@@ -107,61 +144,38 @@ void Camera::render() {
 
     for (auto &&obj : obj->scene->objects)
         handleObject(obj);
+}
 
-    timing.renderPrepareTime.push(timing.clock);
+void Camera::drawSkyBox() {
+    SolidTexture<Color> *solidSkyBox = nullptr;
+    { // dynamic_cast alone doesn't work because we don't want derived classes
+        std::type_index ti(typeid(*obj->scene->skyBox));
+        if (ti == std::type_index(typeid(SolidTexture<Color>)))
+            solidSkyBox = dynamic_cast<SolidTexture<Color> *>(obj->scene->skyBox);
+    }
+    for (uint y = 0; y < tFrame->size.y; y++) {
+        for (uint x = 0; x < tFrame->size.x; x++) {
+            size_t i = y * tFrame->size.x + x;
+            if(!shadowMap) {
+                if (solidSkyBox) {
+                    tFrame->framebuffer[i] = solidSkyBox->value; // No need to compute UV
+                } else {
+                    Vector2f worldPos {x / (float)tFrame->size.x, y / (float)tFrame->size.y};
+                    worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * tanHalfFov;
+                    Vector3f lookVector = Vector3f{worldPos.x, worldPos.y, 1} * obj->transformRotation;
+                    lookVector = lookVector.normalized();
 
-#pragma endregion
+                    Vector2f uv {
+                        0.5f +(atan2f(lookVector.z, lookVector.x) / (2.0f * M_PIf)),
+                        0.5f - (asinf(lookVector.y) / M_PIf)
+                    };
 
-
-#pragma region // ===== DRAW TRIANGLES =====
-
-    for (auto &&tri : triangles)
-        drawTriangle(this, tri, tFrame->deferred);
-
-    timing.geometryTime.push(timing.clock);
-
-
-    // Deferred pass
-    if(tFrame->deferred) {
-        if(!init) {
-            for (uint i = 0; i < numThreads; i++)
-                threads[i] = std::thread(threadLoop, numThreads, i);
-            init = true;
-        }
-        
-        {
-            std::lock_guard<std::mutex> lock(mtx);
-            for (uint i = 0; i < numThreads; i++)
-                jobReady[i] = this;
-        }
-
-        for (uint i = 0; i < numThreads; i++)
-            cvs[i].notify_one();
-
-        bool allDone = false;
-        while(!allDone) {
-            std::this_thread::yield();
-            std::lock_guard<std::mutex> lock(mtx);
-            allDone = std::all_of(jobReady.begin(), jobReady.end(), [](Camera *v) {return !v;});
+                    tFrame->framebuffer[i] = obj->scene->skyBox->sample(uv, {0, 0}, {0, 0});
+                }
+            }
+            tFrame->zBuffer[i] = INFINITY;
         }
     }
-
-    timing.lightingTime.push(timing.clock);
-
-    auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z > b.z; };
-    std::sort(transparents.begin(), transparents.end(), compareZ);
-    for (auto &&tri : transparents)
-        drawTriangle(this, tri.tri, false);
-    
-    timing.forwardTime.push(timing.clock);
-    timing.clock.stop();
-
-#pragma endregion
-
-    if(obj->scene->fogColor.a > 0 && !tFrame->deferred)
-        for (int y = 0; y < (int)tFrame->size.y; y++)
-            for (int x = 0; x < (int)tFrame->size.x; x++)
-                fogPixel(x, y);
 }
 
 void threadLoop(uint n, uint i) {

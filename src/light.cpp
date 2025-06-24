@@ -21,13 +21,26 @@ Light::~Light() {
 }
 
 std::pair<Color, Vector3f> SpotLight::sample(Vector3f pos) {
-    Vector3f dist = pos - obj->globalPosition;
-    float distSq = dist.lengthSquared();
-    Vector3f distNormalized = dist / std::sqrt(distSq);
+    Vector3f diff = pos - obj->globalPosition;
+    float distSq = diff.lengthSquared();
+    float dist = std::sqrt(distSq);
+    Vector3f distNormalized = diff / dist;
     float cos = distNormalized.dot(direction);
     if(cos < spreadOuterCos)
         return {{0, 0, 0, 0}, {0, 0, 0}};
     float strength = smoothstep(spreadOuterCos, spreadInnerCos, cos);
+    if(shadowMap) {
+        Vector3f projected = shadowMap->perspectiveProject(pos).screenPos;
+        if(projected.z < 0 || projected.x < -1 || projected.x > 1 || projected.y < -1 || projected.y > 1 )
+            strength = 0;
+        else {
+            Vector2f screenPos = Vector2f{projected.x + 1, projected.y + 1}
+                .componentWiseMul(Vector2f{shadowMap->tFrame->size.x / 2.0f, shadowMap->tFrame->size.y / 2.0f});
+            float z = shadowMap->tFrame->zBuffer[(uint)screenPos.x + shadowMap->tFrame->size.x * (uint)screenPos.y];
+            if (dist > z + 0.05)
+                strength = 0;
+        }
+    }
     return {color * (color.a * strength / distSq), distNormalized};
 }
 
@@ -35,8 +48,19 @@ void Light::GUI() {
     ImGui::ColorEdit4("Color", (float*)&color, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
 }
 
+void SpotLight::setupShadowMap(Vector2u size) {
+    shadowMap = new Camera(obj);
+    shadowMap->shadowMap = true;
+    shadowMap->tFrame = new RenderTarget(size, true);
+}
+
 void SpotLight::GUI() {
     Light::GUI();
     ImGui::SliderFloat("Spread inner", &spreadInner, 0, M_PI_2);
     ImGui::SliderFloat("Spread outer", &spreadOuter, 0, M_PI_2);
+    if (shadowMap && ImGui::TreeNode("Shadow map")) {
+        if(ImGui::DragScalarN("Resolution", ImGuiDataType_U32, &shadowMap->tFrame->size.x, 2))
+            shadowMap->tFrame->changeSize(shadowMap->tFrame->size, true);
+        ImGui::TreePop();
+    }
 }

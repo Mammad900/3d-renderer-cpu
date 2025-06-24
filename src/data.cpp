@@ -14,12 +14,19 @@ void RenderTarget::changeSize(sf::Vector2u newSize, bool deferred) {
         delete[] zBuffer;
     if(gBuffer != nullptr)
         delete[] gBuffer;
-    framebuffer = new Color[newSize.x * newSize.y];
+    
+    if(!shadowMap) // Shadowmaps only have z buffer
+        framebuffer = new Color[newSize.x * newSize.y];
+    else
+        framebuffer = nullptr;
+
     zBuffer = new float[newSize.x * newSize.y];
-    if(deferred)
+    
+    if(deferred && !shadowMap)
         gBuffer = new Fragment[newSize.x * newSize.y];
     else
         gBuffer = nullptr;
+
     this->deferred = deferred;
     size = frameSizeTemp = newSize;
 }

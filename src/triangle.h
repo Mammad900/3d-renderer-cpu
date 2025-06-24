@@ -10,12 +10,5 @@
 using sf::Vector2f, sf::Vector2u, sf::Vector2i;
 using std::swap, std::max, std::abs;
 
-struct Triangle {
-    Projection s1, s2, s3;
-    Vector2f uv1, uv2, uv3;
-    Material *mat;
-    bool cull;
-};
-
 void drawTriangle(Camera *camera, Triangle tri, bool defer);
 #endif /* __TRIANGLE_H__ */

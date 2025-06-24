@@ -17,6 +17,24 @@ enum class TextureFilteringMode : uint8_t {
 
 class Material;
 
+struct Projection {
+    Vector3f worldPos;
+    Vector3f screenPos;
+    Vector3f normal;
+};
+
+struct Triangle {
+    Projection s1, s2, s3;
+    Vector2f uv1, uv2, uv3;
+    Material *mat;
+    bool cull;
+};
+
+struct TransparentTriangle{
+    float z;
+    Triangle tri;
+};
+
 struct Fragment {
     Vector2i screenPos;
     float z;

@@ -69,7 +69,11 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
     RenderTarget *frame = camera->tFrame;
     Scene *scene = camera->obj->scene;
 
-    if(tri.cull && scene->backFaceCulling && !(tri.mat->flags & (MaterialFlags::Transparent | MaterialFlags::DoubleSided)))
+    if(
+            (camera->shadowMap ? !tri.cull : tri.cull) && // Shadow maps have front face culling
+            scene->backFaceCulling &&
+            !(tri.mat->flags & (MaterialFlags::Transparent | MaterialFlags::DoubleSided))
+    )
         return;
 
     if(

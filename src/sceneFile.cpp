@@ -301,7 +301,17 @@ void parseObject(Scene* editingScene, std::ifstream &in, Object *parent) {
                 in >> spreadA >> spreadB;
                 spreadA *= M_PIf / 180.0f;
                 spreadB *= M_PIf / 180.0f;
-                light = new SpotLight(obj, color, spreadA, spreadB);
+
+                SpotLight *spotLight = new SpotLight(obj, color, spreadA, spreadB);
+                light = spotLight;
+
+                bool shadowMap;
+                in >> shadowMap;
+                if(shadowMap) {
+                    Vector2u size;
+                    in >> size.x >> size.y;
+                    spotLight->setupShadowMap(size);
+                }
             }
             else {
                 cerr << "Invalid light type " << type << endl;

@@ -1,6 +1,8 @@
 #ifndef __LIGHT_H__
 #define __LIGHT_H__
+
 #include "object.h"
+#include "camera.h"
 
 class Light : public Component {
   public:
@@ -48,6 +50,7 @@ class SpotLight : public Light {
   public:
     float spreadInner, spreadOuter;
     float spreadInnerCos, spreadOuterCos;
+    Camera *shadowMap = nullptr;
 
     SpotLight(Object *obj, Color color, float spreadInner, float spreadOuter) 
     : Light(obj, color), spreadInner(spreadInner), spreadOuter(spreadOuter) {}
@@ -62,8 +65,16 @@ class SpotLight : public Light {
         if(spreadInnerCos < spreadOuterCos)
             std::swap(spreadInnerCos, spreadOuterCos);
         direction = Vector3f{0, 0, 1} * obj->transformRotation;
+        
+        if(shadowMap) {
+            shadowMap->fov = std::max(spreadOuter, spreadInner) * (360.0f / M_PIf);
+            shadowMap->render();
+        }
     }
+
+    void setupShadowMap(Vector2u size);
     void GUI();
+
   private:
     Vector3f direction;
 };
