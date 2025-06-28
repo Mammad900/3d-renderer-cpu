@@ -31,9 +31,16 @@ int main(int argc, char** argv) {
             if (event->is<sf::Event::Closed>()) {
                 window.close();
             }
-            if (const auto* resized = event->getIf<sf::Event::Resized>())
-            {
+            if (const auto* resized = event->getIf<sf::Event::Resized>()) {
                 changeWindowSize(resized->size);
+            }
+            if (const auto* pressed = event->getIf<sf::Event::MouseButtonPressed>()) {
+                if(pressed->button == sf::Mouse::Button::Left && guiMaterialAssignMode != GuiMaterialAssignMode::None && frame->deferred) {
+                    // Find face
+                    uint index = pressed->position.x + frame->size.x * pressed->position.y;
+                    if(frame->zBuffer[index] != INFINITY)
+                        frame->gBuffer[index].face->material = guiSelectedMaterial;
+                }
             }
         }
         timing.windowTime.push(timing.clock);

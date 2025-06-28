@@ -23,33 +23,6 @@ struct Projection {
     Vector3f normal;
 };
 
-struct Triangle {
-    Projection s1, s2, s3;
-    Vector2f uv1, uv2, uv3;
-    Material *mat;
-    bool cull;
-};
-
-struct TransparentTriangle{
-    float z;
-    Triangle tri;
-};
-
-struct Fragment {
-    Vector2i screenPos;
-    float z;
-    Vector3f worldPos;
-    Vector3f normal;
-    Vector3f tangent;
-    Vector3f bitangent;
-    Vector2f uv;
-    Vector2f dUVdx;
-    Vector2f dUVdy;
-    Color baseColor;
-    Material *mat;
-    bool isBackFace, inside;
-};
-
 struct Vertex {
     Vector3f position;
     Vector2f uv;
@@ -69,4 +42,33 @@ struct Mesh {
     Mesh(const std::string& label = "", const vector<Vertex>& vertices = {}, const vector<Face>& faces = {})
         : label(label), vertices(vertices), faces(faces) {}
 };
+
+struct Fragment {
+    Vector2i screenPos;
+    float z;
+    Vector3f worldPos;
+    Vector3f normal;
+    Vector3f tangent;
+    Vector3f bitangent;
+    Vector2f uv;
+    Vector2f dUVdx;
+    Vector2f dUVdy;
+    Color baseColor;
+    Face *face;
+    bool isBackFace, inside;
+};
+
+struct Triangle {
+    Projection s1, s2, s3;
+    Vector2f uv1, uv2, uv3;
+    Material *mat;
+    Face *face;
+    bool cull;
+};
+
+struct TransparentTriangle{
+    float z;
+    Triangle tri;
+};
+
 #endif /* __MISCTYPES_H__ */

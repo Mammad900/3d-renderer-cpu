@@ -152,7 +152,7 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
             .tangent = tangent,
             .bitangent = bitangent,
             .uv = uv,
-            .mat = tri.mat,
+            .face = tri.face,
             .isBackFace = tri.cull,
             .inside = inside
         };

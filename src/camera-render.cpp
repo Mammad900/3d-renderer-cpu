@@ -116,7 +116,7 @@ void Camera::buildTriangles(
                 }
 
                 for (size_t j = 0; j < mesh->faces.size(); j++) {
-                    Face face = mesh->faces[j];
+                    Face &face = mesh->faces[j];
                     Projection v1s = projectedVertices[face.v1],
                                v2s = projectedVertices[face.v2],
                                v3s = projectedVertices[face.v3];
@@ -130,6 +130,7 @@ void Camera::buildTriangles(
                         .uv2 = mesh->vertices[face.v2].uv,
                         .uv3 = mesh->vertices[face.v3].uv,
                         .mat = face.material,
+                        .face = &face,
                         .cull = normalS.z < 0
                     };
                     if (face.material->flags & MaterialFlags::Transparent) {
@@ -202,9 +203,9 @@ void deferredPass(uint n, uint i0, Camera *camera) {
             continue;
         }
         Fragment &f = frame->gBuffer[i];
-        if (frame->deferred && !(f.mat->flags & MaterialFlags::AlphaCutout))
-            f.baseColor = f.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
-        frame->framebuffer[i] = f.mat->shade(f, frame->framebuffer[i], camera->obj->scene);
+        if (frame->deferred && !(f.face->material->flags & MaterialFlags::AlphaCutout))
+            f.baseColor = f.face->material->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
+        frame->framebuffer[i] = f.face->material->shade(f, frame->framebuffer[i], camera->obj->scene);
         if(camera->obj->scene->fogColor.a > 0)
             frame->framebuffer[i] = sampleFog(f.worldPos, camera->obj->globalPosition, frame->framebuffer[i], camera->obj->scene);
     }

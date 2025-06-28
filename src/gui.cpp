@@ -2,8 +2,9 @@
 #include "generateMesh.h"
 
 char objFilePath[500];
-Material *selectedMaterial;
+Material *guiSelectedMaterial;
 Mesh *selectedMesh;
+GuiMaterialAssignMode guiMaterialAssignMode;
 
 void Timing(Metric<float> &m, const char *name) {
     ImGui::Text("%s: Last %04.1f / Mean %04.1f / Max %04.1f", name, m.last, m.average(), m.maximum);
@@ -100,17 +101,35 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     ImGui::End();
 
     if(ImGui::Begin("Materials")) {
+        static ImGuiTreeNodeFlags baseFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
         for (size_t i = 0; i < editingScene->materials.size(); i++)
         {
             ImGui::PushID(i);
             Material *mat = editingScene->materials[i];
-            if(ImGui::TreeNode(mat->name.c_str())) {
+            ImGuiTreeNodeFlags flags = baseFlags | (guiSelectedMaterial == mat ? ImGuiTreeNodeFlags_Selected : 0);
+            bool open = ImGui::TreeNodeEx(mat->name.c_str(), flags);
+            if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+                guiSelectedMaterial = mat;
+            if(open) {
                 mat->GUI();
-                if (mat != selectedMaterial && ImGui::Button("Select"))
-                    selectedMaterial = mat;
                 ImGui::TreePop();
             }
             ImGui::PopID();
+        }
+
+        ImGui::Spacing();
+        if (ImGui::TreeNodeEx("Material changer", ImGuiTreeNodeFlags_SpanAvailWidth)) {
+            ImGui::Text("Enable and click on a face/object to change its material to selected one");
+            if(!guiSelectedMaterial) {
+                ImGui::Text("Select a material first");
+                ImGui::BeginDisabled();
+            }
+            ImGui::RadioButton("None", &guiMaterialAssignMode, GuiMaterialAssignMode::None);
+            ImGui::RadioButton("Face", &guiMaterialAssignMode, GuiMaterialAssignMode::Face);
+            ImGui::RadioButton("Mesh", &guiMaterialAssignMode, GuiMaterialAssignMode::Mesh);
+            if(!guiSelectedMaterial)
+                ImGui::EndDisabled();
+            ImGui::TreePop();
         }
     }
     ImGui::End();
@@ -141,11 +160,11 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
         ImGui::Spacing();
         if (ImGui::TreeNode("Load OBJ")) {
             ImGui::Text("OBJ file can only contain vertex and face data (no UV) and must be triangulated.");
-            if(selectedMaterial == nullptr)
+            if(guiSelectedMaterial == nullptr)
                 ImGui::Text("Select a material in the materials window.");
             ImGui::InputText("Path", objFilePath, 500);
-            if(selectedMaterial!= nullptr && ImGui::Button("Load")) {
-                Mesh *m = loadOBJ(objFilePath, selectedMaterial, std::filesystem::path(objFilePath).filename());
+            if(guiSelectedMaterial!= nullptr && ImGui::Button("Load")) {
+                Mesh *m = loadOBJ(objFilePath, guiSelectedMaterial, std::filesystem::path(objFilePath).filename());
                 editingScene->meshes.push_back(m);
             }
             ImGui::TreePop();
