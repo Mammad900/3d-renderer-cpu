@@ -1,6 +1,9 @@
 #include "light.h"
 #include "data.h"
+#include "textureFiltering.h"
 #include <imgui.h>
+
+using std::floor, std::ceil;
 
 float smoothstep(float edge0, float edge1, float x) {
     // Scale, bias and saturate x to 0..1 range
@@ -29,16 +32,41 @@ std::pair<Color, Vector3f> SpotLight::sample(Vector3f pos) {
     if(cos < spreadOuterCos)
         return {{0, 0, 0, 0}, {0, 0, 0}};
     float strength = smoothstep(spreadOuterCos, spreadInnerCos, cos);
+
+
     if(shadowMap) {
         Vector3f projected = shadowMap->perspectiveProject(pos).screenPos;
         if(projected.z < 0 || projected.x < -1 || projected.x > 1 || projected.y < -1 || projected.y > 1 )
             strength = 0;
         else {
-            Vector2f screenPos = Vector2f{projected.x + 1, projected.y + 1}
+            Vector2f pos = Vector2f{projected.x + 1, projected.y + 1}
                 .componentWiseMul(Vector2f{shadowMap->tFrame->size.x / 2.0f, shadowMap->tFrame->size.y / 2.0f});
-            float z = shadowMap->tFrame->zBuffer[(uint)screenPos.x + shadowMap->tFrame->size.x * (uint)screenPos.y];
-            if (dist > z + 0.05)
-                strength = 0;
+
+            if(obj->scene->bilinearShadowFiltering) {
+                float decimalsX = pos.x - floor(pos.x);
+                float decimalsY = pos.y - floor(pos.y);
+
+                float *zBuffer = shadowMap->tFrame->zBuffer;
+                uint sizeX = shadowMap->tFrame->size.x;
+
+                float z1 = zBuffer[(uint)floor(pos.x) + sizeX * (uint)floor(pos.y)];
+                float z2 = zBuffer[(uint)floor(pos.x) + sizeX * (uint)ceil(pos.y)];
+                float z3 = zBuffer[(uint)ceil(pos.x) + sizeX * (uint)floor(pos.y)];
+                float z4 = zBuffer[(uint)ceil(pos.x) + sizeX * (uint)ceil(pos.y)];
+
+                strength *= lerp2d(
+                    (float)(dist < z1 + 0.05), 
+                    (float)(dist < z2 + 0.05), 
+                    (float)(dist < z3 + 0.05), 
+                    (float)(dist < z4 + 0.05),
+                    decimalsY, decimalsX
+                );
+            }
+            else {
+                float z = shadowMap->tFrame->zBuffer[(uint)round(pos.x) + shadowMap->tFrame->size.x * (uint)round(pos.y)];
+                if (dist > z + 0.05)
+                    strength = 0;
+            }
         }
     }
     return {color * (color.a * strength / distSq), distNormalized};
