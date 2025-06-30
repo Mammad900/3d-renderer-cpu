@@ -1,4 +1,0 @@
-import box.txt
-import earth.txt
-
-scene render earth
