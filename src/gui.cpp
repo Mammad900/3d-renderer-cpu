@@ -1,5 +1,6 @@
 #include "gui.h"
 #include "generateMesh.h"
+#include "sceneFile.h"
 
 char objFilePath[500];
 Material *guiSelectedMaterial;
@@ -23,8 +24,6 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     }
 
     ImGui::SFML::Update(window, deltaClock.restart());
-
-    ImGui::ShowDemoWindow();
 
     ImGui::Begin("Options");
     ImGui::InputFloat("Near", &editingScene->camera->nearClip);
@@ -180,6 +179,8 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
             ImGui::RadioButton(s->name.c_str(), &scene, s);
             ImGui::PopID();
         }
+        if(ImGui::Button("Save"))
+            serializeEverything("assets/save");
     }
     ImGui::End();
 

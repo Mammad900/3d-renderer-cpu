@@ -16,13 +16,11 @@ void bakeMeshNormals(Mesh &mesh) {
         v3.normal += normal;
     }
 
-#ifndef NDEBUG
     for (auto &&vertex : mesh.vertices)
         if(vertex.normal.lengthSquared() == 0)
             std::cerr << "A vertex has zero normal! "
                          "This usually happens when a face is winded incorrectly "
                          "and cancels out another face's normal." << std::endl;
-#endif
 }
 
 

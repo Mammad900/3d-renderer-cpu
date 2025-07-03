@@ -33,6 +33,40 @@ public:
                 pixels[y * atlasSize.x + x] = Color::fromSFColor(img.getPixel({x, y}));
         generateMipmaps();
     }
+
+    sf::Image saveToImage() const {
+        sf::Image img(size);
+
+        for (uint y = 0; y < size.y; ++y) {
+            for (uint x = 0; x < size.x; ++x) {
+                T pixel = pixels[y * atlasSize.x + x];
+                Color color;
+
+                if constexpr (std::is_same_v<T, Color>) {
+                    color = pixel;
+                } else if constexpr (std::is_same_v<T, float>) {
+                    color = {0, 0, 0, pixel};
+                } else if constexpr (std::is_same_v<T, Vector3f>) {
+                    pixel = (pixel.componentWiseMul({-1,-1,1}) + Vector3f{1,1,1}) / 2.0f;
+                    color = {pixel.x, pixel.y, pixel.z, 1};
+                } else {
+                    std::cerr << "Unsupported texture type for saving to image." << std::endl;
+                    continue;
+                }
+
+                // Using the operator overload doesn't work because it doesn't preserve alpha
+                // It doesn't preserve alpha because it would break framebuffer
+                uint8_t r = std::clamp((int)(color.r * 255), 0, 255);
+                uint8_t g = std::clamp((int)(color.g * 255), 0, 255);
+                uint8_t b = std::clamp((int)(color.b * 255), 0, 255);
+                uint8_t a = std::clamp((int)(color.a * 255), 0, 255);
+                img.setPixel({x, y}, {r, g, b, a});
+            }
+        }
+
+        return img;
+    }
+
 private:
     T* pixels;
     Vector2u atlasSize;

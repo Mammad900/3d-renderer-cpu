@@ -3,7 +3,7 @@
 #include "phongMaterial.h"
 #include "textureFiltering.h"
 
-SolidTexture<Color> *blankTexture() {
+inline SolidTexture<Color> *blankTexture() {
     return new SolidTexture<Color>({0, 0, 0, 0});
 }
 

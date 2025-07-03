@@ -155,8 +155,6 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                             flags = flags | MaterialFlags::Transparent;
                         } else if (key == "doubleSided") {
                             flags = flags | MaterialFlags::DoubleSided;
-                        } else if (key == "doubleSided") {
-                            flags = flags | MaterialFlags::DoubleSided;
                         } else if (key == "alphaCutout") {
                             flags = flags | MaterialFlags::AlphaCutout;
                         } else {
@@ -215,8 +213,9 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                     in >> subDivX >> subDivY >> matName;
                     Mesh* mesh = createPlane(findMaterial(matName, editingScene), name, subDivX, subDivY);
                     editingScene->meshes.push_back(mesh);
-                } else if (type == "custom") {
+                } else if (type == "custom" || type == "raw") {
                     string key;
+                    bool raw = type == "raw";
                     std::vector<Vertex> vertices;
                     std::vector<Face> faces;
                     Material *currentMat;
@@ -224,14 +223,16 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                         if (key == "#") { while (in >> key && key != "#"); continue; }
                         
                         if(key == "v") {
-                            Vector3f pos;
+                            Vector3f pos, normal = {0,0,0};
                             Vector2f uv;
                             uint16_t i;
                             in >> i >> pos >> uv;
-                            if(i != vertices.size()){
+                            if(raw)
+                                in >> normal;
+                            if (i != vertices.size()) {
                                 cerr << "Invalid vertex index " << i << ", expected " << vertices.size() << endl;
                             }
-                            vertices.push_back(Vertex{.position = pos, .uv = uv});
+                            vertices.push_back(Vertex{.position = pos, .uv = uv, .normal = normal});
                         }
                         else if(key == "f") {
                             uint16_t i1, i2, i3;
@@ -247,7 +248,8 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                         }
                     }
                     Mesh *mesh = new Mesh(name, vertices, faces);
-                    bakeMeshNormals(*mesh);
+                    if(!raw)
+                        bakeMeshNormals(*mesh);
                     editingScene->meshes.push_back(mesh);
                 } else {
                     cerr << "Invalid mesh type " << type << endl;
