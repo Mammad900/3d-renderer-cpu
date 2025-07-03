@@ -218,6 +218,7 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                     bool raw = type == "raw";
                     std::vector<Vertex> vertices;
                     std::vector<Face> faces;
+                    bool flat = false;
                     Material *currentMat;
                     while (in >> key && key != "end") {
                         if (key == "#") { while (in >> key && key != "#"); continue; }
@@ -243,11 +244,13 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                             string matName;
                             in >> matName;
                             currentMat = findMaterial(matName, editingScene);
+                        } else if(key == "flat") {
+                            flat = true;
                         } else {
                             cerr << "Invalid custom mesh entry " << key << endl;
                         }
                     }
-                    Mesh *mesh = new Mesh(name, vertices, faces);
+                    Mesh *mesh = new Mesh(name, vertices, faces, flat);
                     if(!raw)
                         bakeMeshNormals(*mesh);
                     editingScene->meshes.push_back(mesh);

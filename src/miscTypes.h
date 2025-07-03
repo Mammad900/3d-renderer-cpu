@@ -38,9 +38,10 @@ struct Mesh {
     std::string label;
     vector<Vertex> vertices;
     vector<Face> faces;
+    bool flatShading = false;
 
-    Mesh(const std::string& label = "", const vector<Vertex>& vertices = {}, const vector<Face>& faces = {})
-        : label(label), vertices(vertices), faces(faces) {}
+    Mesh(const std::string& label = "", const vector<Vertex>& vertices = {}, const vector<Face>& faces = {}, bool flatShading = false)
+        : label(label), vertices(vertices), faces(faces), flatShading(flatShading) {}
 };
 
 struct Fragment {
@@ -63,6 +64,7 @@ struct Triangle {
     Vector2f uv1, uv2, uv3;
     Material *mat;
     Face *face;
+    Mesh *mesh;
     bool cull;
 };
 

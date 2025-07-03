@@ -139,6 +139,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
             ImGui::PushID(i);
             Mesh *mesh = editingScene->meshes[i];
             if(ImGui::TreeNode(mesh->label.c_str())) {
+                ImGui::Checkbox("Flat shading", &mesh->flatShading);
                 if(ImGui::TreeNode("Vertices")) {
                     for (uint16_t j = 0; j < mesh->vertices.size(); j++)
                     {

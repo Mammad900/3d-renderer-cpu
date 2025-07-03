@@ -131,6 +131,7 @@ void Camera::buildTriangles(
                         .uv3 = mesh->vertices[face.v3].uv,
                         .mat = face.material,
                         .face = &face,
+                        .mesh = mesh,
                         .cull = normalS.z < 0
                     };
                     if (face.material->flags & MaterialFlags::Transparent) {

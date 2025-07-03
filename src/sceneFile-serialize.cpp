@@ -224,6 +224,8 @@ void serializeSceneToFile(Scene* scene, const std::filesystem::path& path) {
     for (auto&& mesh : scene->meshes) {
         out << "\n";
         out << "new mesh " << mesh->label << " raw\n";
+        if(mesh->flatShading)
+            out << "flat\n";
         for (size_t i = 0; i < mesh->vertices.size(); ++i) {
             const auto& v = mesh->vertices[i];
             out << "v " << i << " " << v.position<< " " << v.uv << " " << v.normal << "\n";

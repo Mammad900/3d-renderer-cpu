@@ -102,6 +102,10 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
 
     float areaOfTriangle = abs((b - a).cross(c - a)); // Two times the area of the triangle
 
+    Vector3f triangleNormal = tri.mesh->flatShading ?
+         (tri.s3.worldPos - tri.s1.worldPos).cross(tri.s2.worldPos - tri.s1.worldPos).normalized()
+         : Vector3f{0,0,0};
+
     Vector3f tangent{}, bitangent{};
     if (tri.mat->needsTBN) {
         Vector3f edge1 = tri.s2.worldPos - tri.s1.worldPos;
@@ -139,7 +143,7 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
 
         #define INTERPOLATE_TRI(A,B,C) ((C1*(A) + C2*(B) + C3*(C))*denom)
         float z = INTERPOLATE_TRI(tri.s1.screenPos.z, tri.s2.screenPos.z, tri.s3.screenPos.z);
-        Vector3f normal= INTERPOLATE_TRI(tri.s1.normal, tri.s2.normal, tri.s3.normal).normalized();
+        Vector3f normal= tri.mesh->flatShading ? triangleNormal : INTERPOLATE_TRI(tri.s1.normal, tri.s2.normal, tri.s3.normal).normalized();
         Vector3f worldPos= INTERPOLATE_TRI(tri.s1.worldPos, tri.s2.worldPos, tri.s3.worldPos);
         Vector2f uv= INTERPOLATE_TRI(tri.uv1, tri.uv2, tri.uv3);
         #undef INTERPOLATE_TRI
