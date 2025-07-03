@@ -197,9 +197,16 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                 string name, type;
                 in >> name >> type;
                 if (type == "obj") {
-                    string matName, path;
-                    in >> matName >> path;
-                    Mesh* mesh = loadOBJ(path, findMaterial(matName, editingScene), name);
+                    string matName;
+                    std::filesystem::path path2;
+                    in >> matName >> path2;
+                    Mesh* mesh = loadOBJ(path.parent_path() / path2, findMaterial(matName, editingScene), name);
+                    editingScene->meshes.push_back(mesh);
+                } else if (type == "stl") {
+                    string matName;
+                    std::filesystem::path path2;
+                    in >> matName >> path2;
+                    Mesh* mesh = loadSTL(path.parent_path() / path2, findMaterial(matName, editingScene), name);
                     editingScene->meshes.push_back(mesh);
                 } else if (type == "sphere") {
                     int stacks, sectors;

@@ -16,5 +16,6 @@ void bakeMeshNormals(Mesh &mesh);
 Mesh* createSphere(Material* material, std::string name, uint16_t stacks, uint16_t sectors);
 Mesh* createPlane(Material* material, std::string name, uint16_t subdivisionsX, uint16_t subdivisionsY);
 Mesh *loadOBJ(const std::string &filename, Material *mat, std::string name);
+Mesh *loadSTL(const std::string &filename, Material *mat, std::string name);
 
 #endif /* __GENERATEMESH_H__ */
