@@ -18,4 +18,7 @@ Mesh* createPlane(Material* material, std::string name, uint16_t subdivisionsX, 
 Mesh *loadOBJ(const std::string &filename, Material *mat, std::string name);
 Mesh *loadSTL(const std::string &filename, Material *mat, std::string name);
 
+Mesh *makeRegularIcosahedron(std::string name, Material *mat);
+Mesh *makeIcoSphere(std::string name, Material *mat, size_t subdivisionSteps);
+
 #endif /* __GENERATEMESH_H__ */

@@ -261,6 +261,19 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                     if(!raw)
                         bakeMeshNormals(*mesh);
                     editingScene->meshes.push_back(mesh);
+                } else if (type == "spheroid") {
+                    string type, matName;
+                    in >> type >> matName;
+                    Material *mat = findMaterial(matName, editingScene);
+                    if(type == "regularIcosahedron") {
+                        editingScene->meshes.push_back(makeRegularIcosahedron(name, mat));
+                    } else if(type == "subdividedIcosahedron") {
+                        size_t n;
+                        in >> n;
+                        editingScene->meshes.push_back(makeIcoSphere(name, mat, n));
+                    } else {
+                        cerr << "Invalid unique mesh name " << type << endl;
+                    }
                 } else {
                     cerr << "Invalid mesh type " << type << endl;
                 }
