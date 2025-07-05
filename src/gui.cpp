@@ -1,6 +1,7 @@
 #include "gui.h"
 #include "generateMesh.h"
 #include "sceneFile.h"
+#include "phongMaterial.h"
 
 char objFilePath[500];
 Material *guiSelectedMaterial;
@@ -147,6 +148,35 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
                         Vertex &v = mesh->vertices[j];
                         ImGui::DragFloat3("Position", &v.position.x, 0.2f);
                         ImGui::DragFloat2("UV", &v.uv.x, 0.2f);
+                        ImGui::PopID();
+                    }
+                    ImGui::TreePop();
+                }
+                if(ImGui::TreeNode("Faces")) {
+                    static Face *highlightedFace = nullptr;
+                    static Material *highlightedMaterial = nullptr;
+                    static Material *highlightMat = new PhongMaterial(PhongMaterialProps{
+                        .emissive = new SolidTexture<Color>({1,1,0})
+                    }, "Highlight", MaterialFlags::DoubleSided);
+
+                    for (uint16_t j = 0; j < mesh->faces.size(); j++) {
+                        ImGui::PushID(j);
+                        Face &f = mesh->faces[j];
+                        uint16_t step = 1;
+                        std::string label = std::to_string(j);
+                        ImGui::InputScalarN(label.c_str(), ImGuiDataType_U16, &f.v1, 3, &step);
+                        if(ImGui::RadioButton("Highlight", &f == highlightedFace)) {
+                            if(highlightedFace) {
+                                highlightedFace->material = highlightedMaterial;
+                            }
+                            if(&f == highlightedFace)
+                                highlightedFace = nullptr;
+                            else {
+                                highlightedFace = &f;
+                                highlightedMaterial = f.material;
+                                f.material = highlightMat;
+                            }
+                        }
                         ImGui::PopID();
                     }
                     ImGui::TreePop();

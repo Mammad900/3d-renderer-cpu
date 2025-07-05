@@ -37,7 +37,7 @@ class PhongMaterial : public Material {
 public:
     PhongMaterialProps mat;
 
-    PhongMaterial(PhongMaterialProps &mat, std::string name, MaterialFlags flags) 
+    PhongMaterial(const PhongMaterialProps &mat, std::string name, MaterialFlags flags) 
         : Material(name, flags, mat.normalMap.has_value()), mat(mat) { }
 
     Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) {
