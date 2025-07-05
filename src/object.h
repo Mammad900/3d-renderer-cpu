@@ -59,4 +59,16 @@ class RotatorComponent : public Component {
     std::string name() { return "Rotator"; }
 };
 
+class KeyboardControlComponent : public Component {
+    // This doesn't actually do anything itself. 
+    // sceneFile assigns scene->keyboardControl to this
+    // And main.cpp does the input handling
+  public:
+    Vector3f speed = {1,1,1};
+    KeyboardControlComponent(Object *obj, Vector3f speed)
+        : Component(obj), speed(speed) {}
+    std::string name() { return "Keyboard Control"; }
+    void GUI();
+};
+
 #endif /* __OBJECT_H__ */

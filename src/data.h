@@ -80,8 +80,10 @@ struct Scene {
     float godRaysSampleSize = 1.0f;
     bool bilinearShadowFiltering = true;
     TextureFilteringMode textureFilteringMode = TextureFilteringMode::NearestNeighbor;
+
     Color fogColor = {0,0,0,0};
     Texture<Color> *skyBox = new SolidTexture(Color{0,0,0,0});
+    KeyboardControlComponent *keyboardControl;
 };
 
 extern Scene *scene;

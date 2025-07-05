@@ -356,7 +356,12 @@ void parseObject(Scene* editingScene, std::ifstream &in, Object *parent) {
             rotatePerSecond *= M_PIf / 180.0f;
             obj->components.push_back(new RotatorComponent(obj, rotatePerSecond));
         }
-        else {
+        else if(key == "keyboardControl") {
+            Vector3f speed;
+            in >> speed;
+            editingScene->keyboardControl = new KeyboardControlComponent(obj, speed);
+            obj->components.push_back(editingScene->keyboardControl);
+        } else {
             cerr << "Invalid component type " << key << endl;
         }
     }
