@@ -34,7 +34,7 @@ Mesh* createPlane(Material* material, std::string name, uint16_t subdivisionsX, 
             mesh->vertices[vertexIndex] = {
                 {posX, 0.0f, posY}, // Position
                 {x / float(subdivisionsX), y / float(subdivisionsY)}, // UV
-                {0.0f, 1.0f, 0.0f} // Normal
+                {0.0f, -1.0f, 0.0f} // Normal
             };
             ++vertexIndex;
         }
