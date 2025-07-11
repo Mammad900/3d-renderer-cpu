@@ -253,5 +253,6 @@ Mesh *makeBall(string name, Material *mat, Material *matPentagons, int subdivisi
         v.normal = -v.position;
     mesh->faces.shrink_to_fit();
     mesh->vertices.shrink_to_fit();
+    mesh->flatShading = false;
     return mesh;
 }
