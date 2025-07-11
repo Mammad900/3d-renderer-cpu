@@ -32,4 +32,28 @@ public:
     }
 };
 
+template <typename T>
+class ErrorTexture : public Texture<T> {
+public:
+    ErrorTexture() {}
+    T sample(Vector2f uv, Vector2f, Vector2f) {
+        uv *= 8.0f;
+        if((int(uv.x)%2 == 0) ^ (int(uv.y)%2 == 0)) {
+            if constexpr(std::is_same_v<T, Color>)
+                return Color{0, 0, 0, 1}; // Black
+            else if constexpr(std::is_same_v<T, float>)
+                return 1.0f;
+            else if constexpr(std::is_same_v<T, Vector3f>)
+                return Vector3f{-1, -1, 1};
+        } else {
+            if constexpr(std::is_same_v<T, Color>)
+                return Color{1, 0, 1, 1}; // Magenta
+            else if constexpr(std::is_same_v<T, float>)
+                return 0.0f;
+            else if constexpr(std::is_same_v<T, Vector3f>)
+                return Vector3f{1, 1, 1};
+        }
+    }
+};
+
 #endif /* __TEXTURE_H__ */

@@ -36,7 +36,12 @@ void getTexture(Texture<T> *&t, istream& in, std::filesystem::path &referrer) {
         string path;
         in >> path;
         cout << "Loading texture " << path << flush;
-        sf::Image img(referrer.parent_path() / path);
+        sf::Image img;
+        if(!img.loadFromFile(referrer.parent_path() / path)) {
+            cerr << "Failed to load file" << endl;
+            t = new ErrorTexture<T>();
+            return;
+        }
         cout << "." << flush;
         ImageTexture<T> *res =  new ImageTexture<T>(img, c);
         cout << "." << endl;
@@ -51,7 +56,12 @@ void getNormalMap(istream& in, std::filesystem::path &referrer, PhongMaterialPro
     float strength;
     in >> filePath >> strength >> POM;
     cout << "Loading normal map " << filePath << flush;
-    sf::Image img(referrer.parent_path() / filePath);
+    sf::Image img;
+    if(!img.loadFromFile(referrer.parent_path() / filePath)) {
+        cerr << "Failed to load file" << endl;
+        mat.normalMap = new ErrorTexture<Vector3f>();
+        return;
+    }
     cout << "." << flush;
     mat.normalMap = new ImageTexture<Vector3f>(img, {strength, strength, 1});
     if (POM != -1) {
