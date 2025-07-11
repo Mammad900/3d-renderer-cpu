@@ -40,6 +40,7 @@ std::pair<Color, Vector3f> SpotLight::sample(Vector3f pos) {
         if(projected.z < 0 || projected.x < -1 || projected.x > 1 || projected.y < -1 || projected.y > 1 )
             strength = 0;
         else {
+            dist = projected.z;
             Vector2f pos = Vector2f{projected.x + 1, projected.y + 1}
                 .componentWiseMul(Vector2f{shadowMap->tFrame->size.x / 2.0f, shadowMap->tFrame->size.y / 2.0f});
 
