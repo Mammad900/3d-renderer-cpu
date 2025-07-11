@@ -281,6 +281,18 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                         size_t n;
                         in >> n;
                         editingScene->meshes.push_back(makeIcoSphere(name, mat, n));
+                    } else if(type == "regularDodecahedron") {
+                        editingScene->meshes.push_back(makeDodecahedron(name, mat, false));
+                    } else if(type == "pentakisDodecahedron") {
+                        editingScene->meshes.push_back(makeDodecahedron(name, mat, true));
+                    } else if(type == "truncatedIcosahedron") {
+                        editingScene->meshes.push_back(makeTruncatedIcosahedron(name, mat));
+                    } else if(type == "ball") {
+                        size_t n;
+                        string matName;
+                        in >> matName >> n;
+                        Material *mat2 = findMaterial(matName, editingScene);
+                        editingScene->meshes.push_back(makeBall(name, mat, mat2, n));
                     } else {
                         cerr << "Invalid unique mesh name " << type << endl;
                     }
