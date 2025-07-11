@@ -129,6 +129,7 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
             else if (word == "fullBright") { int x; in >> x; editingScene->fullBright = x; }
             else if (word == "wireFrame") { int x; in >> x; editingScene->wireFrame = x; }
             else if (word == "windowSize") { in >> frame->size.x >> frame->size.y; }
+            else if (word == "godRays") { editingScene->godRays = true; in >> editingScene->godRaysSampleSize; }
             else {
                 cerr << "Invalid setting " << word << endl;
             }
