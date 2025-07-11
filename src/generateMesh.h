@@ -22,6 +22,6 @@ Mesh *makeRegularIcosahedron(std::string name, Material *mat);
 Mesh *makeIcoSphere(std::string name, Material *mat, size_t subdivisionSteps);
 Mesh *makeDodecahedron(std::string name, Material *mat, bool pentakis);
 Mesh *makeTruncatedIcosahedron(std::string name, Material *mat, Material *matPentagons = nullptr);
-Mesh *makeBall(std::string name, Material *mat, Material *matPentagons, int subdivisionSteps);
+Mesh *makeBall(std::string name, Material *mat, Material *matPentagons, size_t subdivisionSteps);
 
 #endif /* __GENERATEMESH_H__ */

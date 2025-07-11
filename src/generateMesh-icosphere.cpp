@@ -242,7 +242,7 @@ Mesh *makeTruncatedIcosahedron(string name, Material *mat, Material *matPentagon
     return mesh;
 }
 
-Mesh *makeBall(string name, Material *mat, Material *matPentagons, int subdivisionSteps) {
+Mesh *makeBall(string name, Material *mat, Material *matPentagons, size_t subdivisionSteps) {
     Mesh *mesh = makeTruncatedIcosahedron(name, mat, matPentagons);
     for (size_t i = 0; i < subdivisionSteps; i++) {
         subdivideMesh2(mesh);
