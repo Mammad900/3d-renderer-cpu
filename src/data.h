@@ -79,6 +79,7 @@ struct Scene {
     bool godRays = false;
     float godRaysSampleSize = 1.0f;
     bool bilinearShadowFiltering = true;
+    float shadowBias = 0.1f;
     TextureFilteringMode textureFilteringMode = TextureFilteringMode::NearestNeighbor;
 
     Color fogColor = {0,0,0,0};

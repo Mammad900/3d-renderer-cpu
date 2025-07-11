@@ -88,8 +88,8 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     ImGui::Begin("Lights");
     ImGui::ColorEdit4("Ambient lighting", (float*)&editingScene->ambientLight, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
     ImGui::ColorEdit4("Fog", (float*)&editingScene->fogColor, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-    for (size_t i = 0; i < editingScene->lights.size(); i++)
-    {
+    ImGui::DragFloat("Shadow bias", &editingScene->shadowBias, 0.05);
+    for (size_t i = 0; i < editingScene->lights.size(); i++) {
         ImGui::PushID(i);
         if(ImGui::TreeNode("Light")) {
             Light *light = editingScene->lights[i];

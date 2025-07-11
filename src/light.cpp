@@ -24,6 +24,7 @@ Light::~Light() {
 }
 
 std::pair<Color, Vector3f> SpotLight::sample(Vector3f pos) {
+    float bias = obj->scene->shadowBias;
     Vector3f diff = pos - obj->globalPosition;
     float distSq = diff.lengthSquared();
     float dist = std::sqrt(distSq);
@@ -55,16 +56,16 @@ std::pair<Color, Vector3f> SpotLight::sample(Vector3f pos) {
                 float z4 = zBuffer[(uint)ceil(pos.x) + sizeX * (uint)ceil(pos.y)];
 
                 strength *= lerp2d(
-                    (float)(dist < z1 + 0.05), 
-                    (float)(dist < z2 + 0.05), 
-                    (float)(dist < z3 + 0.05), 
-                    (float)(dist < z4 + 0.05),
+                    (float)(dist < z1 + bias), 
+                    (float)(dist < z2 + bias), 
+                    (float)(dist < z3 + bias), 
+                    (float)(dist < z4 + bias),
                     decimalsY, decimalsX
                 );
             }
             else {
                 float z = shadowMap->tFrame->zBuffer[(uint)round(pos.x) + shadowMap->tFrame->size.x * (uint)round(pos.y)];
-                if (dist > z + 0.05)
+                if (dist > z + bias)
                     strength = 0;
             }
         }
