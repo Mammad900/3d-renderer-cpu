@@ -76,7 +76,8 @@
         "bitangent",
         "pentakis",
         "Phong",
-        "SFML"
+        "SFML",
+        "texel"
     ],
     "editor.detectIndentation": false
 }

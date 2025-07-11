@@ -40,6 +40,7 @@ set reverseAllFaces <0|1>        # flip all face winding
 set fullBright <0|1>             # disable all lighting
 set wireFrame <0|1>              # show wire-frames
 set whitePoint <float>           # HDR white point control
+set godRays <float>              # Enables god rays with the given sample size
 ```
 
 ## Scene Globals
@@ -47,6 +48,7 @@ set whitePoint <float>           # HDR white point control
 ```txt
 fog <r> <g> <b> <a>              # fog color (a defines intensity)
 ambientLight <r> <g> <b> <a>     # ambient lighting color (a defines intensity)
+skyBox <texture>                 # Sky-box texture (equirectangular uv mapping)
 ```
 
 ## Materials
@@ -66,15 +68,11 @@ This material is based on the [Phong Reflection Model](https://en.wikipedia.org/
 
 ```txt
 new material <name>
-    diffuseColor <r> <g> <b> <a>
-    diffuseTexture <path>
-    specularColor <r> <g> <b> <a>
-    specularTexture <path>
-    tintColor <r> <g> <b> <a>
-    tintTexture <path>
-    emissiveColor <r> <g> <b> <a>
-    emissiveTexture <path>
-    normalMap <path> <POM>
+    diffuse <texture>
+    specular <texture>
+    tint <texture>
+    emissive <texture>
+    normalMap <path> <strength> <POM>
     transparent
     doubleSided
     alphaCutout
@@ -109,6 +107,21 @@ POM parameter control Parallax [Occlusion] mapping:
 - `0`: Parallax Mapping
 - `>0`: Enable Parallax Occlusion Mapping, parameter controls steps. It is advised that the lowest amount that looks correct at high angles be used. A typical value is 5.
 
+### Earth Material
+
+```txt
+new material <name> earth
+    terrainDiffuse <texture>
+    oceanDiffuse <texture>
+    oceanSpecular <texture>
+    oceanMask <texture>
+    cityLights <texture>
+    cloudDiffuse <texture>
+    cloud <texture>
+    normalMap <path> <strength> <POM>
+end
+```
+
 ### Flags
 
 - **Transparent**: Used for partially transparent materials like glass, but not needed for alpha cutout.  
@@ -119,17 +132,53 @@ POM parameter control Parallax [Occlusion] mapping:
   In other words, transparent pixels in the base color texture will make the material transparent in the respective positions.  
   This will reduce some of the performance savings of deferred rendering, so use only on materials that use it. It's faster than the transparent flag, however.
 
+### Textures
+
+```txt
+... color <r> <g> <b> <a>           # Solid color #
+... texture <r> <g> <b> <a> <path>  # Texture loaded from file, given color is multiplied with each texel #
+```
+
+If the texture file couldn't be loaded, a black/magenta texture will replace it.
+
 ## Meshes
 
 ```txt
 new mesh <name> obj <material-name> <path>
+new mesh <name> stl <material-name> <path>
 new mesh <name> sphere <stacks> <sectors> <material-name>
 new mesh <name> plane <subdivision x> <subdivision y> <material-name>
+new mesh <name> custom|raw          # see custom meshes section below #
+    v <index> <x> <y> <z> <u> <v> [<nx> <ny> <nz>] # Raw meshes include normals #
+    m <material-name>
+    f <v1> <v2> <v3>
+    flat
+end
+new mesh <name> spheroid <type> <material-name> [<parameters>]
 ```
 
-- `obj`: loads a mesh from .obj file
-- `sphere`: procedurally generates a sphere. More stacks and sectors makes the object smoother at the cost of performance.
-- `plane`: procedurally generates a flat plane. Subdivision should be kept at 1 unless the object is large, in which case it should be increased.
+### Custom meshes
+
+To define a vertex: use command `v`, followed by the index (starts with 0), position and UV.
+
+To define a face, first switch to the material you want to assign to the face with `m`, then use `f` followed by the indices of its three vertices.
+
+There can be a maximum of 65536 vertices. (this actually applies to all meshes, not just custom ones)
+
+Use `flat` to disable smooth shading, which is enabled by default.
+
+### Spheroid Types
+
+Consult google or wikipedia if you don't know what these words mean.
+
+None of these are UV mapped.
+
+- `regularIcosahedron`
+- `subdividedIcosahedron <subdivision steps>` (subdivides by 2 and projects to sphere given number of times)
+- `regularDodecahedron`
+- `pentakisDodecahedron`
+- `truncatedIcosahedron`
+- `ball <pentagons-material-name> <subdivision steps>` (a truncated icosahedron with alternate material assigned to pentagonal faces, then subdivided and projected to a sphere)
 
 ## Objects
 
@@ -144,7 +193,7 @@ end
 
 Each object contains one or more components, or one or more children, or both, or neither.
 
-Object transforms propagate. This means that position, scale and rotation affect the children as well. For example, rotating an object causes its children to rotate around its center.s
+Object transforms propagate. This means that position, scale and rotation affect the children as well. For example, rotating an object causes its children to rotate around its center.
 
 ### Possible components
 
@@ -165,6 +214,8 @@ Alpha is light intensity.
     light directional <r> <g> <b> <a>
     light point <r> <g> <b> <a>
     light spot <r> <g> <b> <a> <spread inner> <spread outer> # Spread angle in degrees #
+               1 <resolution x> <resolution y>  # Enable shadow mapping #
+               0                                # Or disable #
 ...
 ```
 
@@ -194,7 +245,28 @@ There must be at least one camera per scene. The last camera created is used to 
     camera
         fov <fov>             # in degrees, default is 60 #
         nearFar <near> <far>  # Default is 0.1 and 100 #
+        whitePoint <float>    # HDR tone-mapping white point, default is the brightest pixel #
     end
+...
+```
+
+#### Rotator
+
+Applies a constant rotation to its object.
+
+```txt
+...
+    rotator <rx> <ry> <rz> # Speed in degrees per second  #
+...
+```
+
+#### Keyboard Control
+
+Allows the object's rotation to be controlled with arrow keys, and scale with num -+.
+
+```txt
+...
+    keyboardControl <sx> <sy> <sz> # Speed, x and y for look and z for zoom #
 ...
 ```
 
