@@ -134,7 +134,7 @@ void Camera::buildTriangles(
                         .mesh = mesh,
                         .cull = normalS.z < 0
                     };
-                    if (face.material->flags & MaterialFlags::Transparent) {
+                    if (face.material->flags.transparent) {
                         transparents.push_back(TransparentTriangle{
                             (v1s.screenPos.z + v2s.screenPos.z + v3s.screenPos.z) / 3, tri });
                     } else {
@@ -204,7 +204,7 @@ void deferredPass(uint n, uint i0, Camera *camera) {
             continue;
         }
         Fragment &f = frame->gBuffer[i];
-        if (frame->deferred && !(f.face->material->flags & MaterialFlags::AlphaCutout))
+        if (frame->deferred && !f.face->material->flags.alphaCutout)
             f.baseColor = f.face->material->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
         frame->framebuffer[i] = f.face->material->shade(f, frame->framebuffer[i], camera->obj->scene);
         if(camera->obj->scene->fogColor.a > 0)

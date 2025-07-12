@@ -147,7 +147,7 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
 
                 if(type == "phong") {
                     PhongMaterialProps mat{};
-                    MaterialFlags flags = MaterialFlags::None;
+                    MaterialFlags flags{};
                     string key;
                     while (in >> key && key != "end") {
                         if (key == "#") { while (in >> key && key != "#"); continue; }
@@ -163,11 +163,11 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                         } else if (key == "normalMap") {
                             getNormalMap(in, path, mat);
                         } else if (key == "transparent") {
-                            flags = flags | MaterialFlags::Transparent;
+                            flags.transparent = true;
                         } else if (key == "doubleSided") {
-                            flags = flags | MaterialFlags::DoubleSided;
+                            flags.doubleSided = true;
                         } else if (key == "alphaCutout") {
-                            flags = flags | MaterialFlags::AlphaCutout;
+                            flags.alphaCutout = true;
                         } else {
                             cerr << "Invalid material property " << key << endl;
                         }

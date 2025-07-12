@@ -85,13 +85,13 @@ void serializeMaterial(std::ofstream& out, Material* material, const std::filesy
             out << "    normalMap ";
             serializeNormalMap(out, mat, path, textureCounter);
         }
-        if (phongMaterial->flags & MaterialFlags::Transparent) {
+        if (phongMaterial->flags.transparent) {
             out << "    transparent\n";
         }
-        if (phongMaterial->flags & MaterialFlags::DoubleSided) {
+        if (phongMaterial->flags.doubleSided) {
             out << "    doubleSided\n";
         }
-        if (phongMaterial->flags & MaterialFlags::AlphaCutout) {
+        if (phongMaterial->flags.alphaCutout) {
             out << "    alphaCutout\n";
         }
         out << "end\n\n";

@@ -1,14 +1,15 @@
 #include "material.h"
 #include <imgui.h>
 
-void CheckboxFlag(const char *label, MaterialFlags &flags, MaterialFlags flag) {
-    bool on = flags & flag;
-    if(ImGui::Checkbox(label, &on))
-        flags ^= flag;
+bool CheckboxNP(const char *label, bool value) {
+    return ImGui::Checkbox(label, &value);
 }
 
 void Material::GUI() {
-    CheckboxFlag("Transparent", flags, MaterialFlags::Transparent);
-    CheckboxFlag("DoubleSided", flags, MaterialFlags::DoubleSided);
-    CheckboxFlag("AlphaCutout", flags, MaterialFlags::AlphaCutout);
+    if(CheckboxNP("Transparent", flags.transparent))
+        flags.transparent ^= true;
+    if(CheckboxNP("DoubleSided", flags.doubleSided))
+        flags.doubleSided ^= true;
+    if(CheckboxNP("AlphaCutout", flags.alphaCutout))
+        flags.alphaCutout ^= true;
 }

@@ -72,7 +72,7 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
     if(
             (camera->shadowMap ? !tri.cull : tri.cull) && // Shadow maps have front face culling
             scene->backFaceCulling &&
-            !(tri.mat->flags & (MaterialFlags::Transparent | MaterialFlags::DoubleSided))
+            !(tri.mat->flags.transparent || tri.mat->flags.doubleSided)
     )
         return;
 
@@ -176,7 +176,7 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
         //     return;
 
         Color baseColor = f.baseColor =
-            (frame->deferred && !(tri.mat->flags & MaterialFlags::AlphaCutout))
+            (frame->deferred && !tri.mat->flags.alphaCutout)
                 ? Color{0, 0, 0, 1}
                 : tri.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
 
@@ -184,7 +184,7 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
             return;
         if (frame->zBuffer[index] < f.z || f.z<0)
             return;
-        if(!(tri.mat->flags & MaterialFlags::Transparent))
+        if(!tri.mat->flags.transparent)
             frame->zBuffer[index] = f.z;
 
         if(defer) {

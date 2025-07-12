@@ -158,7 +158,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
                     static Material *highlightedMaterial = nullptr;
                     static Material *highlightMat = new PhongMaterial(PhongMaterialProps{
                         .emissive = new SolidTexture<Color>({1,1,0})
-                    }, "Highlight", MaterialFlags::DoubleSided);
+                    }, "Highlight", {.doubleSided = true});
 
                     for (uint16_t j = 0; j < mesh->faces.size(); j++) {
                         ImGui::PushID(j);

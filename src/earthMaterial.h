@@ -15,15 +15,15 @@ public:
     Texture<float> *oceanMask = new SolidTexture<float>(0);
     Texture<float> *cloudTexture = new SolidTexture<float>(0);
 
-    EarthMaterial(std::string name) : Material(name, MaterialFlags::None, true) {
+    EarthMaterial(std::string name) : Material(name, MaterialFlags{}, true) {
         PhongMaterialProps terrainProps{};
-        terrainMat = new PhongMaterial(terrainProps, name+" Terrain", MaterialFlags::None);
+        terrainMat = new PhongMaterial(terrainProps, name+" Terrain", MaterialFlags{});
 
         PhongMaterialProps oceanProps{};
-        oceanMat = new PhongMaterial(oceanProps, name+" Terrain", MaterialFlags::None);
+        oceanMat = new PhongMaterial(oceanProps, name+" Terrain", MaterialFlags{});
 
         PhongMaterialProps cloudProps{};
-        cloudMat = new PhongMaterial(cloudProps, name+" Terrain", MaterialFlags::None);
+        cloudMat = new PhongMaterial(cloudProps, name+" Terrain", MaterialFlags{});
     }
 
     Color shade(Fragment &f, Color previous, Scene *scene) {

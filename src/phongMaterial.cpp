@@ -19,7 +19,7 @@ void PhongMaterial::GUI() {
 
 Color PhongMaterial::shade(Fragment &f, Color previous, Scene *scene) {
     Vector3f viewDir = (scene->camera->obj->globalPosition - f.worldPos).normalized();
-    if(!(flags & Transparent) && (flags & DoubleSided) && f.isBackFace)
+    if(!flags.transparent && flags.doubleSided && f.isBackFace)
         f.normal *= -1.0f;
     Color matSpecular = mat.specular->sample(f);
     float shininess = pow(2.0f, matSpecular.a * 25.5f);
@@ -47,7 +47,7 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene *scene) {
         float receivedLight = normal.dot(direction);
 
         // Transparent double sided objects can be lit from any side.
-        if((flags & Transparent) && (flags & DoubleSided))
+        if(flags.transparent && flags.doubleSided)
             receivedLight = abs(receivedLight);
 
         // Diffuse
@@ -56,7 +56,7 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene *scene) {
                 diffuse += light * max(receivedLight, 0.0f);
         }
         // Or subsurface scattering
-        else if(!(flags & Transparent) && (flags & DoubleSided)) {
+        else if(!flags.transparent && flags.doubleSided) {
             sss += light * max(-receivedLight, 0.0f);
         }
 
@@ -70,7 +70,7 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene *scene) {
     }
 
     Color matTint{0,0,0,0};
-    if (!(flags & Transparent) && (flags & DoubleSided))
+    if (!flags.transparent && flags.doubleSided)
         matTint = mat.tint->sample(f);
     
     Color lighting = 
@@ -79,7 +79,7 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene *scene) {
         specular * matSpecular +
         matEmissive;
 
-    if(flags & MaterialFlags::Transparent) {
+    if(flags.transparent) {
         if(matTint.a == 0)
             matTint = mat.tint->sample(f);
         lighting = previous * matTint + lighting;

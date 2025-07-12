@@ -32,8 +32,6 @@ struct PhongMaterialProps {
 };
 
 class PhongMaterial : public Material {
-    using enum MaterialFlags;
-
 public:
     PhongMaterialProps mat;
 
