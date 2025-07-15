@@ -6,7 +6,7 @@
 #include <iostream>
 
 using sf::Vector2f, sf::Vector2u, sf::Vector2i;
-using std::swap, std::max, std::abs;
+using std::swap, std::min, std::max, std::abs, std::round;
 
 
 Vector2f v3to2(Vector3f in) {
@@ -16,32 +16,16 @@ Vector2f v2abs(Vector2f in) {
     return Vector2f{abs(in.x), abs(in.y)};
 }
 
-void plotVertex(RenderTarget* frame, Vector2f pos, float depth) {
-    depth = std::clamp(depth, 0.0f, 1.0f);
-    Color heatColor = Color{depth, 0, 1.0f - depth, 1.0f};
-    int cx = static_cast<int>(pos.x);
-    int cy = static_cast<int>(pos.y);
-
-    for (int dx = -10; dx <= 10; ++dx) {
-        for (int dy = -10; dy <= 10; ++dy) {
-            Vector2i p = {cx + dx, cy + dy};
-            if (p.x >= 0 && p.y >= 0 && p.x < (int)frame->size.x && p.y < (int)frame->size.y) {
-                frame->framebuffer[p.x + p.y * frame->size.x] = heatColor;
-            }
-        }
-    }
-}
-
 void drawLine(Vector2f from, Vector2f to, RenderTarget *frame) {
     Color color = Color{0, 0, 0, 1};
 
-    int x0 = std::round(from.x);
-    int y0 = std::round(from.y);
-    int x1 = std::round(to.x);
-    int y1 = std::round(to.y);
+    int x0 = round(from.x);
+    int y0 = round(from.y);
+    int x1 = round(to.x);
+    int y1 = round(to.y);
 
-    int dx = std::abs(x1 - x0);
-    int dy = std::abs(y1 - y0);
+    int dx = abs(x1 - x0);
+    int dy = abs(y1 - y0);
     int sx = (x0 < x1) ? 1 : -1;
     int sy = (y0 < y1) ? 1 : -1;
     int err = dx - dy;
@@ -69,20 +53,20 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
     RenderTarget *frame = camera->tFrame;
     Scene *scene = camera->obj->scene;
 
-    if(
+    if (
             (camera->shadowMap ? !tri.cull : tri.cull) && // Shadow maps have front face culling
             scene->backFaceCulling &&
             !(tri.mat->flags.transparent || tri.mat->flags.doubleSided)
     )
         return;
 
-    if(
-        (tri.s1.screenPos.x < -1 && tri.s2.screenPos.x < -1 && tri.s3.screenPos.x < -1 )||
-        (tri.s1.screenPos.x >  1 && tri.s2.screenPos.x >  1 && tri.s3.screenPos.x >  1 )||
-        (tri.s1.screenPos.y < -1 && tri.s2.screenPos.y < -1 && tri.s3.screenPos.y < -1 )||
-        (tri.s1.screenPos.y >  1 && tri.s2.screenPos.y >  1 && tri.s3.screenPos.y >  1 )||
-        (tri.s1.screenPos.z <  camera->nearClip && tri.s2.screenPos.z <  camera->nearClip && tri.s3.screenPos.z <  camera->nearClip )||
-        (tri.s1.screenPos.z >  camera->farClip && tri.s2.screenPos.z >  camera->farClip && tri.s3.screenPos.z >  camera->farClip )
+    if (
+        (tri.s1.screenPos.x < -1 && tri.s2.screenPos.x < -1 && tri.s3.screenPos.x < -1) ||
+        (tri.s1.screenPos.x >  1 && tri.s2.screenPos.x >  1 && tri.s3.screenPos.x >  1) ||
+        (tri.s1.screenPos.y < -1 && tri.s2.screenPos.y < -1 && tri.s3.screenPos.y < -1) ||
+        (tri.s1.screenPos.y >  1 && tri.s2.screenPos.y >  1 && tri.s3.screenPos.y >  1) ||
+        (tri.s1.screenPos.z <  camera->nearClip && tri.s2.screenPos.z <  camera->nearClip && tri.s3.screenPos.z <  camera->nearClip) ||
+        (tri.s1.screenPos.z >  camera->farClip && tri.s2.screenPos.z >  camera->farClip && tri.s3.screenPos.z >  camera->farClip)
     )
         return;
 
@@ -90,11 +74,7 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
              b = (v3to2(tri.s2.screenPos) + Vector2f{1, 1}).componentWiseMul(Vector2f{frame->size.x / 2.0f, frame->size.y / 2.0f}),
              c = (v3to2(tri.s3.screenPos) + Vector2f{1, 1}).componentWiseMul(Vector2f{frame->size.x / 2.0f, frame->size.y / 2.0f});
 
-    // plotVertex(frameSize, frame, a, tri.s1.screenPos.z);
-    // plotVertex(frameSize, frame, b, tri.s2.screenPos.z);
-    // plotVertex(frameSize, frame, c, tri.s3.screenPos.z);
-
-    if(scene->wireFrame) {
+    if (scene->wireFrame) {
         drawLine(a, b, frame);
         drawLine(c, b, frame);
         drawLine(a, c, frame);
@@ -113,16 +93,15 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
         Vector2f deltaUV1 = tri.uv2 - tri.uv1;
         Vector2f deltaUV2 = tri.uv3 - tri.uv1; 
 
-        float f = 1.0f / deltaUV1.cross(deltaUV2);
         tangent = Vector3f{
-            f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x),
-            f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y),
-            f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z),
+            deltaUV2.y * edge1.x - deltaUV1.y * edge2.x,
+            deltaUV2.y * edge1.y - deltaUV1.y * edge2.y,
+            deltaUV2.y * edge1.z - deltaUV1.y * edge2.z,
         }.normalized();
         bitangent = Vector3f{
-            f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x),
-            f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y),
-            f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z),
+            -deltaUV2.x * edge1.x + deltaUV1.x * edge2.x,
+            -deltaUV2.x * edge1.y + deltaUV1.x * edge2.y,
+            -deltaUV2.x * edge1.z + deltaUV1.x * edge2.z,
         }.normalized();
     }
 
@@ -130,22 +109,23 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
         Vector2f pp = {(float)p.x + 0.5f, (float)p.y + 0.5f};
         float C1 = -(b-pp).cross(c-pp) / areaOfTriangle;
         float C2 = -(c-pp).cross(a-pp) / areaOfTriangle;
-        if(tri.cull) {
+        if (tri.cull) { // If backface, C1 and C2 are negative
             C1 *= -1;
             C2 *= -1;
         }
-        float C3 = 1.0f - C1 - C2;
+        float C3 = 1.0f - C1 - C2; // C1+C2+C3=1 so take a shortcut
         bool inside = C1 >= 0 && C2 >= 0 && C3 >= 0;
-        C1 /= tri.s1.screenPos.z;
+        C1 /= tri.s1.screenPos.z; // Perspective correction
         C2 /= tri.s2.screenPos.z;
         C3 /= tri.s3.screenPos.z;
         float denom = 1 / (C1 + C2 + C3);
 
         #define INTERPOLATE_TRI(A,B,C) ((C1*(A) + C2*(B) + C3*(C))*denom)
-        float z = INTERPOLATE_TRI(tri.s1.screenPos.z, tri.s2.screenPos.z, tri.s3.screenPos.z);
-        Vector3f normal= tri.mesh->flatShading ? triangleNormal : INTERPOLATE_TRI(tri.s1.normal, tri.s2.normal, tri.s3.normal).normalized();
-        Vector3f worldPos= INTERPOLATE_TRI(tri.s1.worldPos, tri.s2.worldPos, tri.s3.worldPos);
-        Vector2f uv= INTERPOLATE_TRI(tri.uv1, tri.uv2, tri.uv3);
+        float z =           INTERPOLATE_TRI(tri.s1.screenPos.z, tri.s2.screenPos.z, tri.s3.screenPos.z);
+        Vector3f normal = tri.mesh->flatShading ? triangleNormal : 
+                            INTERPOLATE_TRI(tri.s1.normal, tri.s2.normal, tri.s3.normal).normalized();
+        Vector3f worldPos = INTERPOLATE_TRI(tri.s1.worldPos, tri.s2.worldPos, tri.s3.worldPos);
+        Vector2f uv =       INTERPOLATE_TRI(tri.uv1, tri.uv2, tri.uv3);
         #undef INTERPOLATE_TRI
 
         Fragment f{
@@ -163,7 +143,7 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
         return f;
     };
     auto &&postFragment = [&](Fragment &f) -> void {
-        if(
+        if (
             f.screenPos.x < 0 || 
             f.screenPos.y < 0 || 
             f.screenPos.x >= (int)frame->size.x || 
@@ -172,22 +152,20 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
         )
             return;
         size_t index = f.screenPos.x + f.screenPos.y * frame->size.x;
-        // if(index > frame->size.x * frame->size.y)
-        //     return;
 
         Color baseColor = f.baseColor =
-            (frame->deferred && !tri.mat->flags.alphaCutout)
+            (defer && !tri.mat->flags.alphaCutout)
                 ? Color{0, 0, 0, 1}
                 : tri.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
 
-        if(baseColor.a < 0.5f)
+        if (baseColor.a < 0.5f)
             return;
         if (frame->zBuffer[index] < f.z || f.z<0)
             return;
-        if(!tri.mat->flags.transparent)
+        if (!tri.mat->flags.transparent)
             frame->zBuffer[index] = f.z;
 
-        if(defer) {
+        if (defer) {
             frame->gBuffer[index] = f;
         } else {
             frame->framebuffer[index] = scene->fullBright ?
@@ -196,12 +174,12 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
         }
     };
 
-    float minY = std::min({a.y, b.y, c.y});
-    float maxY = std::max({a.y, b.y, c.y});
-    float minX = std::min({a.x, b.x, c.x});
-    float maxX = std::max({a.x, b.x, c.x});
+    float minY = min({a.y, b.y, c.y});
+    float maxY = max({a.y, b.y, c.y});
+    float minX = min({a.x, b.x, c.x});
+    float maxX = max({a.x, b.x, c.x});
 
-    for (int y = minY; y < maxY; y+=2)
+    for (int y = minY; y < maxY; y+=2) {
         for (int x = minX; x < maxX; x+=2) {
             Fragment f1 = getFragment({x  ,y  });
             Fragment f2 = getFragment({x+1,y  });
@@ -220,4 +198,5 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
             postFragment(f3);
             postFragment(f4);
         }
+    }
 }
