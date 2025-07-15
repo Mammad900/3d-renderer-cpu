@@ -6,12 +6,23 @@ void Object::update() {
     for (auto &&c : components)
         c->preUpdate();
 
-    myTransformRotation = makeRotationMatrix(rotation);
-    myTransform = makeTransformMatrix(myTransformRotation, scale, position);
-    if(parent) {
+    TransformMatrix scaleT{
+        scale.x, 0, 0, 0,
+        0, scale.y, 0, 0,
+        0, 0, scale.z, 0,
+        0, 0, 0, 1,
+    }, translate{
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        position.x, position.y, position.z, 1,
+    };
+    myTransformRotation = scaleT * makeRotationMatrix(rotation);
+    myTransform = myTransformRotation * translate;
+    if (parent) {
         transform = myTransform * parent->transform;
         transformRotation = myTransformRotation * parent->transformRotation;
-        globalPosition = Vector3f{0, 0, 0} * transform;
+        globalPosition = {transform[12], transform[13], transform[14]};
     }
     else {
         transform = myTransform;

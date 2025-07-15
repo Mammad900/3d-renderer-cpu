@@ -18,8 +18,6 @@ void makeIdentityMatrix(float *out, int size);
 TransformMatrix operator*(const TransformMatrix &a, const TransformMatrix &b);
 Vector3f operator* (const Vector3f &a, const TransformMatrix &b);
 TransformMatrix makeRotationMatrix(Vector3f R);
-TransformMatrix makeTransformMatrix(TransformMatrix R, Vector3f S, Vector3f T);
-TransformMatrix makeTransformMatrix(Vector3f R, Vector3f S, Vector3f T);
 TransformMatrix transposeMatrix(TransformMatrix &mat);
 
 #endif /* __MATRIX_H__ */

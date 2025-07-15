@@ -101,22 +101,6 @@ TransformMatrix makeRotationMatrix(Vector3f R) {
         0,0,0,1,
     };
 }
-TransformMatrix makeTransformMatrix(TransformMatrix R, Vector3f S, Vector3f T) {
-    return TransformMatrix{
-        S.x, 0, 0, 0,
-        0, S.y, 0, 0,
-        0, 0, S.z, 0,
-        0, 0, 0, 1,
-    } * R * TransformMatrix{
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        T.x, T.y, T.z, 1,
-    };
-}
-TransformMatrix makeTransformMatrix(Vector3f R, Vector3f S, Vector3f T) {
-    return makeTransformMatrix(makeRotationMatrix(R), S, T);
-}
 
 TransformMatrix transposeMatrix(TransformMatrix &mat) {
     TransformMatrix transposed;
