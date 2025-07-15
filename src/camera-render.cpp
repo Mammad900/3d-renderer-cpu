@@ -20,9 +20,9 @@ bool init = false;
 
 void Camera::render() {
     if(shadowMap) {
-        drawSkyBox();
-
         makePerspectiveProjectionMatrix();
+
+        drawSkyBox();
 
         std::vector<Triangle> triangles;
         std::vector<TransparentTriangle> transparents;
@@ -34,11 +34,10 @@ void Camera::render() {
     } 
     else {
         timing.clock.restart();
+        makePerspectiveProjectionMatrix();
         drawSkyBox();
         timing.skyBoxTime.push(timing.clock);
 
-
-        makePerspectiveProjectionMatrix();
 
         std::vector<Triangle> triangles;
         std::vector<TransparentTriangle> transparents;
