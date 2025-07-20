@@ -23,12 +23,12 @@ Light::~Light() {
     }
 }
 
-std::pair<Color, Vector3f> SpotLight::sample(Vector3f pos) {
+std::pair<Color, Vec3> SpotLight::sample(Vec3 pos) {
     float bias = obj->scene->shadowBias;
-    Vector3f diff = pos - obj->globalPosition;
+    Vec3 diff = pos - obj->globalPosition;
     float distSq = diff.lengthSquared();
     float dist = std::sqrt(distSq);
-    Vector3f distNormalized = diff / dist;
+    Vec3 distNormalized = diff / dist;
     float cos = distNormalized.dot(direction);
     if(cos < spreadOuterCos)
         return {{0, 0, 0, 0}, {0, 0, 0}};
@@ -36,7 +36,7 @@ std::pair<Color, Vector3f> SpotLight::sample(Vector3f pos) {
 
 
     if(shadowMap) {
-        Vector3f projected = shadowMap->perspectiveProject(pos).screenPos;
+        Vec3 projected = shadowMap->perspectiveProject(pos).screenPos;
         if(projected.z < 0 || projected.x < -1 || projected.x > 1 || projected.y < -1 || projected.y > 1 )
             strength = 0;
         else {

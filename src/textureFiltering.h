@@ -46,8 +46,8 @@ public:
                     color = pixel;
                 } else if constexpr (std::is_same_v<T, float>) {
                     color = {0, 0, 0, pixel};
-                } else if constexpr (std::is_same_v<T, Vector3f>) {
-                    pixel = (pixel.componentWiseMul({-1,-1,1}) + Vector3f{1,1,1}) / 2.0f;
+                } else if constexpr (std::is_same_v<T, Vec3>) {
+                    pixel = (pixel.componentWiseMul({-1,-1,1}) + Vec3{1,1,1}) / 2.0f;
                     color = {pixel.x, pixel.y, pixel.z, 1};
                 } else {
                     std::cerr << "Unsupported texture type for saving to image." << std::endl;
@@ -150,7 +150,7 @@ public:
             res = pixels[(int)round(pos.x) + atlasSize.x * (int)round(pos.y)];
         }
 
-        if constexpr(std::is_same_v<T, Vector3f>) {
+        if constexpr(std::is_same_v<T, Vec3>) {
             return res.componentWiseMul(this->value);
         } else {
             return res * this->value;

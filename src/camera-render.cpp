@@ -119,7 +119,7 @@ void Camera::buildTriangles(
                     Projection v1s = projectedVertices[face.v1],
                                v2s = projectedVertices[face.v2],
                                v3s = projectedVertices[face.v3];
-                    Vector3f normalS = (v3s.screenPos - v1s.screenPos).cross(v2s.screenPos - v1s.screenPos).normalized();
+                    Vec3 normalS = (v3s.screenPos - v1s.screenPos).cross(v2s.screenPos - v1s.screenPos).normalized();
 
                     Triangle tri = {
                         .s1 = v1s,
@@ -166,7 +166,7 @@ void Camera::drawSkyBox() {
                 } else {
                     Vector2f worldPos {x / (float)tFrame->size.x, y / (float)tFrame->size.y};
                     worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * tanHalfFov;
-                    Vector3f lookVector = Vector3f{worldPos.x, worldPos.y, 1} * obj->transformRotation;
+                    Vec3 lookVector = Vec3{worldPos.x, worldPos.y, 1} * obj->transformRotation;
                     lookVector = lookVector.normalized();
 
                     Vector2f uv {

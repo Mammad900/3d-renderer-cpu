@@ -1,10 +1,9 @@
-#include <SFML/System/Vector3.hpp>
 #include <array>
 #include <math.h>
 #include <vector>
 #include "matrix.h"
 
-using sf::Vector3f;
+
 
 void matAdd(float *a, float *b, float *out, int rows, int cols) {
     for (int i = 0; i < rows; ++i) {
@@ -73,15 +72,15 @@ TransformMatrix operator* (const TransformMatrix &a, const TransformMatrix &b) {
     return res;
 }
 
-Vector3f operator* (const Vector3f &a, const TransformMatrix &b) {
+Vec3 operator* (const Vec3 &a, const TransformMatrix &b) {
     float arr[4] = {a.x, a.y, a.z, 1};
     matMul(arr, b.data(), arr, 1, 4, 4);
     return {arr[0], arr[1], arr[2]};
 }
 
-TransformMatrix makeRotationMatrix(Vector3f R) {
-    Vector3f s = {sin(R.x), sin(R.y), sin(R.z)};
-    Vector3f c = {cos(R.x), cos(R.y), cos(R.z)};
+TransformMatrix makeRotationMatrix(Vec3 R) {
+    Vec3 s = {sin(R.x), sin(R.y), sin(R.z)};
+    Vec3 c = {cos(R.x), cos(R.y), cos(R.z)};
 
     //x
     return TransformMatrix{

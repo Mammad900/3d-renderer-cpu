@@ -6,7 +6,7 @@
 #include "texture.h"
 #include "material.h"
 
-using sf::Vector3f, sf::Vector2f, sf::Vector2u, sf::Vector2i, std::optional, std::shared_ptr, std::unique_ptr, std::vector;
+using sf::Vector2f, sf::Vector2u, sf::Vector2i, std::optional, std::shared_ptr, std::unique_ptr, std::vector;
 
 enum class TextureFilteringMode : uint8_t {
     None = 0,
@@ -18,15 +18,15 @@ enum class TextureFilteringMode : uint8_t {
 class Material;
 
 struct Projection {
-    Vector3f worldPos;
-    Vector3f screenPos;
-    Vector3f normal;
+    Vec3 worldPos;
+    Vec3 screenPos;
+    Vec3 normal;
 };
 
 struct Vertex {
-    Vector3f position;
+    Vec3 position;
     Vector2f uv;
-    Vector3f normal;
+    Vec3 normal;
 };
 
 struct Face {
@@ -47,10 +47,10 @@ struct Mesh {
 struct Fragment {
     Vector2i screenPos;
     float z;
-    Vector3f worldPos;
-    Vector3f normal;
-    Vector3f tangent;
-    Vector3f bitangent;
+    Vec3 worldPos;
+    Vec3 normal;
+    Vec3 tangent;
+    Vec3 bitangent;
     Vector2f uv;
     Vector2f dUVdx;
     Vector2f dUVdy;

@@ -9,8 +9,8 @@
 
 using std::ostream, std::cout, std::cerr, std::endl, std::flush;
 
-// Define serialization for Vector3f
-ostream& operator<<(ostream& out, const Vector3f& v) {
+// Define serialization for Vec3
+ostream& operator<<(ostream& out, const Vec3& v) {
     out << v.x << " " << v.y << " " << v.z;
     return out;
 }
@@ -47,7 +47,7 @@ void serializeTexture(std::ofstream& out, Texture<T>* texture, const std::filesy
 }
 
 void serializeNormalMap(std::ofstream& out, PhongMaterialProps& mat, const std::filesystem::path& path, int& textureCounter) {
-    auto map = dynamic_cast<ImageTexture<Vector3f>*>(mat.normalMap.value());
+    auto map = dynamic_cast<ImageTexture<Vec3>*>(mat.normalMap.value());
     std::filesystem::path texturePath = path.parent_path() / (std::to_string(textureCounter++) + ".png");
     cout << "Saving normal map " << texturePath << flush;
     sf::Image textureImage = map->saveToImage();

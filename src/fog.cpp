@@ -17,21 +17,21 @@ void Camera::fogPixel(int x, int y) {
     worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * z * tanHalfFov; 
 
     tFrame->framebuffer[i] = sampleFog(
-        Vector3f{worldPos.x, worldPos.y, z} * obj->transform, 
+        Vec3{worldPos.x, worldPos.y, z} * obj->transform, 
         obj->globalPosition,
         tFrame->framebuffer[i],
         obj->scene
     );
 }
 
-Color sampleFog(Vector3f start, Vector3f end, Color background, Scene *scene) {
+Color sampleFog(Vec3 start, Vec3 end, Color background, Scene *scene) {
     if(scene->godRays) {
         float sampleLength = scene->godRaysSampleSize;
         float visibility = std::clamp(std::powf(0.5f, sampleLength * scene->fogColor.a), 0.0f, 1.0f); // Exponential falloff
-        Vector3f diff = end - start;
-        Vector3f now = start;
+        Vec3 diff = end - start;
+        Vec3 now = start;
         float remaining = diff.length();
-        Vector3f step = diff * (sampleLength / remaining); // diff.normalized()
+        Vec3 step = diff * (sampleLength / remaining); // diff.normalized()
         Color color = background;
         while (remaining > 0) {
             now += step;

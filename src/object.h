@@ -21,9 +21,9 @@ struct Scene;
 
 struct Object {
     std::string name;
-    Vector3f position;
-    Vector3f rotation;
-    Vector3f scale = {1,1,1};
+    Vec3 position;
+    Vec3 rotation;
+    Vec3 scale = {1,1,1};
 
     std::vector<Component *> components;
     std::vector<Object *> children;
@@ -34,7 +34,8 @@ struct Object {
     TransformMatrix transformRotation;
     TransformMatrix myTransform;
     TransformMatrix myTransformRotation;
-    Vector3f globalPosition;
+    TransformMatrix transformNormals;
+    Vec3 globalPosition;
 
     void update();
     void GUI();
@@ -49,9 +50,9 @@ class MeshComponent : public Component {
 
 class RotatorComponent : public Component {
   public:
-    Vector3f rotatePerSecond;
+    Vec3 rotatePerSecond;
     bool enable = true;
-    RotatorComponent(Object *obj, Vector3f rotatePerSecond)
+    RotatorComponent(Object *obj, Vec3 rotatePerSecond)
         : Component(obj), rotatePerSecond(rotatePerSecond) {}
 
     void preUpdate();
@@ -64,8 +65,8 @@ class KeyboardControlComponent : public Component {
     // sceneFile assigns scene->keyboardControl to this
     // And main.cpp does the input handling
   public:
-    Vector3f speed = {1,1,1};
-    KeyboardControlComponent(Object *obj, Vector3f speed)
+    Vec3 speed = {1,1,1};
+    KeyboardControlComponent(Object *obj, Vec3 speed)
         : Component(obj), speed(speed) {}
     std::string name() { return "Keyboard Control"; }
     void GUI();

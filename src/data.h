@@ -6,7 +6,7 @@
 #include "camera.h"
 #include <SFML/Graphics.hpp>
 
-using sf::Vector3f, sf::Vector2u;
+using sf::Vector2u;
 
 extern sf::RenderWindow *renderWindow;
 struct RenderTarget {

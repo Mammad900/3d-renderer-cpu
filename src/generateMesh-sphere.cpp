@@ -32,10 +32,10 @@ Mesh* createSphere(Material* material, std::string name, uint16_t stacks, uint16
             float y = std::cos(phi);
             float z = std::sin(phi) * std::sin(theta);
             
-            // Set position. (Assuming Vector3f can be constructed from an initializer list.)
-            mesh->vertices[index].position = Vector3f { x, y, z };
+            // Set position. (Assuming Vec3 can be constructed from an initializer list.)
+            mesh->vertices[index].position = Vec3 { x, y, z };
             // For a unit sphere, the normal is the same as the position.
-            mesh->vertices[index].normal = -Vector3f { x, y, z }.normalized();
+            mesh->vertices[index].normal = -Vec3 { x, y, z }.normalized();
             // UV coordinates: u is along the theta direction, v along the phi direction.
             mesh->vertices[index].uv = Vector2f { static_cast<float>(j) / sectors, static_cast<float>(i) / stacks };
         }

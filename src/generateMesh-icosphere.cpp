@@ -123,7 +123,7 @@ void subdivideMesh3(Mesh *mesh) {
         } else {
             v223 = v_1; v233 = v_1 + 1;
         }
-        Vector3f v123pos = (1 / 3.0f) * (mesh->vertices[f.v1].position +
+        Vec3 v123pos = (1 / 3.0f) * (mesh->vertices[f.v1].position +
                                          mesh->vertices[f.v2].position +
                                          mesh->vertices[f.v3].position);
         v123 = mesh->vertices.size();
@@ -173,7 +173,7 @@ Mesh *makeDodecahedron(string name, Material *mat, bool pentakis) {
 
     // Find icosahedron face centers which become dodecahedron vertices
     for (auto &&f : icosahedron->faces) {
-        Vector3f pos = (1 / 3.0f) * (icosahedron->vertices[f.v1].position +
+        Vec3 pos = (1 / 3.0f) * (icosahedron->vertices[f.v1].position +
                                      icosahedron->vertices[f.v2].position +
                                      icosahedron->vertices[f.v3].position);
         pos = pos.normalized();
@@ -183,7 +183,7 @@ Mesh *makeDodecahedron(string name, Material *mat, bool pentakis) {
     // Triangulates a pentagonal face.
     auto makeFace = [&](uint16_t v1, uint16_t v2, uint16_t v3, uint16_t v4, uint16_t v5) {
         uint16_t i = vertices.size();
-        Vector3f pos = 0.2f * (vertices[v1].position + vertices[v2].position +
+        Vec3 pos = 0.2f * (vertices[v1].position + vertices[v2].position +
                                vertices[v3].position + vertices[v4].position +
                                vertices[v5].position);
         if(pentakis) pos = pos.normalized();

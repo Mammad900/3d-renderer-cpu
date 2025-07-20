@@ -12,7 +12,7 @@ using std::istream, std::cout, std::cerr, std::endl, std::string, std::flush;
 
 void parseObject(Scene *editingScene, std::ifstream &in, Object *parent);
 
-istream& operator>>(istream& in, Vector3f& v){
+istream& operator>>(istream& in, Vec3& v){
     in >> v.x >> v.y >> v.z;
     return in;
 }
@@ -59,11 +59,11 @@ void getNormalMap(istream& in, std::filesystem::path &referrer, PhongMaterialPro
     sf::Image img;
     if(!img.loadFromFile(referrer.parent_path() / filePath)) {
         cerr << "Failed to load file" << endl;
-        mat.normalMap = new ErrorTexture<Vector3f>();
+        mat.normalMap = new ErrorTexture<Vec3>();
         return;
     }
     cout << "." << flush;
-    mat.normalMap = new ImageTexture<Vector3f>(img, {strength, strength, 1});
+    mat.normalMap = new ImageTexture<Vec3>(img, {strength, strength, 1});
     if (POM != -1) {
         mat.POM = POM;
         cout << "." << flush;
@@ -242,7 +242,7 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                         if (key == "#") { while (in >> key && key != "#"); continue; }
                         
                         if(key == "v") {
-                            Vector3f pos, normal = {0,0,0};
+                            Vec3 pos, normal = {0,0,0};
                             Vector2f uv;
                             uint16_t i;
                             in >> i >> pos >> uv;
@@ -387,13 +387,13 @@ void parseObject(Scene* editingScene, std::ifstream &in, Object *parent) {
             obj->components.push_back(cam);
         }
         else if(key == "rotator") {
-            Vector3f rotatePerSecond;
+            Vec3 rotatePerSecond;
             in >> rotatePerSecond;
             rotatePerSecond *= M_PIf / 180.0f;
             obj->components.push_back(new RotatorComponent(obj, rotatePerSecond));
         }
         else if(key == "keyboardControl") {
-            Vector3f speed;
+            Vec3 speed;
             in >> speed;
             editingScene->keyboardControl = new KeyboardControlComponent(obj, speed);
             obj->components.push_back(editingScene->keyboardControl);

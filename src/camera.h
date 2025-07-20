@@ -16,7 +16,7 @@ class Camera : public Component {
     std::string name() { return "Camera"; }
     void GUI();
     void fogPixel(int x, int y);
-    Projection perspectiveProject(Vector3f a);
+    Projection perspectiveProject(Vec3 a);
 
   private:
     void makePerspectiveProjectionMatrix();

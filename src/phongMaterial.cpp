@@ -3,7 +3,7 @@
 
 using std::max, std::min;
 
-Vector3f v2reflect(Vector3f in, Vector3f normal) {
+Vec3 v2reflect(Vec3 in, Vec3 normal) {
     return in - normal * in.dot(normal) * 2.0f;
 }
 
@@ -18,7 +18,7 @@ void PhongMaterial::GUI() {
 }
 
 Color PhongMaterial::shade(Fragment &f, Color previous, Scene *scene) {
-    Vector3f viewDir = (scene->camera->obj->globalPosition - f.worldPos).normalized();
+    Vec3 viewDir = (scene->camera->obj->globalPosition - f.worldPos).normalized();
     if(!flags.transparent && flags.doubleSided && f.isBackFace)
         f.normal *= -1.0f;
     Color matSpecular = mat.specular->sample(f);
@@ -29,7 +29,7 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene *scene) {
     Color sss = {0, 0, 0, 1};
     Color specular = {0, 0, 0, 1};
 
-    Vector3f normal = f.normal;
+    Vec3 normal = f.normal;
     if (mat.normalMap) {
         normal = mat.normalMap.value()->sample(f);
         normal = f.tangent * normal.x

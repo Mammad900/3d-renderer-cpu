@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
             scene->objects[0]->rotation.y += 0.01;
         }
         if(window.hasFocus() && scene->keyboardControl) {
-            Vector3f speed = timing.deltaTime * scene->keyboardControl->speed;
+            Vec3 speed = timing.deltaTime * scene->keyboardControl->speed;
             Object *obj = scene->keyboardControl->obj;
             using sf::Keyboard::Key, sf::Keyboard::isKeyPressed;
             if(isKeyPressed(Key::Right))

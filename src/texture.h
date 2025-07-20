@@ -27,7 +27,7 @@ public:
             ImGui::ColorEdit4(label.c_str(), (float*)&value, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
         else if constexpr(std::is_same_v<T, float>)
             ImGui::DragFloat(label.c_str(), &value);
-        else if constexpr(std::is_same_v<T, Vector3f>)
+        else if constexpr(std::is_same_v<T, Vec3>)
             ImGui::DragFloat3(label.c_str(), (float*)&value);
     }
 };
@@ -43,15 +43,15 @@ public:
                 return Color{0, 0, 0, 1}; // Black
             else if constexpr(std::is_same_v<T, float>)
                 return 1.0f;
-            else if constexpr(std::is_same_v<T, Vector3f>)
-                return Vector3f{-1, -1, 1};
+            else if constexpr(std::is_same_v<T, Vec3>)
+                return Vec3{-1, -1, 1};
         } else {
             if constexpr(std::is_same_v<T, Color>)
                 return Color{1, 0, 1, 1}; // Magenta
             else if constexpr(std::is_same_v<T, float>)
                 return 0.0f;
-            else if constexpr(std::is_same_v<T, Vector3f>)
-                return Vector3f{1, 1, 1};
+            else if constexpr(std::is_same_v<T, Vec3>)
+                return Vec3{1, 1, 1};
         }
     }
 };

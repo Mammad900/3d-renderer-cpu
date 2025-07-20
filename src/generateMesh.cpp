@@ -8,7 +8,7 @@ void bakeMeshNormals(Mesh &mesh) {
         Vertex &v1 = mesh.vertices[face.v1];
         Vertex &v2 = mesh.vertices[face.v2];
         Vertex &v3 = mesh.vertices[face.v3];
-        Vector3f normal = (v3.position - v1.position)
+        Vec3 normal = (v3.position - v1.position)
                               .cross(v2.position - v1.position)
                               .normalized();
         v1.normal += normal;

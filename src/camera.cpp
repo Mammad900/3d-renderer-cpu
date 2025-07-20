@@ -4,13 +4,13 @@
 #include <functional>
 #include <SFML/System/Clock.hpp>
 
-Projection Camera::perspectiveProject(Vector3f a) {
-    Vector3f b = a - obj->globalPosition;
+Projection Camera::perspectiveProject(Vec3 a) {
+    Vec3 b = a - obj->globalPosition;
     float vM[4] = {b.x, b.y, b.z, 1};
     matMul(vM, projectionMatrix.data(), vM, 1, 4, 4);
     return Projection{
         .worldPos = a,
-        .screenPos = Vector3f{vM[0] / vM[3], vM[1] / vM[3], -vM[3]},
+        .screenPos = Vec3{vM[0] / vM[3], vM[1] / vM[3], -vM[3]},
     };
 }
 

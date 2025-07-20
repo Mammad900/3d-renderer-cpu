@@ -29,11 +29,11 @@ Mesh* loadSTL(const std::string& filename, Material* mat, std::string name) {
         file.read(reinterpret_cast<char*>(&numTriangles), sizeof(numTriangles));
 
         for (uint32_t i = 0; i < numTriangles; ++i) {
-            Vector3f normal, v1, v2, v3;
-            file.read(reinterpret_cast<char*>(&normal), sizeof(Vector3f));
-            file.read(reinterpret_cast<char*>(&v1), sizeof(Vector3f));
-            file.read(reinterpret_cast<char*>(&v2), sizeof(Vector3f));
-            file.read(reinterpret_cast<char*>(&v3), sizeof(Vector3f));
+            Vec3 normal, v1, v2, v3;
+            file.read(reinterpret_cast<char*>(&normal), sizeof(Vec3));
+            file.read(reinterpret_cast<char*>(&v1), sizeof(Vec3));
+            file.read(reinterpret_cast<char*>(&v2), sizeof(Vec3));
+            file.read(reinterpret_cast<char*>(&v3), sizeof(Vec3));
 
             uint16_t attributeByteCount;
             file.read(reinterpret_cast<char*>(&attributeByteCount), sizeof(attributeByteCount));
@@ -57,12 +57,12 @@ Mesh* loadSTL(const std::string& filename, Material* mat, std::string name) {
             iss >> keyword;
 
             if (keyword == "facet") {
-                Vector3f normal;
+                Vec3 normal;
                 iss >> keyword >> normal.x >> normal.y >> normal.z; // "normal x y z"
 
                 std::getline(file, line); // Skip "outer loop"
 
-                Vector3f v1, v2, v3;
+                Vec3 v1, v2, v3;
                 for (int i = 0; i < 3; ++i) {
                     std::getline(file, line);
                     std::istringstream vertexStream(line);

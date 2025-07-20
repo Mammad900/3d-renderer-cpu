@@ -3,6 +3,6 @@
 
 #include "data.h"
 
-Color sampleFog(Vector3f start, Vector3f end, Color background, Scene *scene);
+Color sampleFog(Vec3 start, Vec3 end, Color background, Scene *scene);
 
 #endif /* __FOG_H__ */

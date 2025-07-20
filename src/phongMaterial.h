@@ -22,7 +22,7 @@ struct PhongMaterialProps {
     Texture<Color> *emissive = new SolidTexture<Color>({0,0,0,0});
 
     // Normal map, used to add detail that would otherwise require a lot of polygons
-    optional<Texture<Vector3f>*> normalMap;
+    optional<Texture<Vec3>*> normalMap;
 
     // Displacement map, used to do Parallax [Occlusion] Mapping. Only used if a normal map is also defined.
     optional<Texture<float>*> displacementMap;

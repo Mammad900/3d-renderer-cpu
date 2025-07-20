@@ -8,4 +8,4 @@ inline T Texture<T>::sample(Fragment &f) {
 
 template class Texture<Color>;
 template class Texture<float>;
-template class Texture<Vector3f>;
+template class Texture<Vec3>;

@@ -1,13 +1,13 @@
 #ifndef __COLOR_H__
 #define __COLOR_H__
 #include <SFML/Graphics/Color.hpp>
-#include <SFML/System/Vector3.hpp>
 #include <algorithm>
 #include <math.h>
 #include <istream>
+#include "vector3.h"
 
 typedef float colorComponent_t;
-using sf::Vector3f;
+
 
 struct Color {
     colorComponent_t r;
@@ -72,7 +72,7 @@ struct Color {
         int b = std::clamp((int)(this->b * 255), 0, 255);
         return sf::Color(r, g, b);
     }
-    operator Vector3f() const { return ((Vector3f{r, g, b} * 2.0f) - Vector3f{1.0f,1.0f,1.0f}).componentWiseMul({-1,-1,1}); }
+    operator Vec3() const { return ((Vec3{r, g, b} * 2.0f) - Vec3{1.0f,1.0f,1.0f}).componentWiseMul({-1,-1,1}); }
     operator float() const { return a; }
 
     friend std::istream& operator>>(std::istream &is, Color &color) {

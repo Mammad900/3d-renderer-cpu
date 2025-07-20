@@ -9,7 +9,7 @@ using sf::Vector2f, sf::Vector2u, sf::Vector2i;
 using std::swap, std::min, std::max, std::abs, std::round;
 
 
-Vector2f v3to2(Vector3f in) {
+Vector2f v3to2(Vec3 in) {
     return Vector2f{in.x, in.y};
 }
 Vector2f v2abs(Vector2f in) {
@@ -82,23 +82,23 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
 
     float areaOfTriangle = abs((b - a).cross(c - a)); // Two times the area of the triangle
 
-    Vector3f triangleNormal = tri.mesh->flatShading ?
+    Vec3 triangleNormal = tri.mesh->flatShading ?
          (tri.s3.worldPos - tri.s1.worldPos).cross(tri.s2.worldPos - tri.s1.worldPos).normalized()
-         : Vector3f{0,0,0};
+         : Vec3{0,0,0};
 
-    Vector3f tangent{}, bitangent{};
+    Vec3 tangent{}, bitangent{};
     if (tri.mat->needsTBN) {
-        Vector3f edge1 = tri.s2.worldPos - tri.s1.worldPos;
-        Vector3f edge2 = tri.s3.worldPos - tri.s1.worldPos; 
+        Vec3 edge1 = tri.s2.worldPos - tri.s1.worldPos;
+        Vec3 edge2 = tri.s3.worldPos - tri.s1.worldPos; 
         Vector2f deltaUV1 = tri.uv2 - tri.uv1;
         Vector2f deltaUV2 = tri.uv3 - tri.uv1; 
 
-        tangent = Vector3f{
+        tangent = Vec3{
             deltaUV2.y * edge1.x - deltaUV1.y * edge2.x,
             deltaUV2.y * edge1.y - deltaUV1.y * edge2.y,
             deltaUV2.y * edge1.z - deltaUV1.y * edge2.z,
         }.normalized();
-        bitangent = Vector3f{
+        bitangent = Vec3{
             -deltaUV2.x * edge1.x + deltaUV1.x * edge2.x,
             -deltaUV2.x * edge1.y + deltaUV1.x * edge2.y,
             -deltaUV2.x * edge1.z + deltaUV1.x * edge2.z,
@@ -122,9 +122,9 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
 
         #define INTERPOLATE_TRI(A,B,C) ((C1*(A) + C2*(B) + C3*(C))*denom)
         float z =           INTERPOLATE_TRI(tri.s1.screenPos.z, tri.s2.screenPos.z, tri.s3.screenPos.z);
-        Vector3f normal = tri.mesh->flatShading ? triangleNormal : 
+        Vec3 normal = tri.mesh->flatShading ? triangleNormal : 
                             INTERPOLATE_TRI(tri.s1.normal, tri.s2.normal, tri.s3.normal).normalized();
-        Vector3f worldPos = INTERPOLATE_TRI(tri.s1.worldPos, tri.s2.worldPos, tri.s3.worldPos);
+        Vec3 worldPos = INTERPOLATE_TRI(tri.s1.worldPos, tri.s2.worldPos, tri.s3.worldPos);
         Vector2f uv =       INTERPOLATE_TRI(tri.uv1, tri.uv2, tri.uv3);
         #undef INTERPOLATE_TRI
 
