@@ -18,5 +18,6 @@ TransformMatrix operator*(const TransformMatrix &a, const TransformMatrix &b);
 Vec3 operator* (const Vec3 &a, const TransformMatrix &b);
 TransformMatrix makeRotationMatrix(Vec3 R);
 TransformMatrix transposeMatrix(TransformMatrix &mat);
+bool inverseMatrix(TransformMatrix &mat, TransformMatrix &out);
 
 #endif /* __MATRIX_H__ */

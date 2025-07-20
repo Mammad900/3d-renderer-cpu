@@ -110,3 +110,30 @@ TransformMatrix transposeMatrix(TransformMatrix &mat) {
     }
     return transposed;
 }
+
+bool inverseMatrix(TransformMatrix &mat, TransformMatrix &out) {
+    float det = mat[0] * (mat[5] * mat[10] - mat[6] * mat[9]) -
+                mat[1] * (mat[4] * mat[10] - mat[6] * mat[8]) +
+                mat[2] * (mat[4] * mat[9] - mat[5] * mat[8]);
+
+    if (det == 0)
+        return false; // not invertible
+
+    float invDet = 1.0f / det;
+
+    out[0] = (mat[5] * mat[10] - mat[6] * mat[9]) * invDet;
+    out[1] = (mat[2] * mat[9] - mat[1] * mat[10]) * invDet;
+    out[2] = (mat[1] * mat[6] - mat[2] * mat[5]) * invDet;
+    out[4] = (mat[6] * mat[8] - mat[4] * mat[10]) * invDet;
+    out[5] = (mat[0] * mat[10] - mat[2] * mat[8]) * invDet;
+    out[6] = (mat[2] * mat[4] - mat[0] * mat[6]) * invDet;
+    out[8] = (mat[4] * mat[9] - mat[5] * mat[8]) * invDet;
+    out[9] = (mat[1] * mat[8] - mat[0] * mat[9]) * invDet;
+    out[10] = (mat[0] * mat[5] - mat[1] * mat[4]) * invDet;
+
+    // Set the rest of the matrix to identity
+    out[3] = out[7] = out[11] = out[12] = out[13] = out[14] = 0;
+    out[15] = 1;
+
+    return true;
+}

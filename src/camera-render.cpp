@@ -110,7 +110,7 @@ void Camera::buildTriangles(
                     Vertex vV = mesh->vertices[j];
 
                     projectedVertices[j] = perspectiveProject(vV.position * obj->transform);
-                    auto normal = (vV.normal * obj->transformRotation).normalized();
+                    auto normal = (vV.normal * obj->transformNormals).normalized();
                     projectedVertices[j].normal = normal;
                 }
 

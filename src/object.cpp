@@ -29,6 +29,10 @@ void Object::update() {
         transformRotation = myTransformRotation;
         globalPosition = position;
     }
+    if (inverseMatrix(transformRotation, transformNormals))
+        transformNormals = transposeMatrix(transformNormals);
+    else // not invertible
+        transformNormals = transformRotation; // Fallback to rotation matrix
 
     for (auto &&c : components)
         c->update();
