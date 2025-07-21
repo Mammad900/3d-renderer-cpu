@@ -61,12 +61,13 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
         return;
 
     if (
-        (tri.s1.screenPos.x < -1 && tri.s2.screenPos.x < -1 && tri.s3.screenPos.x < -1) ||
-        (tri.s1.screenPos.x >  1 && tri.s2.screenPos.x >  1 && tri.s3.screenPos.x >  1) ||
-        (tri.s1.screenPos.y < -1 && tri.s2.screenPos.y < -1 && tri.s3.screenPos.y < -1) ||
-        (tri.s1.screenPos.y >  1 && tri.s2.screenPos.y >  1 && tri.s3.screenPos.y >  1) ||
-        (tri.s1.screenPos.z <  camera->nearClip && tri.s2.screenPos.z <  camera->nearClip && tri.s3.screenPos.z <  camera->nearClip) ||
-        (tri.s1.screenPos.z >  camera->farClip && tri.s2.screenPos.z >  camera->farClip && tri.s3.screenPos.z >  camera->farClip)
+        (tri.s1.screenPos.x < -1 && tri.s2.screenPos.x < -1 && tri.s3.screenPos.x < -1) || // Frustum culling left
+        (tri.s1.screenPos.x >  1 && tri.s2.screenPos.x >  1 && tri.s3.screenPos.x >  1) || // Frustum culling right
+        (tri.s1.screenPos.y < -1 && tri.s2.screenPos.y < -1 && tri.s3.screenPos.y < -1) || // Frustum culling up
+        (tri.s1.screenPos.y >  1 && tri.s2.screenPos.y >  1 && tri.s3.screenPos.y >  1) || // Frustum culling down
+        (tri.s1.screenPos.z <  camera->nearClip && tri.s2.screenPos.z <  camera->nearClip && tri.s3.screenPos.z <  camera->nearClip) || // Too close
+        (tri.s1.screenPos.z >  camera->farClip && tri.s2.screenPos.z >  camera->farClip && tri.s3.screenPos.z >  camera->farClip) || // Too far
+        !(tri.s1.screenPos.z > 0 && tri.s2.screenPos.z > 0 && tri.s3.screenPos.z > 0) // negative z
     )
         return;
 
