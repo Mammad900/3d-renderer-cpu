@@ -23,6 +23,7 @@ struct Color {
             (float)c.a / 255.0f
         };
     }
+    static Color mix(Color x, Color y, float a) { return x * (1 - a) + y * a; }
 
     Color operator+(const Color &other) const {
         return {r + other.r, g + other.g, b + other.b, a + other.a};
@@ -42,6 +43,13 @@ struct Color {
         g *= right.g;
         b *= right.b;
         a *= right.a;
+        return *this;
+    }
+    constexpr Color &operator*=(const float &right) {
+        r *= right;
+        g *= right;
+        b *= right;
+        a *= right;
         return *this;
     }
     Color operator*(const Color &other) const {

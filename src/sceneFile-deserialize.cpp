@@ -4,6 +4,7 @@
 #include "data.h"
 #include "phongMaterial.h"
 #include "earthMaterial.h"
+#include "pbrMaterial.h"
 #include "generateMesh.h"
 #include "textureFiltering.h"
 #include "sceneFile.h"
@@ -201,6 +202,36 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                         }
                     }
                     editingScene->materials.push_back(mat);
+                } else  if(type == "pbr") {
+                    Texture<Color> *albedo = new SolidTexture<Color>({0,0,0,0});
+                    Texture<float> *metallic = new SolidTexture<float>(0);
+                    Texture<float> *roughness = new SolidTexture<float>(1);
+                    Texture<float> *ambientOcclusion = new SolidTexture<float>(1);
+                    MaterialFlags flags{};
+                    string key;
+                    while (in >> key && key != "end") {
+                        if (key == "#") { while (in >> key && key != "#"); continue; }
+
+                        else if(key == "albedo") {
+                            getTexture(albedo, in, path);
+                        } else if(key == "metallic") {
+                            getTexture(metallic, in, path);
+                        } else if(key == "roughness") {
+                            getTexture(roughness, in, path);
+                        } else if(key == "ambientOcclusion") {
+                            getTexture(ambientOcclusion, in, path);
+                        } else if (key == "transparent") {
+                            flags.transparent = true;
+                        } else if (key == "doubleSided") {
+                            flags.doubleSided = true;
+                        } else if (key == "alphaCutout") {
+                            flags.alphaCutout = true;
+                        } else {
+                            cerr << "Invalid material property " << key << endl;
+                        }
+                    }
+
+                    editingScene->materials.push_back(new PBRMaterial(name, flags, albedo, metallic, roughness, ambientOcclusion));
                 } else {
                     cerr << "Invalid material type " << type << endl;
                 }

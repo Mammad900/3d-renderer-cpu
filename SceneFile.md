@@ -67,7 +67,7 @@ end
 This material is based on the [Phong Reflection Model](https://en.wikipedia.org/wiki/Phong_reflection_model) with several additions such as transparency, emissive and simple subsurface scattering.
 
 ```txt
-new material <name>
+new material <name> phong
     diffuse <texture>
     specular <texture>
     tint <texture>
@@ -121,6 +121,25 @@ new material <name> earth
     normalMap <path> <strength> <POM>
 end
 ```
+
+### PBR Material
+
+This material is based on Physically Based Rendering, which is more accurate than phong materials but slower. It uses the metallic-roughness workflow, Cook-Torrance BRDF, Fresnel-Schlick approximation, GGX normal distribution function, Smith geometry function with with Schlick-GGX approximation, energy conservation and Lambertian diffuse. (if you don't know what this means, don't worry, its good PBR)
+
+```txt
+new material <name> pbr
+    albedo <color texture>
+    metallic <float texture>
+    roughness <float texture>
+    ambientOcclusion <float texture>
+end
+```
+
+#### Parameters
+
+- **Albedo**: This is the base color of the material. Has the same role as Diffuse on phong material.
+- **Metallic**: 0 for non-metallic, 1 for metallic. Metals have a much stronger base specular reflection and no diffuse. Values between 0 and 1 are only intended for texture filtering.
+- **Roughness**: Defines how rough the surface is. The lower it is, the sharper reflections are.
 
 ### Flags
 

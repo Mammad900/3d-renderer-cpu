@@ -6,6 +6,7 @@
 #include "textureFiltering.h"
 #include "phongMaterial.h"
 #include "earthMaterial.h"
+#include "pbrMaterial.h"
 
 using std::ostream, std::cout, std::cerr, std::endl, std::flush;
 
@@ -59,6 +60,17 @@ void serializeNormalMap(std::ofstream& out, PhongMaterialProps& mat, const std::
         << (mat.displacementMap ? int(mat.POM) : -1) << "\n";
 }
 
+void serializeMaterialFlags(Material *phongMaterial, std::ofstream &out) {
+    if (phongMaterial->flags.transparent) {
+        out << "    transparent\n";
+    }
+    if (phongMaterial->flags.doubleSided) {
+        out << "    doubleSided\n";
+    }
+    if (phongMaterial->flags.alphaCutout) {
+        out << "    alphaCutout\n";
+    }
+}
 
 // Serialize materials
 void serializeMaterial(std::ofstream& out, Material* material, const std::filesystem::path& path, int& textureCounter) {
@@ -85,15 +97,7 @@ void serializeMaterial(std::ofstream& out, Material* material, const std::filesy
             out << "    normalMap ";
             serializeNormalMap(out, mat, path, textureCounter);
         }
-        if (phongMaterial->flags.transparent) {
-            out << "    transparent\n";
-        }
-        if (phongMaterial->flags.doubleSided) {
-            out << "    doubleSided\n";
-        }
-        if (phongMaterial->flags.alphaCutout) {
-            out << "    alphaCutout\n";
-        }
+        serializeMaterialFlags(phongMaterial, out);
         out << "end\n\n";
     } else if (auto* earthMaterial = dynamic_cast<EarthMaterial*>(material)) {
         out << "new material " << earthMaterial->name << " earth\n";
@@ -130,7 +134,20 @@ void serializeMaterial(std::ofstream& out, Material* material, const std::filesy
             serializeNormalMap(out, earthMaterial->terrainMat->mat, path, textureCounter);
         }
         out << "end\n\n";
-    } else {
+    } else if (auto* pbrMaterial = dynamic_cast<PBRMaterial*>(material)) {
+        out << "new material " << pbrMaterial->name << " pbr\n";
+        out << "    albedo ";
+        serializeTexture(out, pbrMaterial->albedo, path, textureCounter);
+        out << "    metallic ";
+        serializeTexture(out, pbrMaterial->metallic, path, textureCounter);
+        out << "    roughness ";
+        serializeTexture(out, pbrMaterial->roughness, path, textureCounter);
+        out << "    ambientOcclusion ";
+        serializeTexture(out, pbrMaterial->ambientOcclusion, path, textureCounter);
+        serializeMaterialFlags(pbrMaterial, out);
+        out << "end\n\n";
+    }
+    else {
         cerr << "Unsupported material type for serialization." << endl;
     }
 }

@@ -79,5 +79,10 @@
         "SFML",
         "texel"
     ],
-    "editor.detectIndentation": false
+    "editor.detectIndentation": false,
+    "markdownlint.config": {
+        "no-duplicate-heading": {
+            "siblings_only": true
+        }
+    }
 }

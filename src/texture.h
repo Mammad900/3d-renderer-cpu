@@ -26,7 +26,7 @@ public:
         if constexpr(std::is_same_v<T, Color>)
             ImGui::ColorEdit4(label.c_str(), (float*)&value, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
         else if constexpr(std::is_same_v<T, float>)
-            ImGui::DragFloat(label.c_str(), &value);
+            ImGui::SliderFloat(label.c_str(), &value, 0, 1);
         else if constexpr(std::is_same_v<T, Vec3>)
             ImGui::DragFloat3(label.c_str(), (float*)&value);
     }

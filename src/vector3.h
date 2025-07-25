@@ -4,6 +4,7 @@
 #include <SFML/System/Vector3.hpp>
 #include <cmath>
 #include <cassert>
+#include <algorithm>
 
 class Vec3 {
 public:
@@ -106,6 +107,22 @@ public:
         assert(rhs.y != 0 && "Vec3::componentWiseDiv() cannot divide by 0");
         assert(rhs.z != 0 && "Vec3::componentWiseDiv() cannot divide by 0");
         return Vec3(x / rhs.x, y / rhs.y, z / rhs.z);
+    }
+
+    constexpr Vec3 clamp(float min, float max) const {
+        return {
+            std::clamp(x, min, max),
+            std::clamp(y, min, max),
+            std::clamp(z, min, max),
+        };
+    }
+
+    constexpr Vec3 pow(float a) const {
+        return {
+            std::pow(x, a),
+            std::pow(y, a),
+            std::pow(z, a),
+        };
     }
 
     ////////////////////////////////////////////////////////////
