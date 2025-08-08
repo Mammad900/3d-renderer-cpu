@@ -46,6 +46,8 @@ public:
         oceanMat->mat.diffuse->Gui("Ocean diffuse");
         oceanMat->mat.specular->Gui("Ocean specular");
         cloudMat->mat.diffuse->Gui("Cloud diffuse");
+        oceanMask->Gui("Ocean mask");
+        cloudTexture->Gui("Cloud mask");
 
         ImGui::PushID(0);
         if(ImGui::TreeNode("Terrain material")) {
