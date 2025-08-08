@@ -28,14 +28,17 @@ void getTexture(Texture<T> *&t, istream& in, std::filesystem::path &referrer) {
         t = nullptr;
     }
     string type;
-    T c;
-    in >> type >> c;
+    in >> type;
     if(type == "color") {
+        T c;
+        in >> c;
         t = new SolidTexture<T>(c);
+        return;
     }
     else if(type == "texture") {
         string path;
-        in >> path;
+        T c;
+        in >> c >> path;
         cout << "Loading texture " << path << flush;
         sf::Image img;
         if(!img.loadFromFile(referrer.parent_path() / path)) {
@@ -47,9 +50,54 @@ void getTexture(Texture<T> *&t, istream& in, std::filesystem::path &referrer) {
         ImageTexture<T> *res =  new ImageTexture<T>(img, c);
         cout << "." << endl;
         t = res;
-    } else {
-        cerr << "Invalid texture type " << type << endl;
+        return;
     }
+    else if(type == "blend") {
+        string type;
+        in >> type;
+        if(type == "alpha") {
+            BlendTexture<T,T> *res = new BlendTexture<T,T>(nullptr, nullptr, BlendMode::AlphaMix);
+            getTexture(res->a, in, referrer);
+            getTexture(res->b, in, referrer);
+            t = res;
+            return;
+        } else if(type == "add") {
+            BlendTexture<T,T> *res = new BlendTexture<T,T>(nullptr, nullptr, BlendMode::Add);
+            getTexture(res->a, in, referrer);
+            getTexture(res->b, in, referrer);
+            t = res;
+            return;
+        } else if(type == "subtract") {
+            BlendTexture<T,T> *res = new BlendTexture<T,T>(nullptr, nullptr, BlendMode::Subtract);
+            getTexture(res->a, in, referrer);
+            getTexture(res->b, in, referrer);
+            t = res;
+            return;
+        } else if(type == "multiply") {
+            BlendTexture<T,T> *res = new BlendTexture<T,T>(nullptr, nullptr, BlendMode::Multiply);
+            getTexture(res->a, in, referrer);
+            getTexture(res->b, in, referrer);
+            t = res;
+            return;
+        } else if(type == "multiplyFloat") {
+            BlendTexture<T,float> *res = new BlendTexture<T,float>(nullptr, nullptr, BlendMode::Multiply);
+            getTexture(res->a, in, referrer);
+            getTexture(res->b, in, referrer);
+            t = res;
+            return;
+        }
+    }
+    if constexpr(std::is_same_v<T, float>) {
+        if(type == "sineWave") {
+            float a, b, c, d, e;
+            bool orientation;
+            in >> a >> b >> c >> d >> e >> orientation;
+            t = new SineWaveTexture(a, b, c, d, e, orientation);
+            cout << "Sine wave" << endl;
+            return;
+        }
+    }
+    cerr << "Invalid texture type " << type << endl;
 }
 void getNormalMap(istream& in, std::filesystem::path &referrer, PhongMaterialProps& mat) {
     string filePath;

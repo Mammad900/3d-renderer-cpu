@@ -28,6 +28,9 @@ ostream& operator<<(ostream& out, const Color& v) {
     return out;
 }
 
+template <typename T, typename P>
+void serializeBlendTexture(std::ofstream& out, BlendTexture<T,P>* texture, const std::filesystem::path& path, int& textureCounter);
+
 // Serialize textures
 template <typename T>
 void serializeTexture(std::ofstream& out, Texture<T>* texture, const std::filesystem::path& path, int& textureCounter) {
@@ -40,11 +43,51 @@ void serializeTexture(std::ofstream& out, Texture<T>* texture, const std::filesy
             cerr << "Failed to save texture" << texturePath << endl;
         cout << "." << endl;
         out << "texture " << imageTexture->value << " " << texturePath.filename().string() << "\n";
-    } else if (auto* solidTexture = dynamic_cast<SolidTexture<T>*>(texture)) {
+    } 
+    else if (auto* solidTexture = dynamic_cast<SolidTexture<T>*>(texture)) {
         out << "color " << solidTexture->value << "\n";
-    } else {
+    } 
+    else if (auto* swt = dynamic_cast<SineWaveTexture*>(texture)) {
+        out << "sineWave " << swt->a << " " << swt->b << " " << swt->c << " "
+            << swt->d << " " << swt->e << " " << swt->orientation << "\n";
+    }
+    else if (auto* blendTexture = dynamic_cast<BlendTexture<T,T>*>(texture)) {
+        serializeBlendTexture(out, blendTexture, path, textureCounter);
+    }
+    else if (auto* blendTexture = dynamic_cast<BlendTexture<T,float>*>(texture)) {
+        serializeBlendTexture(out, blendTexture, path, textureCounter);
+    }
+    else {
         out << "color 0 0 0 0\n"; // Default for unsupported texture types
     }
+}
+
+template <typename T, typename P>
+void serializeBlendTexture(std::ofstream& out, BlendTexture<T,P>* texture, const std::filesystem::path& path, int& textureCounter) {
+    out << "blend ";
+    switch (texture->mode) {
+    case BlendMode::Multiply:
+        if constexpr(std::is_same_v<P, float>)
+            out << "multiplyFloat ";
+        else
+            out << "multiply ";
+        break;
+    case BlendMode::Add:
+        out << "add ";
+        break;
+    case BlendMode::Subtract:
+        out << "subtract ";
+        break;
+    case BlendMode::AlphaMix:
+        out << "alpha ";
+        break;
+    default:
+        break;
+    }
+    out << "\n        ";
+    serializeTexture(out, texture->a, path, textureCounter);
+    out << "\n        ";
+    serializeTexture(out, texture->b, path, textureCounter);
 }
 
 void serializeNormalMap(std::ofstream& out, PhongMaterialProps& mat, const std::filesystem::path& path, int& textureCounter) {

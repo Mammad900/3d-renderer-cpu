@@ -56,4 +56,63 @@ public:
     }
 };
 
+/// @brief Returns a * sin(bx+ct+d) + e
+class SineWaveTexture : public Texture<float> {
+  public:
+    float a, b, c, d, e;
+    bool orientation;
+    SineWaveTexture(float a, float b, float c, float d, float e, bool orientation)
+        : a(a), b(b), c(c), d(d), e(e), orientation(orientation) {}
+    float sample(Vector2f uv, Vector2f, Vector2f);
+    void Gui(std::string label);
+};
+
+enum class BlendMode {
+    AlphaMix,
+    Add,
+    Multiply,
+    Subtract
+};
+
+template<typename T, typename P>
+class BlendTexture : public Texture<T> {
+  public:
+    Texture<T> *a;
+    Texture<P> *b;
+
+
+    BlendMode mode;
+
+    BlendTexture(Texture<T> *a, Texture<P> *b, BlendMode mode) : a(a), b(b), mode(mode) {}
+
+    T sample(Vector2f uv, Vector2f dUVdX, Vector2f dUVdY) {
+        T sampleA = a->sample(uv, dUVdX, dUVdY);
+        P sampleB = b->sample(uv, dUVdX, dUVdY);
+        if constexpr (std::is_same_v<P, Color>) {
+            if(mode == BlendMode::AlphaMix)
+                return sampleB * sampleB.a + sampleA * (1 - sampleB.a);
+        }
+        switch (mode)
+        {
+        case BlendMode::Add:
+            return sampleA + sampleB;
+        case BlendMode::Multiply:
+            return sampleA * sampleB;
+        case BlendMode::Subtract:
+            return sampleA - sampleB;
+
+        default:
+            throw std::runtime_error("Invalid blend mode");
+        }
+    }
+
+    void Gui(std::string label) {
+        if(ImGui::TreeNode(label.c_str())) {
+            a->Gui("A");
+            b->Gui("B");
+            ImGui::TreePop();
+        }
+    }
+};
+
 #endif /* __TEXTURE_H__ */
