@@ -49,7 +49,9 @@ struct Metric {
 struct FrameTimings {
     sf::Clock clock;
     float deltaTime;
-    Metric<float> windowTime, updateTime, skyBoxTime, renderPrepareTime, geometryTime, lightingTime, forwardTime, postProcessTIme;
+    float totalTime = 0;
+    Metric<float> windowTime, updateTime, skyBoxTime, renderPrepareTime,
+        geometryTime, lightingTime, forwardTime, postProcessTIme;
 };
 
 extern FrameTimings timing;

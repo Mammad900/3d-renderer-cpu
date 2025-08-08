@@ -24,6 +24,7 @@ int main(int argc, char** argv) {
 
     while (window.isOpen() && window2.isOpen()) {
         timing.deltaTime = deltaClock.getElapsedTime().asSeconds();
+        timing.totalTime += timing.deltaTime;
         timing.clock.restart();
         guiUpdate(window2, deltaClock, scene); // gui.h
 
