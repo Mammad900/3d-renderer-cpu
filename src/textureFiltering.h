@@ -135,7 +135,7 @@ public:
             res = bilinearFilter(uv, mipLevel);
         }
         // Trilinear (blend mipmaps)
-        if(mode == TextureFilteringMode::Trilinear) {
+        else if(mode == TextureFilteringMode::Trilinear) {
             Vector2u mipLevel2{
                 (uint)clamp((int)ceil(mipLevelF.x), 0, mipCount.x),
                 (uint)clamp((int)ceil(mipLevelF.y), 0, mipCount.y),
