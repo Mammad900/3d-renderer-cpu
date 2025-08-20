@@ -33,7 +33,7 @@ void RenderTarget::changeSize(sf::Vector2u newSize, bool deferred) {
 
 void changeWindowSize(Vector2u newSize) {
     frame->changeSize(newSize, frame->deferred);
-    renderWindow->setSize(newSize);
+    // renderWindow->setSize(newSize);
     sf::FloatRect visibleArea({0.f, 0.f}, sf::Vector2f(newSize));
     renderWindow->setView(sf::View(visibleArea));
 }

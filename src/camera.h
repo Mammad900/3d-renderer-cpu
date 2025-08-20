@@ -17,6 +17,7 @@ class Camera : public Component {
     void GUI();
     void fogPixel(int x, int y);
     Projection perspectiveProject(Vec3 a);
+    sf::Image getRenderedFrame(int renderMode);
 
   private:
     void makePerspectiveProjectionMatrix();

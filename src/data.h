@@ -52,6 +52,7 @@ struct FrameTimings {
     float totalTime = 0;
     Metric<float> windowTime, updateTime, skyBoxTime, renderPrepareTime,
         geometryTime, lightingTime, forwardTime, postProcessTIme;
+    bool render = true;
 };
 
 extern FrameTimings timing;

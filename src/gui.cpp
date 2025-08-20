@@ -2,6 +2,7 @@
 #include "generateMesh.h"
 #include "sceneFile.h"
 #include "phongMaterial.h"
+#include <iostream>
 
 char objFilePath[500];
 Material *guiSelectedMaterial;
@@ -48,6 +49,13 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
     ImGui::End();
 
     ImGui::Begin("Performance");
+    ImGui::Checkbox("Render", &timing.render);
+    if(ImGui::Button("Render one frame now and save")) {
+        editingScene->camera->render();
+        sf::Image res = editingScene->camera->getRenderedFrame(0);
+        if(!res.saveToFile("render.png"))
+            std::cerr << "Failed to save to render.png" << std::endl;
+    }
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     Timing(timing.windowTime, "Window");
     Timing(timing.updateTime, "Update");

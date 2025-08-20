@@ -14,6 +14,22 @@ Projection Camera::perspectiveProject(Vec3 a) {
     };
 }
 
+sf::Image Camera::getRenderedFrame(int renderMode) { 
+    sf::Image img(frame->size);
+    for (unsigned int y = 0; y < frame->size.y; y++)
+        for (unsigned int x = 0; x < frame->size.x; x++)
+            if (renderMode == 0) { // Frame buffer
+                Color pixel = frame->framebuffer[y * frame->size.x + x];
+                img.setPixel({x, y}, pixel.reinhardtTonemap(whitePoint==0 ? obj->scene->maximumColor : whitePoint));
+            }
+            else if (renderMode == 1) { // Z buffer
+                // Z buffer range is really display-to-end-user unfriendly
+                float z = frame->zBuffer[y * frame->size.x + x] * 20.0f;
+                img.setPixel({x, y}, sf::Color(z, z, z));
+            }
+    return img;
+}
+
 void Camera::makePerspectiveProjectionMatrix() {
     float S = 1 / (tanHalfFov = tan(fov * M_PI / 360));
     float f = -farClip / (farClip - nearClip);

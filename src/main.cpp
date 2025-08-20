@@ -74,24 +74,12 @@ int main(int argc, char** argv) {
 
         timing.updateTime.push(timing.clock);
 
-        scene->camera->render();
+        if(timing.render)
+            scene->camera->render();
 
         timing.clock.restart();
 
-        sf::Image img(frame->size);
-        for (unsigned int y = 0; y < frame->size.y; y++)
-            for (unsigned int x = 0; x < frame->size.x; x++)
-                if (scene->renderMode == 0) {// Frame buffer
-                    Color pixel = frame->framebuffer[y * frame->size.x + x];
-                    img.setPixel({x, y}, pixel.reinhardtTonemap(scene->camera->whitePoint==0?scene->maximumColor:scene->camera->whitePoint));
-                }
-                else if (scene->renderMode == 1) { // Z buffer
-                    // Z buffer range is really display-to-end-user unfriendly
-                    float z = frame->zBuffer[y * frame->size.x + x] * 20.0f;
-                    img.setPixel({x, y}, sf::Color(z, z, z));
-                }
-
-        sf::Texture tex(img);
+        sf::Texture tex(scene->camera->getRenderedFrame(scene->renderMode));
         sf::Sprite spr(tex);
         window.clear();
         window.draw(spr);
