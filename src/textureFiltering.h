@@ -26,7 +26,7 @@ public:
     : SolidTexture<T>(scale), filteringMode(overrideFilteringMode) {
         size = img.getSize();
         atlasSize = {size.x * 2 - 1, size.y * 2 - 1};
-        mipCount = {(uint)log2(size.x), (uint)log2(size.y)};
+        mipCount = {(int)log2(size.x), (int)log2(size.y)};
         pixels = new T[atlasSize.x * atlasSize.y];
         for (uint y = 0; y < size.y; y++)
             for (uint x = 0; x < size.x; x++)
@@ -70,7 +70,7 @@ public:
 private:
     T* pixels;
     Vector2u atlasSize;
-    Vector2u mipCount;
+    Vector2i mipCount;
 
 
     void generateMipmaps() {
@@ -124,8 +124,8 @@ public:
             log2(rho * size.y),
         };
         Vector2u mipLevel{
-            clamp((uint)floor(mipLevelF.x), 0u, mipCount.x),
-            clamp((uint)floor(mipLevelF.y), 0u, mipCount.y),
+            (uint)clamp((int)floor(mipLevelF.x), 0, mipCount.x),
+            (uint)clamp((int)floor(mipLevelF.y), 0, mipCount.y),
         };
 
         T res;
@@ -137,8 +137,8 @@ public:
         // Trilinear (blend mipmaps)
         if(mode == TextureFilteringMode::Trilinear) {
             Vector2u mipLevel2{
-                clamp((uint)ceil(mipLevelF.x), 0u, mipCount.x),
-                clamp((uint)ceil(mipLevelF.y), 0u, mipCount.y),
+                (uint)clamp((int)ceil(mipLevelF.x), 0, mipCount.x),
+                (uint)clamp((int)ceil(mipLevelF.y), 0, mipCount.y),
             };
             float t = mipLevelF.x - floor(mipLevelF.x);
             res = bilinearFilter(uv, mipLevel) * (1-t) +
