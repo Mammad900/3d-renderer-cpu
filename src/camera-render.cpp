@@ -130,9 +130,7 @@ void Camera::drawSkyBox() {
                 if (solidSkyBox) {
                     tFrame->framebuffer[i] = solidSkyBox->value; // No need to compute UV
                 } else {
-                    Vector2f worldPos {x / (float)tFrame->size.x, y / (float)tFrame->size.y};
-                    worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * tanHalfFov;
-                    Vec3 lookVector = Vec3{worldPos.x, worldPos.y, 1} * obj->transformRotation;
+                    Vec3 lookVector = screenSpaceToCameraSpace(x, y, 1) * obj->transformRotation;
                     lookVector = lookVector.normalized();
 
                     Vector2f uv {
