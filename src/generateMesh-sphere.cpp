@@ -1,12 +1,19 @@
 #include "generateMesh.h"
 
+Vector2f invertUV(Vector2f a, bool invertU, bool invertV) {
+    return {
+        invertU ? 1.0f - a.x : a.x,
+        invertV ? 1.0f - a.y : a.y,
+    };
+}
+
 /// @brief Generates a UV sphere.
 /// @param material Material to assign to all faces
 /// @param name Name of the mesh, used to reference it in the scene
 /// @param stacks Number of vertical subdivisions (10-20 is good)
 /// @param sectors Number of horizontal subdivisions (20 is good)
 /// @return Pointer to mesh object
-Mesh* createSphere(Material* material, std::string name, uint16_t stacks, uint16_t sectors) {
+Mesh* createSphere(Material* material, std::string name, uint16_t stacks, uint16_t sectors, bool invertU, bool invertV) {
     // Allocate the mesh and assign a label.
     Mesh* mesh = new Mesh;
     mesh->label = name;
@@ -32,12 +39,13 @@ Mesh* createSphere(Material* material, std::string name, uint16_t stacks, uint16
             float y = std::cos(phi);
             float z = std::sin(phi) * std::sin(theta);
             
-            // Set position. (Assuming Vec3 can be constructed from an initializer list.)
-            mesh->vertices[index].position = Vec3 { x, y, z };
-            // For a unit sphere, the normal is the same as the position.
-            mesh->vertices[index].normal = -Vec3 { x, y, z }.normalized();
-            // UV coordinates: u is along the theta direction, v along the phi direction.
-            mesh->vertices[index].uv = Vector2f { static_cast<float>(j) / sectors, static_cast<float>(i) / stacks };
+            mesh->vertices[index] = {
+                .position = Vec3 { x, y, z },
+                // UV coordinates: u is along the theta direction, v along the phi direction.
+                .uv = invertUV(Vector2f{ static_cast<float>(j) / sectors, static_cast<float>(i) / stacks }, invertU, invertV),
+                // For a unit sphere, the normal is the same as the position.
+                .normal = -Vec3 { x, y, z }.normalized(),
+            };
         }
     }
     

@@ -12,12 +12,8 @@ void Camera::fogPixel(int x, int y) {
             return;
     }
 
-    // Reconstruct world space X and Y
-    Vector2f worldPos{x / (float)tFrame->size.x, y / (float)tFrame->size.y};
-    worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * z * tanHalfFov; 
-
     tFrame->framebuffer[i] = sampleFog(
-        Vec3{worldPos.x, worldPos.y, z} * obj->transform, 
+        screenSpaceToWorldSpace(x, y, z), 
         obj->globalPosition,
         tFrame->framebuffer[i],
         obj->scene

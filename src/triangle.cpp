@@ -1,6 +1,7 @@
 #include "triangle.h"
 #include "color.h"
 #include "textureFiltering.h"
+#include "fog.h"
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Image.hpp>
 #include <iostream>
@@ -163,12 +164,20 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
             return;
         if (frame->zBuffer[index] < f.z || f.z<0)
             return;
-        if (!tri.mat->flags.transparent)
-            frame->zBuffer[index] = f.z;
+        float previousZ = frame->zBuffer[index];
+        frame->zBuffer[index] = f.z;
 
         if (defer) {
             frame->gBuffer[index] = f;
         } else {
+            if(camera->obj->scene->fogColor.a > 0 && tri.mat->flags.transparent) { // Fog behind the fragment
+                if(previousZ == INFINITY)
+                    previousZ = camera->farClip;
+                if(previousZ != INFINITY || camera->obj->scene->godRays) {
+                    Vec3 previousPixelPos = camera->screenSpaceToWorldSpace(f.screenPos.x, f.screenPos.y, previousZ);
+                    frame->framebuffer[index] = sampleFog(previousPixelPos, f.worldPos, frame->framebuffer[index], camera->obj->scene);
+                }
+            }
             frame->framebuffer[index] = scene->fullBright ?
                 baseColor :
                 tri.mat->shade(f, frame->framebuffer[index], camera->obj->scene);

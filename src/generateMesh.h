@@ -13,7 +13,7 @@ void bakeMeshNormals(Mesh &mesh);
 //   material - pointer to the Material to be assigned to each face
 //
 // Returns a pointer to a Mesh containing the sphere geometry.
-Mesh* createSphere(Material* material, std::string name, uint16_t stacks, uint16_t sectors);
+Mesh* createSphere(Material* material, std::string name, uint16_t stacks, uint16_t sectors, bool invertU, bool invertV);
 Mesh* createPlane(Material* material, std::string name, uint16_t subdivisionsX, uint16_t subdivisionsY);
 Mesh *loadOBJ(const std::string &filename, Material *mat, std::string name);
 Mesh *loadSTL(const std::string &filename, Material *mat, std::string name);

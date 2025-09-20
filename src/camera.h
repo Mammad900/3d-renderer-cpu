@@ -18,6 +18,10 @@ class Camera : public Component {
     void fogPixel(int x, int y);
     Projection perspectiveProject(Vec3 a);
     sf::Image getRenderedFrame(int renderMode);
+    Vec3 screenSpaceToCameraSpace(int x, int y);
+    Vec3 screenSpaceToCameraSpace(int x, int y, float z);
+    Vec3 screenSpaceToWorldSpace(int x, int y);
+    Vec3 screenSpaceToWorldSpace(int x, int y, float z);
 
   private:
     void makePerspectiveProjectionMatrix();
@@ -27,6 +31,7 @@ class Camera : public Component {
     float tanHalfFov;
 };
 
-void shutdownThreads();
+void deferredPass(uint n, uint i0, Camera *camera);
+void fogPass(uint n, uint i0, Camera *camera);
 
 #endif /* __CAMERA_H__ */

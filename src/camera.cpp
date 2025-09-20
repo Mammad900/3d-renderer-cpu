@@ -30,6 +30,26 @@ sf::Image Camera::getRenderedFrame(int renderMode) {
     return img;
 }
 
+Vec3 Camera::screenSpaceToCameraSpace(int x, int y) { 
+    size_t i = x + tFrame->size.x * y;
+    float z = tFrame->zBuffer[i];
+    return screenSpaceToCameraSpace(x, y, z);
+}
+
+Vec3 Camera::screenSpaceToCameraSpace(int x, int y, float z) { 
+    Vector2f worldPos{x / (float)tFrame->size.x, y / (float)tFrame->size.y};
+    worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * z * tanHalfFov;
+    return Vec3{worldPos.x, worldPos.y, z};
+}
+
+Vec3 Camera::screenSpaceToWorldSpace(int x, int y) {
+    return screenSpaceToCameraSpace(x, y) * obj->transform;
+}
+
+Vec3 Camera::screenSpaceToWorldSpace(int x, int y, float z) {
+    return screenSpaceToCameraSpace(x, y, z) * obj->transform;
+}
+
 void Camera::makePerspectiveProjectionMatrix() {
     float S = 1 / (tanHalfFov = tan(fov * M_PI / 360));
     float f = -farClip / (farClip - nearClip);

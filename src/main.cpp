@@ -2,8 +2,10 @@
 #include "gui.h"
 #include "generateMesh.h"
 #include "sceneFile.h"
+#include "multithreading.h"
 #include <SFML/Graphics.hpp>
 #include <filesystem>
+
 int main(int argc, char** argv) {
     parseSceneFile(argc > 1 ? argv[1] : "assets/scene.txt", scene);
 

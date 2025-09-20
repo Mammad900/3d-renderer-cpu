@@ -300,9 +300,10 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                     editingScene->meshes.push_back(mesh);
                 } else if (type == "sphere") {
                     int stacks, sectors;
+                    bool invertU, invertV;
                     string matName;
-                    in >> stacks >> sectors >> matName;
-                    Mesh* mesh = createSphere(findMaterial(matName, editingScene), name, stacks, sectors);
+                    in >> stacks >> sectors >> invertU >> invertV >> matName;
+                    Mesh* mesh = createSphere(findMaterial(matName, editingScene), name, stacks, sectors, invertU, invertV);
                     editingScene->meshes.push_back(mesh);
                 } else if (type == "plane") {
                     uint16_t subDivX, subDivY;

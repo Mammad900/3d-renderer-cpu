@@ -1,22 +1,11 @@
 #include "camera.h"
 #include "triangle.h"
 #include "fog.h"
+#include "multithreading.h"
 #include <imgui.h>
 #include <functional>
 #include <SFML/System/Clock.hpp>
-#include <thread>
-#include <condition_variable>
 #include <typeindex>
-
-void deferredPass(uint n, uint i0, Camera *camera);
-void threadLoop(uint n, uint i0);
-const uint numThreads = std::thread::hardware_concurrency();
-std::vector<std::thread> threads(numThreads);
-std::vector<Camera*> jobReady(numThreads, nullptr);
-std::vector<std::condition_variable> cvs(numThreads);
-std::mutex mtx;
-bool shutdown = false;
-bool init = false;
 
 void Camera::render() {
     if(shadowMap) {
@@ -53,29 +42,8 @@ void Camera::render() {
 
 
         // Deferred pass
-        if(tFrame->deferred) {
-            if(!init) {
-                for (uint i = 0; i < numThreads; i++)
-                    threads[i] = std::thread(threadLoop, numThreads, i);
-                init = true;
-            }
-            
-            {
-                std::lock_guard<std::mutex> lock(mtx);
-                for (uint i = 0; i < numThreads; i++)
-                    jobReady[i] = this;
-            }
-
-            for (uint i = 0; i < numThreads; i++)
-                cvs[i].notify_one();
-
-            bool allDone = false;
-            while(!allDone) {
-                std::this_thread::yield();
-                std::lock_guard<std::mutex> lock(mtx);
-                allDone = std::all_of(jobReady.begin(), jobReady.end(), [](Camera *v) {return !v;});
-            }
-        }
+        if(tFrame->deferred)
+            startThreads(this, false);
 
         timing.lightingTime.push(timing.clock);
 
@@ -89,10 +57,8 @@ void Camera::render() {
         timing.clock.stop();
 
 
-        if(obj->scene->fogColor.a > 0 && !tFrame->deferred)
-            for (int y = 0; y < (int)tFrame->size.y; y++)
-                for (int x = 0; x < (int)tFrame->size.x; x++)
-                    fogPixel(x, y);
+        if(obj->scene->fogColor.a > 0)
+            startThreads(this, true); // Even if deferred rendering is disabled, this can be multithreaded
     }
 }
 
@@ -182,44 +148,28 @@ void Camera::drawSkyBox() {
     }
 }
 
-void threadLoop(uint n, uint i) {
-    while (true) {
-        std::unique_lock<std::mutex> lock(mtx);
-        cvs[i].wait(lock, [&] { return jobReady[i] || shutdown; });
-        if(shutdown) break;
-        lock.unlock();
-        deferredPass(n, i, jobReady[i]);
-        lock.lock();
-        jobReady[i] = nullptr;
-    }
-}
 
 void deferredPass(uint n, uint i0, Camera *camera) {
     RenderTarget *frame = camera->tFrame;
     for (size_t i = i0; i < frame->size.x * frame->size.y; i += n) {
-        if (frame->zBuffer[i] == INFINITY) { // No fragment here
-            if(camera->obj->scene->godRays)
-                camera->fogPixel(i % frame->size.x, i / frame->size.x);
+        if (frame->zBuffer[i] == INFINITY) // No fragment here
             continue;
-        }
+
         Fragment &f = frame->gBuffer[i];
         if (frame->deferred && !f.face->material->flags.alphaCutout)
             f.baseColor = f.face->material->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
         frame->framebuffer[i] = f.face->material->shade(f, frame->framebuffer[i], camera->obj->scene);
-        if(camera->obj->scene->fogColor.a > 0)
-            frame->framebuffer[i] = sampleFog(f.worldPos, camera->obj->globalPosition, frame->framebuffer[i], camera->obj->scene);
     }
 }
 
-void shutdownThreads() {
-    if(!init)
+void fogPass(uint n, uint i0, Camera *camera) {
+    if(camera->obj->scene->fogColor.a == 0)
         return;
-    {
-        std::lock_guard<std::mutex> lock(mtx);
-        shutdown = true;
+
+    RenderTarget *frame = camera->tFrame;
+    for (size_t i = i0; i < frame->size.x * frame->size.y; i += n) {
+        if(frame->zBuffer[i] == INFINITY && !camera->obj->scene->godRays) // Sky-box pixels don't get fog unless its godRays
+            continue;
+        camera->fogPixel(i % frame->size.x, i / frame->size.x);
     }
-    for(auto &cv : cvs)
-        cv.notify_all();
-    for(auto &t : threads)
-        t.join();
 }
