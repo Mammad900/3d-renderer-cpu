@@ -72,10 +72,12 @@ TransformMatrix operator* (const TransformMatrix &a, const TransformMatrix &b) {
     return res;
 }
 
-Vec3 operator* (const Vec3 &a, const TransformMatrix &b) {
-    float arr[4] = {a.x, a.y, a.z, 1};
-    matMul(arr, b.data(), arr, 1, 4, 4);
-    return {arr[0], arr[1], arr[2]};
+Vec3 operator* (const Vec3 &a, const TransformMatrix &m) {
+    return {
+        a.x * m[0] + a.y * m[4] + a.z * m[8]  + m[12],
+        a.x * m[1] + a.y * m[5] + a.z * m[9]  + m[13],
+        a.x * m[2] + a.y * m[6] + a.z * m[10] + m[14]
+    };
 }
 
 TransformMatrix makeRotationMatrix(Vec3 R) {
