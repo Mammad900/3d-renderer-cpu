@@ -77,4 +77,5 @@ void RotatorComponent::GUI() {
 
 void KeyboardControlComponent::GUI() {
     ImGui::DragFloat3("Speed", &speed.x, 0.05f);
+    ImGui::Checkbox("Scale is child Z", &scaleIsChildZ);
 }

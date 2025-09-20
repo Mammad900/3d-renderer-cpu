@@ -64,10 +64,18 @@ int main(int argc, char** argv) {
                 obj->rotation.x += speed.y;
             if(isKeyPressed(Key::Down))
                 obj->rotation.x -= speed.y;
-            if(isKeyPressed(Key::Add))
-                obj->scale *= 1 + speed.z;
-            if(isKeyPressed(Key::Subtract))
-                obj->scale *= 1 - speed.z;
+            if(scene->keyboardControl->scaleIsChildZ && obj->children.size() > 0) {
+                Object *child = obj->children[0];
+                if(isKeyPressed(Key::Add))
+                    child->position.z += speed.z;
+                if(isKeyPressed(Key::Subtract))
+                    child->position.z -= speed.z;
+            } else {
+                if(isKeyPressed(Key::Add))
+                    obj->scale *= 1 - speed.z;
+                if(isKeyPressed(Key::Subtract))
+                    obj->scale *= 1 + speed.z;
+            }
             obj->rotation.x = std::clamp(obj->rotation.x, -M_PI_2f, M_PI_2f);
         }
 

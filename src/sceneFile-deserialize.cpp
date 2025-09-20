@@ -474,8 +474,9 @@ void parseObject(Scene* editingScene, std::ifstream &in, Object *parent) {
         }
         else if(key == "keyboardControl") {
             Vec3 speed;
-            in >> speed;
-            editingScene->keyboardControl = new KeyboardControlComponent(obj, speed);
+            bool scaleIsChildZ;
+            in >> speed >> scaleIsChildZ;
+            editingScene->keyboardControl = new KeyboardControlComponent(obj, speed, scaleIsChildZ);
             obj->components.push_back(editingScene->keyboardControl);
         } else {
             cerr << "Invalid component type " << key << endl;

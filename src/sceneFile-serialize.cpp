@@ -233,7 +233,7 @@ void serializeObject(std::ofstream& out, Object* object, const std::filesystem::
         } else if (auto* rotator = dynamic_cast<RotatorComponent*>(component)) {
             out << indent << "rotator " << rotator->rotatePerSecond * (180.0f / M_PIf) << "\n";
         } else if (auto* keyboardControl = dynamic_cast<KeyboardControlComponent*>(component)) {
-            out << indent << "keyboardControl " << keyboardControl->speed << "\n";
+            out << indent << "keyboardControl " << keyboardControl->speed << " " << keyboardControl->scaleIsChildZ << "\n";
         }
     }
 

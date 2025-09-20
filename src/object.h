@@ -66,8 +66,9 @@ class KeyboardControlComponent : public Component {
     // And main.cpp does the input handling
   public:
     Vec3 speed = {1,1,1};
-    KeyboardControlComponent(Object *obj, Vec3 speed)
-        : Component(obj), speed(speed) {}
+    bool scaleIsChildZ = false;
+    KeyboardControlComponent(Object *obj, Vec3 speed, bool scaleIsChildZ)
+        : Component(obj), speed(speed), scaleIsChildZ(scaleIsChildZ) {}
     std::string name() { return "Keyboard Control"; }
     void GUI();
 };
