@@ -374,6 +374,10 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                         in >> matName >> n;
                         Material *mat2 = findMaterial(matName, editingScene);
                         editingScene->meshes.push_back(makeBall(name, mat, mat2, n));
+                    } else if(type == "cubeSphere") {
+                        size_t n;
+                        in >> n;
+                        editingScene->meshes.push_back(makeCubeSphere(name, mat, n));
                     } else {
                         cerr << "Invalid unique mesh name " << type << endl;
                     }

@@ -256,3 +256,52 @@ Mesh *makeBall(string name, Material *mat, Material *matPentagons, size_t subdiv
     mesh->flatShading = false;
     return mesh;
 }
+
+Mesh *makeCubeSphere(string name, Material *mat, size_t subdivisions) {
+    Mesh *mesh = new Mesh;
+    mesh->label = name;
+    mesh->faces = vector<Face>();
+    mesh->faces.reserve(subdivisions * subdivisions * 6);
+    mesh->vertices = vector<Vertex>();
+    mesh->vertices.reserve((subdivisions + 1) * (subdivisions + 1) * 6);
+    
+    std::array<TransformMatrix, 6> sides = {
+        makeRotationMatrix({0, 0, 0}),
+        makeRotationMatrix({M_PI_2, 0, 0}),
+        makeRotationMatrix({-M_PI_2, 0, 0}),
+        makeRotationMatrix({0, M_PI_2, 0}),
+        makeRotationMatrix({0, -M_PI_2, 0}),
+        makeRotationMatrix({0, M_PI, 0}),
+    };
+
+    for (size_t n = 0; n < 6; n++) {
+        for (size_t x = 0; x <= subdivisions; x++) {
+            float u = (float)x / subdivisions;
+            for (size_t y = 0; y <= subdivisions; y++) {
+                float v = (float)y / subdivisions;
+                Vec3 position = (Vec3{u*2.0f - 1.0f, v*2.0f - 1.0f, 1} * sides[n]).normalized();
+                mesh->vertices.push_back(Vertex{
+                    .position = position,
+                    .uv = {u, v},
+                    .normal = -position,
+                });
+                if (x > 0 && y > 0) {
+                    uint16_t sideOffset = (n * (subdivisions+1) * (subdivisions+1));
+                    uint16_t v1 = (x - 1) + (y - 1) * (subdivisions + 1) + sideOffset;
+                    uint16_t v2 = (x - 0) + (y - 1) * (subdivisions + 1) + sideOffset;
+                    uint16_t v3 = (x - 1) + (y - 0) * (subdivisions + 1) + sideOffset;
+                    uint16_t v4 = (x - 0) + (y - 0) * (subdivisions + 1) + sideOffset;
+                    mesh->faces.push_back(Face{
+                        .v1 = v2, .v2 = v1, .v3 = v4,
+                        .material = mat
+                    });
+                    mesh->faces.push_back(Face{
+                        .v1 = v4, .v2 = v1, .v3 = v3,
+                        .material = mat
+                    });
+                }
+            }
+        }
+    }
+    return mesh;
+}

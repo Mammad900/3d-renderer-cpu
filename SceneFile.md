@@ -190,7 +190,7 @@ Use `flat` to disable smooth shading, which is enabled by default.
 
 Consult google or wikipedia if you don't know what these words mean.
 
-None of these are UV mapped.
+None of these (except `cubeSphere`) are UV mapped.
 
 - `regularIcosahedron`
 - `subdividedIcosahedron <subdivision steps>` (subdivides by 2 and projects to sphere given number of times)
@@ -198,6 +198,7 @@ None of these are UV mapped.
 - `pentakisDodecahedron`
 - `truncatedIcosahedron`
 - `ball <pentagons-material-name> <subdivision steps>` (a truncated icosahedron with alternate material assigned to pentagonal faces, then subdivided and projected to a sphere)
+- `cubeSphere <subdivisions>` (a cube, subdivided and projected to a sphere. can be UV mapped to a cube-map, see [Quadrilateralized_spherical_cube](https://en.wikipedia.org/wiki/Quadrilateralized_spherical_cube))
 
 ## Objects
 
