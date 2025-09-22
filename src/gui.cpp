@@ -95,8 +95,18 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingSc
 
     ImGui::Begin("Lights");
     ImGui::ColorEdit4("Ambient lighting", (float*)&editingScene->ambientLight, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-    ImGui::ColorEdit4("Fog", (float*)&editingScene->fogColor, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
     ImGui::DragFloat("Shadow bias", &editingScene->shadowBias, 0.05);
+    for (auto &&[name, volume] : editingScene->volumes) {
+        ImGui::PushID(volume);
+        if(ImGui::TreeNode(("Volume: "+name).c_str())) {
+            ImGui::ColorEdit4("Diffuse", &volume->diffuse.r, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+            ImGui::ColorEdit4("Emissive", &volume->emissive.r, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+            if(ImGui::ColorEdit4("Transmission", &volume->transmission.r, ImGuiColorEditFlags_Float))
+                volume->updateIntensity();
+            ImGui::TreePop();
+        }
+        ImGui::PopID();
+    }
     for (size_t i = 0; i < editingScene->lights.size(); i++) {
         ImGui::PushID(i);
         if(ImGui::TreeNode("Light")) {

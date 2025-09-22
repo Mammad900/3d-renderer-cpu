@@ -264,7 +264,6 @@ void serializeSceneToFile(Scene* scene, const std::filesystem::path& path) {
     out << "set fullBright " << scene->fullBright << "\n";
     out << "set wireFrame " << scene->wireFrame << "\n";
     out << "set windowSize " << frame->size << "\n\n";
-    out << "fog " << scene->fogColor << "\n";
 
     if (scene->skyBox) {
         out << "skyBox ";
@@ -273,7 +272,17 @@ void serializeSceneToFile(Scene* scene, const std::filesystem::path& path) {
 
     out << "ambientLight " << scene->ambientLight << "\n\n\n";
 
-    out << "# Materials #\n\n";
+    out << "# Volumes #\n\n";
+
+    for (auto &&[name, volume] : scene->volumes) {
+        out << "new volume " << name << "\n"
+            << "    diffuse " << volume->diffuse << "\n"
+            << "    emissive " << volume->emissive << "\n"
+            << "    transmission " << volume->transmission << "\n"
+            << "end\n";
+    }
+
+    out << "\n# Materials #\n\n";
 
     // Serialize materials
     for (auto&& material : scene->materials) {

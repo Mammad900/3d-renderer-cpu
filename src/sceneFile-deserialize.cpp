@@ -182,15 +182,34 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
             else {
                 cerr << "Invalid setting " << word << endl;
             }
-        } else if (word == "fog") {
-            in >> editingScene->fogColor;
         } else if (word == "skyBox") {
             getTexture(editingScene->skyBox, in, path);
         } else if (word == "ambientLight") {
             in >> editingScene->ambientLight;
         } else if (word == "new") {
             in >> word;
-            if (word == "material") {
+            if (word == "volume") {
+                string name, key;
+                in >> name;
+                Volume *volume = new Volume();
+                while (in >> key && key != "end") {
+                    if (key == "#") { while (in >> key && key != "#"); continue; }
+
+                    if (key == "diffuse") {
+                        in >> volume->diffuse;
+                    } else if(key == "emissive") {
+                        in >> volume->emissive;
+                    } else if(key == "transmission") {
+                        in >> volume->transmission;
+                    } else {
+                        cerr << "Invalid volume property " << key << endl;
+                    }
+                }
+                volume->updateIntensity();
+                if (name == "global")
+                    editingScene->volume = volume;
+                editingScene->volumes.emplace(name, volume);
+            } else if (word == "material") {
                 string name, type;
                 in >> name >> type;
 
@@ -198,6 +217,7 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                     PhongMaterialProps mat{};
                     MaterialFlags flags{};
                     string key;
+                    Volume *front = nullptr, *back = nullptr;
                     while (in >> key && key != "end") {
                         if (key == "#") { while (in >> key && key != "#"); continue; }
 
@@ -217,11 +237,16 @@ void parseSceneFile(std::filesystem::path path, Scene *editingScene) {
                             flags.doubleSided = true;
                         } else if (key == "alphaCutout") {
                             flags.alphaCutout = true;
+                        } else if (key == "volume") {
+                            string nameFront, nameBack;
+                            in >> nameFront >> nameBack;
+                            front = editingScene->volumes[nameFront];
+                            back = editingScene->volumes[nameBack];
                         } else {
                             cerr << "Invalid material property " << key << endl;
                         }
                     }
-                    editingScene->materials.push_back(new PhongMaterial(mat, name, flags));
+                    editingScene->materials.push_back(new PhongMaterial(mat, name, flags, front, back));
                 }
                 else if(type == "earth") {
                     EarthMaterial *mat = new EarthMaterial(name);

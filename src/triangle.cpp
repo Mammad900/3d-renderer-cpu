@@ -170,12 +170,14 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
         if (defer) {
             frame->gBuffer[index] = f;
         } else {
-            if(camera->obj->scene->fogColor.a > 0 && tri.mat->flags.transparent) { // Fog behind the fragment
+            Volume *volume = f.isBackFace ? tri.mat->volumeFront : tri.mat->volumeBack;
+            if(!volume) volume = camera->obj->scene->volume;
+            if(volume && tri.mat->flags.transparent) { // Fog behind the fragment
                 if(previousZ == INFINITY)
                     previousZ = camera->farClip;
                 if(previousZ != INFINITY || camera->obj->scene->godRays) {
                     Vec3 previousPixelPos = camera->screenSpaceToWorldSpace(f.screenPos.x, f.screenPos.y, previousZ);
-                    frame->framebuffer[index] = sampleFog(previousPixelPos, f.worldPos, frame->framebuffer[index], camera->obj->scene);
+                    frame->framebuffer[index] = sampleFog(previousPixelPos, f.worldPos, frame->framebuffer[index], camera->obj->scene, volume);
                 }
             }
             frame->framebuffer[index] = scene->fullBright ?

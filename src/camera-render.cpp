@@ -57,7 +57,7 @@ void Camera::render() {
         timing.clock.stop();
 
 
-        if(obj->scene->fogColor.a > 0)
+        if(obj->scene->volume)
             startThreads(this, true); // Even if deferred rendering is disabled, this can be multithreaded
     }
 }
@@ -161,7 +161,7 @@ void deferredPass(uint n, uint i0, Camera *camera) {
 }
 
 void fogPass(uint n, uint i0, Camera *camera) {
-    if(camera->obj->scene->fogColor.a == 0)
+    if(!camera->obj->scene->volume)
         return;
 
     RenderTarget *frame = camera->tFrame;

@@ -24,6 +24,7 @@ struct Color {
         };
     }
     static Color mix(Color x, Color y, float a) { return x * (1 - a) + y * a; }
+    static Color mix(Color x, Color y, Color a) { return x * (Color{1,1,1,1} - a) + y * a; }
 
     Color operator+(const Color &other) const {
         return {r + other.r, g + other.g, b + other.b, a + other.a};

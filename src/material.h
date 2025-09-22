@@ -4,6 +4,21 @@
 #include "color.h"
 #include "miscTypes.h"
 
+struct Volume {
+    Color diffuse;
+    Color emissive;
+    Color transmission;
+    Color intensity; // Not user facing
+
+    void updateIntensity() {
+        intensity = {
+            (1.f - transmission.r) * transmission.a,
+            (1.f - transmission.g) * transmission.a,
+            (1.f - transmission.b) * transmission.a,
+        };
+    }
+};
+
 struct MaterialFlags {
     // Causes the polygons to be rasterized last, and allows polygons behind them to be partially visible. 
     // Slightly worse for performance, and polygons can't intersect.
@@ -23,7 +38,9 @@ public:
     std::string name;
     MaterialFlags flags;
     bool needsTBN = false;
-    Material(std::string name, MaterialFlags flags, bool needsTBN) : name(name), flags(flags), needsTBN(needsTBN) {}
+    Volume *volumeBack = nullptr, *volumeFront = nullptr;
+    Material(std::string name, MaterialFlags flags, bool needsTBN, Volume *front = nullptr, Volume *back = nullptr) 
+        : name(name), flags(flags), needsTBN(needsTBN), volumeBack(back), volumeFront(front) {}
     virtual Color shade(Fragment &f, Color previous, Scene *scene) = 0;
     virtual Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) = 0;
     virtual void GUI();

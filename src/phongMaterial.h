@@ -35,8 +35,8 @@ class PhongMaterial : public Material {
 public:
     PhongMaterialProps mat;
 
-    PhongMaterial(const PhongMaterialProps &mat, std::string name, MaterialFlags flags) 
-        : Material(name, flags, mat.normalMap.has_value()), mat(mat) { }
+    PhongMaterial(const PhongMaterialProps &mat, std::string name, MaterialFlags flags, Volume *front = nullptr, Volume *back = nullptr) 
+        : Material(name, flags, mat.normalMap.has_value(), front, back), mat(mat) { }
 
     Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) {
         return mat.diffuse->sample(uv, dUVdx, dUVdy);

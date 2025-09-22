@@ -16,14 +16,26 @@ void Camera::fogPixel(int x, int y) {
         screenSpaceToWorldSpace(x, y, z), 
         obj->globalPosition,
         tFrame->framebuffer[i],
-        obj->scene
+        obj->scene,
+        obj->scene->volume
     );
 }
 
-Color sampleFog(Vec3 start, Vec3 end, Color background, Scene *scene) {
-    if(scene->godRays) {
+Color getVisibility(Color in, float sampleLength) {
+    return {
+        std::expf(-sampleLength * in.r), // Exponential falloff
+        std::expf(-sampleLength * in.g),
+        std::expf(-sampleLength * in.b),
+    };
+}
+
+Color sampleFog(Vec3 start, Vec3 end, Color background, Scene *scene, Volume *volume) {
+    if(!volume)
+        return background;
+    
+    if (scene->godRays) {
         float sampleLength = scene->godRaysSampleSize;
-        float visibility = std::clamp(std::powf(0.5f, sampleLength * scene->fogColor.a), 0.0f, 1.0f); // Exponential falloff
+        Color visibility = getVisibility(volume->intensity, sampleLength);
         Vec3 diff = end - start;
         Vec3 now = start;
         float remaining = diff.length();
@@ -31,16 +43,16 @@ Color sampleFog(Vec3 start, Vec3 end, Color background, Scene *scene) {
         Color color = background;
         while (remaining > 0) {
             now += step;
-            float visibilityNow = remaining > sampleLength ? visibility : std::clamp(std::powf(0.5f, remaining * scene->fogColor.a), 0.0f, 1.0f);
+            Color visibilityNow = remaining > sampleLength ? visibility : getVisibility(volume->intensity, remaining);
             Color lighting = {0,0,0,1};
             for (size_t i = 0; i < scene->lights.size(); i++)
                 lighting += scene->lights[i]->sample(now).first;
-            color = color * visibilityNow + scene->fogColor * lighting * (1 - visibilityNow);
+            color = Color::mix(lighting * volume->diffuse + volume->emissive, color, visibilityNow);
             remaining-= sampleLength;
         }
         return color;
     }
     float dist = (start - end).length();
-    float visibility = std::clamp(std::powf(0.5f, dist * scene->fogColor.a), 0.0f, 1.0f); // Exponential falloff
-    return background * visibility + scene->fogColor * (1 - visibility); // Lerp
+    Color visibility = getVisibility(volume->intensity, dist);
+    return Color::mix(volume->diffuse + volume->emissive, background, visibility);
 }

@@ -5,6 +5,7 @@
 #include "light.h"
 #include "camera.h"
 #include <SFML/Graphics.hpp>
+#include <map>
 
 using sf::Vector2u;
 
@@ -85,8 +86,9 @@ struct Scene {
     float shadowBias = 0.1f;
     TextureFilteringMode textureFilteringMode = TextureFilteringMode::NearestNeighbor;
 
-    Color fogColor = {0,0,0,0};
-    Texture<Color> *skyBox = new SolidTexture(Color{0,0,0,0});
+    Volume *volume;
+    std::map<std::string, Volume*> volumes;
+    Texture<Color> *skyBox = new SolidTexture(Color{0, 0, 0, 0});
     KeyboardControlComponent *keyboardControl;
 };
 
