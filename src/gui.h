@@ -7,19 +7,24 @@
 #include "data.h"
 #include "material.h"
 #include <SFML/Graphics.hpp>
+#include <memory>
+#include <vector>
 
-template <typename T>
-bool ImGui::RadioButton(const char* label, T* v, T v_button)
-{
-    const bool pressed = RadioButton(label, *v == v_button);
-    if (pressed)
-        *v = v_button;
-    return pressed;
+namespace ImGui {
+    template <typename T>
+    bool RadioButton(const char* label, T* v, T v_button)
+    {
+        const bool pressed = RadioButton(label, *v == v_button);
+        if (pressed)
+            *v = v_button;
+        return pressed;
+    }
 }
 
 enum class GuiMaterialAssignMode { None, Face, Mesh };
-extern Material *guiSelectedMaterial;
+extern shared_ptr<Material> guiSelectedMaterial;
 extern GuiMaterialAssignMode guiMaterialAssignMode;
+extern vector<std::weak_ptr<Material>> materials;
 
-void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, Scene *editingScene);
+void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene> editingScene);
 #endif /* __GUI_H__ */

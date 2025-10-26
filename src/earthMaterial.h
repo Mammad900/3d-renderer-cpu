@@ -1,7 +1,10 @@
 #ifndef __EARTHMATERIAL_H__
 #define __EARTHMATERIAL_H__
+#include "color.h"
 #include "phongMaterial.h"
+#include "texture.h"
 #include "textureFiltering.h"
+#include <memory>
 
 inline SolidTexture<Color> *blankTexture() {
     return new SolidTexture<Color>({0, 0, 0, 0});
@@ -9,27 +12,27 @@ inline SolidTexture<Color> *blankTexture() {
 
 class EarthMaterial : public Material {
 public:
-    PhongMaterial *terrainMat;
-    PhongMaterial *oceanMat;
-    PhongMaterial *cloudMat;
-    Texture<float> *oceanMask = new SolidTexture<float>(0);
-    Texture<float> *cloudTexture = new SolidTexture<float>(0);
+    shared_ptr<PhongMaterial> terrainMat;
+    shared_ptr<PhongMaterial> oceanMat;
+    shared_ptr<PhongMaterial> cloudMat;
+    shared_ptr<Texture<float>> oceanMask = std::make_shared<SolidTexture<float>>(0);
+    shared_ptr<Texture<float>> cloudTexture = std::make_shared<SolidTexture<float>>(0);
 
     EarthMaterial(std::string name) : Material(name, MaterialFlags{}, true) {
         PhongMaterialProps terrainProps{};
-        terrainMat = new PhongMaterial(terrainProps, name+" Terrain", MaterialFlags{});
+        terrainMat = std::make_shared<PhongMaterial>(terrainProps, name+" Terrain", MaterialFlags{});
 
         PhongMaterialProps oceanProps{};
-        oceanMat = new PhongMaterial(oceanProps, name+" Terrain", MaterialFlags{});
+        oceanMat = std::make_shared<PhongMaterial>(oceanProps, name+" Terrain", MaterialFlags{});
 
         PhongMaterialProps cloudProps{};
-        cloudMat = new PhongMaterial(cloudProps, name+" Terrain", MaterialFlags{});
+        cloudMat = std::make_shared<PhongMaterial>(cloudProps, name+" Terrain", MaterialFlags{});
     }
 
-    Color shade(Fragment &f, Color previous, Scene *scene) {
+    Color shade(Fragment &f, Color previous, Scene &scene) {
         bool isOcean = oceanMask->sample(f) > 0.5f;
         Color groundLighting = isOcean ? oceanMat->shade(f, previous, scene) : terrainMat->shade(f, previous, scene);
-        f.baseColor = ((ImageTexture<Color>*)(cloudMat->mat.diffuse))->value; // Because it contains terrain diffuse and we want white
+        f.baseColor = std::dynamic_pointer_cast<SolidTexture<Color>>(cloudMat->mat.diffuse)->value; // Because it contains terrain diffuse and we want white
         Color cloudLighting = cloudMat->shade(f, previous, scene);
         float cloudIntensity = cloudTexture->sample(f);
         return groundLighting * (1 - cloudIntensity) +

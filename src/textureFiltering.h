@@ -22,6 +22,7 @@ class ImageTexture : public SolidTexture<T> {
 public:
     Vector2u size;
     TextureFilteringMode filteringMode;
+    ImageTexture() : SolidTexture<T>(Color{}) {}
     ImageTexture(sf::Image &img, T scale, TextureFilteringMode overrideFilteringMode = TextureFilteringMode::None) 
     : SolidTexture<T>(scale), filteringMode(overrideFilteringMode) {
         size = img.getSize();
@@ -158,5 +159,28 @@ public:
     }
 };
 
+template <typename T>
+class ErrorTexture : public ImageTexture<T> {
+public:
+    ErrorTexture() {}
+    T sample(Vector2f uv, Vector2f, Vector2f) {
+        uv *= 8.0f;
+        if((int(uv.x)%2 == 0) ^ (int(uv.y)%2 == 0)) {
+            if constexpr(std::is_same_v<T, Color>)
+                return Color{0, 0, 0, 1}; // Black
+            else if constexpr(std::is_same_v<T, float>)
+                return 1.0f;
+            else if constexpr(std::is_same_v<T, Vec3>)
+                return Vec3{-1, -1, 1};
+        } else {
+            if constexpr(std::is_same_v<T, Color>)
+                return Color{1, 0, 1, 1}; // Magenta
+            else if constexpr(std::is_same_v<T, float>)
+                return 0.0f;
+            else if constexpr(std::is_same_v<T, Vec3>)
+                return Vec3{1, 1, 1};
+        }
+    }
+};
 
 #endif /* __TEXTUREFILTERING_H__ */

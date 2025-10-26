@@ -12,19 +12,26 @@ float smoothstep(float edge0, float edge1, float x) {
     return x * x * (3 - 2 * x);
 }
 
-Light::Light(Object *obj, Color color) : Component(obj), color(color) {
-    obj->scene->lights.push_back(this);
+void Light::update() { // Try every frame to add this light to the scene. Can't be done in constructor because its not in scene tree yet.
+    if(addedToScene) return;
+    shared_ptr<Scene> scene = obj->scene.lock();
+    if(!scene) return;
+    scene->lights.push_back(this);
+    addedToScene = true;
 }
 
 Light::~Light() {
-    auto it = std::find(obj->scene->lights.begin(), obj->scene->lights.end(), this);
-    if (it != obj->scene->lights.end()) {
-        obj->scene->lights.erase(it);
+    shared_ptr<Scene> scene = obj->scene.lock();
+    if(!scene) return;
+    auto it = std::find(scene->lights.begin(), scene->lights.end(), this);
+    if (it != scene->lights.end()) {
+        scene->lights.erase(it);
     }
 }
 
-std::pair<Color, Vec3> SpotLight::sample(Vec3 pos) {
-    float bias = obj->scene->shadowBias;
+std::pair<Color, Vec3> SpotLight::sample(Vec3 pos, Scene &scene) {
+
+    float bias = scene.shadowBias;
     Vec3 diff = pos - obj->globalPosition;
     float distSq = diff.lengthSquared();
     float dist = std::sqrt(distSq);
@@ -44,7 +51,7 @@ std::pair<Color, Vec3> SpotLight::sample(Vec3 pos) {
             Vector2f pos = Vector2f{projected.x + 1, projected.y + 1}
                 .componentWiseMul(Vector2f{shadowMap->tFrame->size.x / 2.0f, shadowMap->tFrame->size.y / 2.0f});
 
-            if(obj->scene->bilinearShadowFiltering) {
+            if(scene.bilinearShadowFiltering) {
                 float decimalsX = pos.x - floor(pos.x);
                 float decimalsY = pos.y - floor(pos.y);
 
@@ -79,7 +86,8 @@ void Light::GUI() {
 }
 
 void SpotLight::setupShadowMap(Vector2u size) {
-    shadowMap = new Camera(obj);
+    shadowMap = new Camera();
+    shadowMap->init(obj);
     shadowMap->shadowMap = true;
     shadowMap->tFrame = new RenderTarget(size, true);
 }

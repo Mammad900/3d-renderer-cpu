@@ -1,11 +1,12 @@
 #include "generateMesh.h"
 #include <fstream>
+#include <memory>
 #include <sstream>
 #include <vector>
 #include <cstring>
 #include <iostream>
 
-Mesh* loadSTL(const std::string& filename, Material* mat, std::string name) {
+shared_ptr<Mesh> loadSTL(const std::filesystem::path& filename, shared_ptr<Material> mat, std::string name) {
     std::ifstream file(filename, std::ios::binary);
     if (!file) {
         std::cerr << "Failed to open " << filename << "\n";
@@ -88,6 +89,5 @@ Mesh* loadSTL(const std::string& filename, Material* mat, std::string name) {
         }
     }
 
-    Mesh* mesh = new Mesh(name, vertices, faces, true);
-    return mesh;
+    return std::make_shared<Mesh>(name, vertices, faces, true);
 }

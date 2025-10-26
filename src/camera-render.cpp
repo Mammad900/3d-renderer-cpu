@@ -1,13 +1,18 @@
 #include "camera.h"
+#include "data.h"
 #include "triangle.h"
 #include "fog.h"
 #include "multithreading.h"
 #include <imgui.h>
 #include <functional>
 #include <SFML/System/Clock.hpp>
+#include <memory>
 #include <typeindex>
 
 void Camera::render() {
+    shared_ptr<Scene> scene = obj->scene.lock();
+    if(!scene) return;
+
     if(shadowMap) {
         makePerspectiveProjectionMatrix();
 
@@ -57,7 +62,7 @@ void Camera::render() {
         timing.clock.stop();
 
 
-        if(obj->scene->volume)
+        if(scene->volume)
             startThreads(this, true); // Even if deferred rendering is disabled, this can be multithreaded
     }
 }
@@ -66,10 +71,10 @@ void Camera::buildTriangles(
     std::vector<TransparentTriangle> &transparents,
     std::vector<Triangle> &triangles
 ) {
-    std::function<void(Object *)> handleObject = [&](Object *obj) {
+    std::function<void(shared_ptr<Object>)> handleObject = [&](shared_ptr<Object> obj) {
         for (auto &&comp : obj->components) {
-            if (MeshComponent *meshComp = dynamic_cast<MeshComponent *>(comp)) {
-                Mesh *mesh = meshComp->mesh;
+            if (MeshComponent *meshComp = dynamic_cast<MeshComponent *>(comp.get())) {
+                shared_ptr<Mesh> mesh = meshComp->mesh;
                 Projection projectedVertices[mesh->vertices.size()];
 
                 for (size_t j = 0; j < mesh->vertices.size(); j++) {
@@ -112,16 +117,19 @@ void Camera::buildTriangles(
             handleObject(child);
     };
 
-    for (auto &&obj : obj->scene->objects)
+    for (auto &&obj : scene->objects)
         handleObject(obj);
 }
 
 void Camera::drawSkyBox() {
+    shared_ptr<Scene> scene = obj->scene.lock();
+    if(!scene) return;
+
     SolidTexture<Color> *solidSkyBox = nullptr;
     { // dynamic_cast alone doesn't work because we don't want derived classes
-        std::type_index ti(typeid(*obj->scene->skyBox));
+        std::type_index ti(typeid(*scene->skyBox));
         if (ti == std::type_index(typeid(SolidTexture<Color>)))
-            solidSkyBox = dynamic_cast<SolidTexture<Color> *>(obj->scene->skyBox);
+            solidSkyBox = dynamic_cast<SolidTexture<Color> *>(scene->skyBox.get());
     }
     for (uint y = 0; y < tFrame->size.y; y++) {
         for (uint x = 0; x < tFrame->size.x; x++) {
@@ -138,7 +146,7 @@ void Camera::drawSkyBox() {
                         0.5f - (asinf(lookVector.y) / M_PIf)
                     };
 
-                    tFrame->framebuffer[i] = obj->scene->skyBox->sample(uv, {0, 0}, {0, 0});
+                    tFrame->framebuffer[i] = scene->skyBox->sample(uv, {0, 0}, {0, 0});
                 }
             }
             tFrame->zBuffer[i] = INFINITY;
@@ -148,6 +156,9 @@ void Camera::drawSkyBox() {
 
 
 void deferredPass(uint n, uint i0, Camera *camera) {
+    shared_ptr<Scene> scene = camera->obj->scene.lock();
+    if(!scene) return;
+
     RenderTarget *frame = camera->tFrame;
     for (size_t i = i0; i < frame->size.x * frame->size.y; i += n) {
         if (frame->zBuffer[i] == INFINITY) // No fragment here
@@ -156,18 +167,36 @@ void deferredPass(uint n, uint i0, Camera *camera) {
         Fragment &f = frame->gBuffer[i];
         if (frame->deferred && !f.face->material->flags.alphaCutout)
             f.baseColor = f.face->material->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
-        frame->framebuffer[i] = f.face->material->shade(f, frame->framebuffer[i], camera->obj->scene);
+        frame->framebuffer[i] = f.face->material->shade(f, frame->framebuffer[i], *scene);
     }
 }
 
 void fogPass(uint n, uint i0, Camera *camera) {
-    if(!camera->obj->scene->volume)
+    shared_ptr<Scene> scene = camera->obj->scene.lock();
+    if(!scene) return;
+    if(!scene->volume)
         return;
 
     RenderTarget *frame = camera->tFrame;
     for (size_t i = i0; i < frame->size.x * frame->size.y; i += n) {
-        if(frame->zBuffer[i] == INFINITY && !camera->obj->scene->godRays) // Sky-box pixels don't get fog unless its godRays
+        if(frame->zBuffer[i] == INFINITY && !scene->godRays) // Sky-box pixels don't get fog unless its godRays
             continue;
-        camera->fogPixel(i % frame->size.x, i / frame->size.x);
+        int x = i % frame->size.x, y= i / frame->size.x;
+        float z = camera->tFrame->zBuffer[i];
+
+        if(z == INFINITY) {
+            if(scene->godRays)
+                z = camera->farClip;
+            else
+                return;
+        }
+
+        camera->tFrame->framebuffer[i] = sampleFog(
+            camera->screenSpaceToWorldSpace(x, y, z), 
+            camera->obj->globalPosition,
+            camera->tFrame->framebuffer[i],
+            *scene,
+            scene->volume
+        );
     }
 }

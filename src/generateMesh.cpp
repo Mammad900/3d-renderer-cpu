@@ -2,6 +2,7 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <memory>
 
 void bakeMeshNormals(Mesh &mesh) {
     for (auto &&face : mesh.faces) {
@@ -23,7 +24,7 @@ void bakeMeshNormals(Mesh &mesh) {
                          "and cancels out another face's normal." << std::endl;
 }
 
-Mesh *loadOBJ(const std::string &filename, Material *mat, std::string name) {
+shared_ptr<Mesh> loadOBJ(const std::filesystem::path &filename, shared_ptr<Material> mat, std::string name) {
     std::ifstream file(filename); // Like std::cin, but for a file
     if (!file) {
         std::cerr << "Failed to open " << filename << "\n";
@@ -56,7 +57,7 @@ Mesh *loadOBJ(const std::string &filename, Material *mat, std::string name) {
     }
 
     // BAKE NORMALS
-    Mesh *mesh = new Mesh;
+    shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
     mesh->label = name;
     mesh->faces = faces;
     mesh->vertices = vertices;

@@ -4,6 +4,15 @@
 #include <functional>
 #include <SFML/System/Clock.hpp>
 
+void Camera::update() {
+    if(shouldSetAsSceneCamera) {
+        shared_ptr<Scene> scene = obj->scene.lock();
+        if(!scene) return;
+        scene->setActiveCamera(shared_from_this());
+        shouldSetAsSceneCamera = false;
+    }
+}
+
 Projection Camera::perspectiveProject(Vec3 a) {
     Vec3 b = a - obj->globalPosition;
     float vM[4] = {b.x, b.y, b.z, 1};
@@ -20,7 +29,7 @@ sf::Image Camera::getRenderedFrame(int renderMode) {
         for (unsigned int x = 0; x < frame->size.x; x++)
             if (renderMode == 0) { // Frame buffer
                 Color pixel = frame->framebuffer[y * frame->size.x + x];
-                img.setPixel({x, y}, pixel.reinhardtTonemap(whitePoint==0 ? obj->scene->maximumColor : whitePoint));
+                img.setPixel({x, y}, pixel.reinhardtTonemap(whitePoint==0 ? obj->scene.lock()->maximumColor : whitePoint));
             }
             else if (renderMode == 1) { // Z buffer
                 // Z buffer range is really display-to-end-user unfriendly
@@ -62,9 +71,12 @@ void Camera::makePerspectiveProjectionMatrix() {
 }
 
 void Camera::GUI() {
+    shared_ptr<Scene> scene = obj->scene.lock();
+    if(!scene) return;
+
     if(ImGui::Button("Set as scene camera")) {
-        obj->scene->camera->tFrame = nullptr;
-        obj->scene->camera = this;
+        scene->camera->tFrame = nullptr;
+        scene->camera = shared_from_this();
         tFrame = frame;
     }
 }

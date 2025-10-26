@@ -1,4 +1,5 @@
 #include "generateMesh.h"
+#include <memory>
 
 /// @brief Generates a plane mesh
 /// @param material Material to assign all faces to
@@ -7,9 +8,9 @@
 /// Usually 1x1 is enough, unless the face is very big, in which case it might be a good idea to increase it.
 /// @param subdivisionsY 
 /// @return Pointer to mesh object
-Mesh* createPlane(Material* material, std::string name, uint16_t subdivisionsX, uint16_t subdivisionsY) {
+shared_ptr<Mesh> createPlane(shared_ptr<Material> material, std::string name, uint16_t subdivisionsX, uint16_t subdivisionsY) {
     // Allocate the mesh and assign a label.
-    Mesh* mesh = new Mesh;
+    shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
     mesh->label = name;
 
     // Calculate the number of vertices and faces.

@@ -5,3 +5,7 @@ ShortIfStyle: WithoutElse
 BreakBeforeBraces: Custom
 BraceWrapping:
     BeforeElse: true
+ColumnLimit: 0        # never wrap long lines
+AllowAllParametersOfDeclarationOnNextLine: false
+BinPackArguments: false
+BinPackParameters: false

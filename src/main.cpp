@@ -3,11 +3,15 @@
 #include "generateMesh.h"
 #include "sceneFile.h"
 #include "multithreading.h"
+#include "lua.h"
 #include <SFML/Graphics.hpp>
 #include <filesystem>
+#include <memory>
 
 int main(int argc, char** argv) {
-    parseSceneFile(argc > 1 ? argv[1] : "assets/scene.txt", scene);
+    lua();
+    // return 0;
+    // parseSceneFile(argc > 1 ? argv[1] : "assets/scene.txt", scene);
 
     // Tools window
     sf::RenderWindow window2(sf::VideoMode({1200, 600}), "Tools");
@@ -28,7 +32,6 @@ int main(int argc, char** argv) {
         timing.deltaTime = deltaClock.getElapsedTime().asSeconds();
         timing.totalTime += timing.deltaTime;
         timing.clock.restart();
-        guiUpdate(window2, deltaClock, scene); // gui.h
 
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
@@ -65,7 +68,7 @@ int main(int argc, char** argv) {
             if(isKeyPressed(Key::Down))
                 obj->rotation.x -= speed.y;
             if(scene->keyboardControl->scaleIsChildZ && obj->children.size() > 0) {
-                Object *child = obj->children[0];
+                shared_ptr<Object> child = obj->children[0];
                 if(isKeyPressed(Key::Add))
                     child->position.z += speed.z;
                 if(isKeyPressed(Key::Subtract))
@@ -82,6 +85,10 @@ int main(int argc, char** argv) {
         for (auto &&obj : scene->objects)
             obj->update();
 
+        luaOnFrame();
+
+        guiUpdate(window2, deltaClock, scene); // gui.h
+
         timing.updateTime.push(timing.clock);
 
         if(timing.render)
@@ -97,6 +104,7 @@ int main(int argc, char** argv) {
 
         timing.postProcessTIme.push(timing.clock);
     }
+    luaDestroy();
     ImGui::SFML::Shutdown();
     shutdownThreads();
 }

@@ -13,34 +13,34 @@ void PhongMaterial::GUI() {
     mat.tint->Gui("Tint");
     mat.emissive->Gui("Emissive");
     if(mat.normalMap)
-        mat.normalMap.value()->Gui("Normal map");
+        mat.normalMap->Gui("Normal map");
     Material::GUI();
 }
 
-Color PhongMaterial::shade(Fragment &f, Color previous, Scene *scene) {
-    Vec3 viewDir = (scene->camera->obj->globalPosition - f.worldPos).normalized();
+Color PhongMaterial::shade(Fragment &f, Color previous, Scene &scene) {
+    Vec3 viewDir = (scene.camera->obj->globalPosition - f.worldPos).normalized();
     if(!flags.transparent && flags.doubleSided && f.isBackFace)
         f.normal *= -1.0f;
     Color matSpecular = mat.specular->sample(f);
     float shininess = pow(2.0f, matSpecular.a * 25.5f);
     Color matEmissive = mat.emissive->sample(f);
 
-    Color diffuse = scene->ambientLight * scene->ambientLight.a;
+    Color diffuse = scene.ambientLight * scene.ambientLight.a;
     Color sss = {0, 0, 0, 1};
     Color specular = {0, 0, 0, 1};
 
     Vec3 normal = f.normal;
     if (mat.normalMap) {
-        normal = mat.normalMap.value()->sample(f);
+        normal = mat.normalMap->sample(f);
         normal = f.tangent * normal.x
                 + f.bitangent*normal.y
                 + f.normal*normal.z;
         normal = normal.normalized();
     }
 
-    for (size_t i = 0; i < scene->lights.size(); i++)
+    for (size_t i = 0; i < scene.lights.size(); i++)
     {
-        auto [light, direction] = scene->lights[i]->sample(f.worldPos);
+        auto [light, direction] = scene.lights[i]->sample(f.worldPos, scene);
 
         if(light.a == 0) continue; // No light received, don't bother calculating
 
@@ -85,8 +85,8 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene *scene) {
         lighting = previous * matTint + lighting;
     }
 
-    if(scene->camera->whitePoint == 0) // Don't waste cycles if it won't be used
-        scene->maximumColor = max(scene->maximumColor, lighting.luminance()); // This doesn't take transparency into account
+    if(scene.camera->whitePoint == 0) // Don't waste cycles if it won't be used
+        scene.maximumColor = max(scene.maximumColor, lighting.luminance()); // This doesn't take transparency into account
 
     return lighting;
 }

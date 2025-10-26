@@ -2,17 +2,18 @@
 #define __OBJECT_H__
 #include "matrix.h"
 #include "miscTypes.h"
+#include <memory>
 
 struct Object;
 
 class Component {
   public:
     Object *obj;
-    Component(Object *obj) : obj(obj) {}
     // Called after object transform updates
     virtual void update(){};
     // Called before object transform updates
     virtual void preUpdate(){};
+    virtual void init(Object *obj) {this->obj = obj;}
     virtual void GUI(){};
     virtual std::string name() = 0;
 };
@@ -25,10 +26,10 @@ struct Object {
     Vec3 rotation;
     Vec3 scale = {1,1,1};
 
-    std::vector<Component *> components;
-    std::vector<Object *> children;
+    std::vector<std::shared_ptr<Component>> components;
+    std::vector<std::shared_ptr<Object>> children;
     Object *parent;
-    Scene *scene;
+    std::weak_ptr<Scene> scene;
 
     TransformMatrix transform;
     TransformMatrix transformRotation;
@@ -39,12 +40,17 @@ struct Object {
 
     void update();
     void GUI();
+    void setScene(std::weak_ptr<Scene> scene) {
+        this->scene = scene;
+        for (auto child : children)
+            child->setScene(scene);
+    }
 };
 
 class MeshComponent : public Component {
   public:
-    Mesh *mesh;
-    MeshComponent(Object *obj, Mesh *mesh) : Component(obj), mesh(mesh) {}
+    shared_ptr<Mesh> mesh;
+    MeshComponent(shared_ptr<Mesh> mesh) : mesh(mesh) {}
     std::string name() { return "Mesh: " + mesh->label; }
 };
 
@@ -52,8 +58,7 @@ class RotatorComponent : public Component {
   public:
     Vec3 rotatePerSecond;
     bool enable = true;
-    RotatorComponent(Object *obj, Vec3 rotatePerSecond)
-        : Component(obj), rotatePerSecond(rotatePerSecond) {}
+    RotatorComponent(Vec3 rotatePerSecond) : rotatePerSecond(rotatePerSecond) {}
 
     void preUpdate();
     void GUI();
@@ -67,8 +72,8 @@ class KeyboardControlComponent : public Component {
   public:
     Vec3 speed = {1,1,1};
     bool scaleIsChildZ = false;
-    KeyboardControlComponent(Object *obj, Vec3 speed, bool scaleIsChildZ)
-        : Component(obj), speed(speed), scaleIsChildZ(scaleIsChildZ) {}
+    KeyboardControlComponent(Vec3 speed, bool scaleIsChildZ)
+        : speed(speed), scaleIsChildZ(scaleIsChildZ) {}
     std::string name() { return "Keyboard Control"; }
     void GUI();
 };

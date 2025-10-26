@@ -1,13 +1,15 @@
 #ifndef __DATA_H__
 #define __DATA_H__
 
+#include "material.h"
 #include "object.h"
 #include "light.h"
 #include "camera.h"
 #include <SFML/Graphics.hpp>
 #include <map>
+#include <memory>
 
-using sf::Vector2u;
+using sf::Vector2u, std::shared_ptr;
 
 extern sf::RenderWindow *renderWindow;
 struct RenderTarget {
@@ -60,18 +62,15 @@ extern FrameTimings timing;
 
 class Camera;
 
-struct Scene {
+struct Scene : public std::enable_shared_from_this<Scene> {
     std::string name;
     
     std::vector<Light *> lights;
     Color ambientLight = {1, 1, 1, 0.1};
 
-    std::vector<Material*> materials;
-    std::vector<Mesh*> meshes;
+    std::vector<shared_ptr<Object>> objects;
 
-    std::vector<Object*> objects;
-
-    Camera *camera;
+    shared_ptr<Camera> camera;
     float maximumColor;
 
     int renderMode = 0;
@@ -86,12 +85,19 @@ struct Scene {
     float shadowBias = 0.1f;
     TextureFilteringMode textureFilteringMode = TextureFilteringMode::NearestNeighbor;
 
-    Volume *volume;
-    std::map<std::string, Volume*> volumes;
-    Texture<Color> *skyBox = new SolidTexture(Color{0, 0, 0, 0});
-    KeyboardControlComponent *keyboardControl;
+    shared_ptr<Volume> volume;
+    std::map<std::string, shared_ptr<Volume>> volumes;
+    shared_ptr<Texture<Color>> skyBox = std::make_shared<SolidTexture<Color>>(Color{0, 0, 0, 0});
+    shared_ptr<KeyboardControlComponent> keyboardControl;
+
+    void setActiveCamera(shared_ptr<Camera> camera) {
+        if(this->camera)
+            this->camera->tFrame = nullptr;
+        this->camera = camera;
+        camera->tFrame = frame;
+    }
 };
 
-extern Scene *scene;
-extern std::vector<Scene *> scenes;
+extern shared_ptr<Scene> scene;
+extern std::vector<shared_ptr<Scene>> scenes;
 #endif /* __DATA_H__ */

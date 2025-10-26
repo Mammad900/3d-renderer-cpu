@@ -1,9 +1,10 @@
 #include "generateMesh.h"
+#include <memory>
 
-using std::string;
+using std::string, std::shared_ptr;
 constexpr float phi = 1.618033988749895f;
 
-Mesh *makeRegularIcosahedron(string name, Material *mat) {
+shared_ptr<Mesh> makeRegularIcosahedron(string name, shared_ptr<Material> mat) {
     vector<Vertex> vertices = {
         {{0, +1, +phi}}, {{0, -1, +phi}}, {{0, +1, -phi}}, {{0, -1, -phi}},
         {{+1, +phi, 0}}, {{-1, +phi, 0}}, {{+1, -phi, 0}}, {{-1, -phi, 0}},
@@ -20,10 +21,10 @@ Mesh *makeRegularIcosahedron(string name, Material *mat) {
         v.normal = -v.position.normalized();
     for (auto &&f : faces)
         f.material = mat;
-    return new Mesh(name, vertices, faces, true);
+    return std::make_shared<Mesh>(name, vertices, faces, true);
 }
 
-void subdivideMesh2(Mesh *mesh) {
+void subdivideMesh2(shared_ptr<Mesh> mesh) {
     // Outer vector is list of vertices
     // Inner vector is list of adjacent vertices
     // Pair: adjacent vertex index, middle point vertex index
@@ -66,7 +67,7 @@ void subdivideMesh2(Mesh *mesh) {
     }
 }
 
-void subdivideMesh3(Mesh *mesh) {
+void subdivideMesh3(shared_ptr<Mesh> mesh) {
     // Outer vector is list of vertices
     // Inner vector is list of adjacent vertices
     // Pair: adjacent vertex index, first middle point vertex index
@@ -145,8 +146,8 @@ void subdivideMesh3(Mesh *mesh) {
     }
 }
 
-Mesh *makeIcoSphere(string name, Material *mat, size_t subdivisionSteps) {
-    Mesh *mesh = makeRegularIcosahedron(name, mat);
+shared_ptr<Mesh> makeIcoSphere(string name, shared_ptr<Material> mat, size_t subdivisionSteps) {
+    shared_ptr<Mesh> mesh = makeRegularIcosahedron(name, mat);
     for (size_t i = 0; i < subdivisionSteps; i++) {
         subdivideMesh2(mesh);
         for (auto &&v : mesh->vertices)
@@ -163,8 +164,8 @@ Mesh *makeIcoSphere(string name, Material *mat, size_t subdivisionSteps) {
 // ico faces become dod vertices, and ico vertices become dod faces
 // A pentakis dodecahedron is made by splitting each pentagonal face into five triangular faces and projecting them to a sphere.
 // Since in this engine all faces are triangles, the regular dodecahedron returned is technically a pentakis, its just not projected.
-Mesh *makeDodecahedron(string name, Material *mat, bool pentakis) {
-    Mesh *icosahedron = makeRegularIcosahedron("", nullptr);
+shared_ptr<Mesh> makeDodecahedron(string name, shared_ptr<Material> mat, bool pentakis) {
+    shared_ptr<Mesh> icosahedron = makeRegularIcosahedron("", nullptr);
 
     vector<Vertex> vertices;
     vector<Face> faces;
@@ -215,14 +216,13 @@ Mesh *makeDodecahedron(string name, Material *mat, bool pentakis) {
     makeFace( 9, 18, 17,  6,  5);
     makeFace(10, 11,  6, 17, 16);
 
-    delete icosahedron;
-    return new Mesh(name, vertices, faces, true);
+    return std::make_shared<Mesh>(name, vertices, faces, true);
 }
 
-Mesh *makeTruncatedIcosahedron(string name, Material *mat, Material *matPentagons) {
+shared_ptr<Mesh> makeTruncatedIcosahedron(string name, shared_ptr<Material> mat, shared_ptr<Material> matPentagons) {
     if(!matPentagons)
         matPentagons = mat;
-    Mesh *mesh = makeRegularIcosahedron(name, mat);
+    shared_ptr<Mesh> mesh = makeRegularIcosahedron(name, mat);
     subdivideMesh3(mesh);
     for (size_t i = 0; i < 12; i++)
         mesh->vertices[i].position = {0, 0, 0};
@@ -242,8 +242,8 @@ Mesh *makeTruncatedIcosahedron(string name, Material *mat, Material *matPentagon
     return mesh;
 }
 
-Mesh *makeBall(string name, Material *mat, Material *matPentagons, size_t subdivisionSteps) {
-    Mesh *mesh = makeTruncatedIcosahedron(name, mat, matPentagons);
+shared_ptr<Mesh> makeBall(string name, shared_ptr<Material> mat, shared_ptr<Material> matPentagons, size_t subdivisionSteps) {
+    shared_ptr<Mesh> mesh = makeTruncatedIcosahedron(name, mat, matPentagons);
     for (size_t i = 0; i < subdivisionSteps; i++) {
         subdivideMesh2(mesh);
         for (auto &&v : mesh->vertices)
@@ -257,8 +257,8 @@ Mesh *makeBall(string name, Material *mat, Material *matPentagons, size_t subdiv
     return mesh;
 }
 
-Mesh *makeCubeSphere(string name, Material *mat, size_t subdivisions) {
-    Mesh *mesh = new Mesh;
+shared_ptr<Mesh> makeCubeSphere(string name, shared_ptr<Material> mat, size_t subdivisions) {
+    shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
     mesh->label = name;
     mesh->faces = vector<Face>();
     mesh->faces.reserve(subdivisions * subdivisions * 6);

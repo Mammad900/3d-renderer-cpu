@@ -88,5 +88,7 @@
         "no-duplicate-heading": {
             "siblings_only": true
         }
-    }
+    },
+    "editor.formatOnType": false,
+    "editor.formatOnPaste": false
 }

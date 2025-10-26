@@ -5,15 +5,15 @@
 
 class PBRMaterial : public Material {
   public:
-    Texture<Color> *albedo;
-    Texture<float> *metallic;
-    Texture<float> *roughness;
-    Texture<float> *ambientOcclusion;
+    shared_ptr<Texture<Color>> albedo;
+    shared_ptr<Texture<float>> metallic;
+    shared_ptr<Texture<float>> roughness;
+    shared_ptr<Texture<float>> ambientOcclusion;
 
     PBRMaterial(
-        std::string name, MaterialFlags flags, Texture<Color> *albedo,
-        Texture<float> *metallic, Texture<float> *roughness,
-        Texture<float> *ambientOcclusion
+        std::string name, MaterialFlags flags, 
+        shared_ptr<Texture<Color>> albedo, shared_ptr<Texture<float>>metallic, 
+        shared_ptr<Texture<float>>roughness, shared_ptr<Texture<float>>ambientOcclusion
     )
         : Material(name, flags, false), albedo(albedo), metallic(metallic),
           roughness(roughness), ambientOcclusion(ambientOcclusion) {}
@@ -23,7 +23,7 @@ class PBRMaterial : public Material {
     }
 
     void GUI();
-    Color shade(Fragment &f, Color previous, Scene *scene);
+    Color shade(Fragment &f, Color previous, Scene &scene);
 };
 
 #endif /* __PBRMATERIAL_H__ */

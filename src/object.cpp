@@ -1,5 +1,6 @@
 #include "object.h"
 #include <imgui.h>
+#include <memory>
 #include "data.h"
 
 void Object::update() {
@@ -49,7 +50,7 @@ void Object::GUI() {
         ImGui::Text("Components:");
         for (size_t i = 0; i < components.size(); i++) {
             ImGui::PushID(i);
-            Component *c = components[i];
+            std::shared_ptr<Component> c = components[i];
             if (ImGui::TreeNode(c->name().c_str())) {
                 c->GUI();
                 ImGui::TreePop();

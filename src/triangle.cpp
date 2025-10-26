@@ -52,7 +52,8 @@ void drawLine(Vector2f from, Vector2f to, RenderTarget *frame) {
 
 void drawTriangle(Camera *camera, Triangle tri, bool defer) {
     RenderTarget *frame = camera->tFrame;
-    Scene *scene = camera->obj->scene;
+    if(shared_ptr<Scene> scene = camera->obj->scene.lock());
+    else return;
 
     if (
             (camera->shadowMap ? !tri.cull : tri.cull) && // Shadow maps have front face culling
@@ -170,19 +171,19 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
         if (defer) {
             frame->gBuffer[index] = f;
         } else {
-            Volume *volume = f.isBackFace ? tri.mat->volumeFront : tri.mat->volumeBack;
-            if(!volume) volume = camera->obj->scene->volume;
+            shared_ptr<Volume> volume = f.isBackFace ? tri.mat->volumeFront : tri.mat->volumeBack;
+            if(!volume) volume = scene->volume;
             if(volume && tri.mat->flags.transparent) { // Fog behind the fragment
                 if(previousZ == INFINITY)
                     previousZ = camera->farClip;
-                if(previousZ != INFINITY || camera->obj->scene->godRays) {
+                if(previousZ != INFINITY || scene->godRays) {
                     Vec3 previousPixelPos = camera->screenSpaceToWorldSpace(f.screenPos.x, f.screenPos.y, previousZ);
-                    frame->framebuffer[index] = sampleFog(previousPixelPos, f.worldPos, frame->framebuffer[index], camera->obj->scene, volume);
+                    frame->framebuffer[index] = sampleFog(previousPixelPos, f.worldPos, frame->framebuffer[index], *scene, volume);
                 }
             }
             frame->framebuffer[index] = scene->fullBright ?
                 baseColor :
-                tri.mat->shade(f, frame->framebuffer[index], camera->obj->scene);
+                tri.mat->shade(f, frame->framebuffer[index], *scene);
         }
     };
 

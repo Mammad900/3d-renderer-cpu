@@ -1,6 +1,7 @@
 #ifndef __MISCTYPES_H__
 #define __MISCTYPES_H__
 #include <SFML/Graphics.hpp>
+#include <memory>
 #include <string>
 #include "color.h"
 #include "texture.h"
@@ -31,7 +32,7 @@ struct Vertex {
 
 struct Face {
     uint16_t v1, v2, v3;
-    Material *material;
+    shared_ptr<Material> material;
 };
 
 struct Mesh {
@@ -62,9 +63,9 @@ struct Fragment {
 struct Triangle {
     Projection s1, s2, s3;
     Vector2f uv1, uv2, uv3;
-    Material *mat;
+    shared_ptr<Material> mat;
     Face *face;
-    Mesh *mesh;
+    shared_ptr<Mesh> mesh;
     bool cull;
 };
 

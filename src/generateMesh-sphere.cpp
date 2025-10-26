@@ -1,4 +1,5 @@
 #include "generateMesh.h"
+#include <memory>
 
 Vector2f invertUV(Vector2f a, bool invertU, bool invertV) {
     return {
@@ -13,9 +14,9 @@ Vector2f invertUV(Vector2f a, bool invertU, bool invertV) {
 /// @param stacks Number of vertical subdivisions (10-20 is good)
 /// @param sectors Number of horizontal subdivisions (20 is good)
 /// @return Pointer to mesh object
-Mesh* createSphere(Material* material, std::string name, uint16_t stacks, uint16_t sectors, bool invertU, bool invertV) {
+shared_ptr<Mesh> createSphere(shared_ptr<Material> material, std::string name, uint16_t stacks, uint16_t sectors, bool invertU, bool invertV) {
     // Allocate the mesh and assign a label.
-    Mesh* mesh = new Mesh;
+    shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
     mesh->label = name;
     
     // Calculate number of vertices:

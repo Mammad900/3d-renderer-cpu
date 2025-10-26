@@ -3,9 +3,10 @@
 #include "color.h"
 #include <SFML/System/Vector2.hpp>
 #include <imgui.h>
+#include <memory>
 
 struct Fragment;
-using sf::Vector2f, sf::Vector2u;
+using sf::Vector2f, sf::Vector2u, std::shared_ptr;
 
 template <typename T>
 class Texture {
@@ -32,30 +33,6 @@ public:
     }
 };
 
-template <typename T>
-class ErrorTexture : public Texture<T> {
-public:
-    ErrorTexture() {}
-    T sample(Vector2f uv, Vector2f, Vector2f) {
-        uv *= 8.0f;
-        if((int(uv.x)%2 == 0) ^ (int(uv.y)%2 == 0)) {
-            if constexpr(std::is_same_v<T, Color>)
-                return Color{0, 0, 0, 1}; // Black
-            else if constexpr(std::is_same_v<T, float>)
-                return 1.0f;
-            else if constexpr(std::is_same_v<T, Vec3>)
-                return Vec3{-1, -1, 1};
-        } else {
-            if constexpr(std::is_same_v<T, Color>)
-                return Color{1, 0, 1, 1}; // Magenta
-            else if constexpr(std::is_same_v<T, float>)
-                return 0.0f;
-            else if constexpr(std::is_same_v<T, Vec3>)
-                return Vec3{1, 1, 1};
-        }
-    }
-};
-
 /// @brief Returns a * sin(bx+ct+d) + e
 class SineWaveTexture : public Texture<float> {
   public:
@@ -77,34 +54,42 @@ enum class BlendMode {
 template<typename T, typename P>
 class BlendTexture : public Texture<T> {
   public:
-    Texture<T> *a;
-    Texture<P> *b;
+    shared_ptr<Texture<T>> a;
+    shared_ptr<Texture<P>> b;
 
 
     BlendMode mode;
 
-    BlendTexture(Texture<T> *a, Texture<P> *b, BlendMode mode) : a(a), b(b), mode(mode) {}
+    BlendTexture(shared_ptr<Texture<T>> a, shared_ptr<Texture<P>> b, BlendMode mode) : a(a), b(b), mode(mode) {}
 
     T sample(Vector2f uv, Vector2f dUVdX, Vector2f dUVdY) {
         T sampleA = a->sample(uv, dUVdX, dUVdY);
         P sampleB = b->sample(uv, dUVdX, dUVdY);
+
         if constexpr (std::is_same_v<P, Color>) {
-            if(mode == BlendMode::AlphaMix)
+            if (mode == BlendMode::AlphaMix)
                 return sampleB * sampleB.a + sampleA * (1 - sampleB.a);
         }
+
         switch (mode)
         {
         case BlendMode::Add:
-            return sampleA + sampleB;
+            if constexpr (std::is_same_v<T, P>)
+                return sampleA + sampleB;
+            else
+                throw std::runtime_error("Incompatible types for Add");
         case BlendMode::Multiply:
             return sampleA * sampleB;
         case BlendMode::Subtract:
-            return sampleA - sampleB;
-
+            if constexpr (std::is_same_v<T, P>)
+                return sampleA - sampleB;
+            else
+                throw std::runtime_error("Incompatible types for Subtract");
         default:
             throw std::runtime_error("Invalid blend mode");
         }
     }
+
 
     void Gui(std::string label) {
         if(ImGui::TreeNode(label.c_str())) {

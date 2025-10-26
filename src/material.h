@@ -4,6 +4,8 @@
 #include "color.h"
 #include "miscTypes.h"
 
+using std::shared_ptr;
+
 struct Volume {
     Color diffuse;
     Color emissive;
@@ -38,10 +40,10 @@ public:
     std::string name;
     MaterialFlags flags;
     bool needsTBN = false;
-    Volume *volumeBack = nullptr, *volumeFront = nullptr;
-    Material(std::string name, MaterialFlags flags, bool needsTBN, Volume *front = nullptr, Volume *back = nullptr) 
+    shared_ptr<Volume> volumeBack = nullptr, volumeFront = nullptr;
+    Material(std::string name, MaterialFlags flags, bool needsTBN, shared_ptr<Volume> front = nullptr, shared_ptr<Volume> back = nullptr) 
         : name(name), flags(flags), needsTBN(needsTBN), volumeBack(back), volumeFront(front) {}
-    virtual Color shade(Fragment &f, Color previous, Scene *scene) = 0;
+    virtual Color shade(Fragment &f, Color previous, Scene &scene) = 0;
     virtual Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) = 0;
     virtual void GUI();
 };

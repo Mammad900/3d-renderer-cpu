@@ -49,18 +49,18 @@ float GeometrySmith(Vec3 N, Vec3 V, Vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 
-Color PBRMaterial::shade(Fragment &f, Color previous, Scene *scene) {
+Color PBRMaterial::shade(Fragment &f, Color previous, Scene &scene) {
     Color albedo = f.baseColor;
     float metallic = this->metallic->sample(f);
     float roughness = this->roughness->sample(f);
     float ao = this->ambientOcclusion->sample(f);
 
     Vec3 N = f.normal;
-    Vec3 V = (f.worldPos - scene->camera->obj->globalPosition).normalized();
+    Vec3 V = (f.worldPos - scene.camera->obj->globalPosition).normalized();
 
     Color Lo{0, 0, 0, 0};
-    for (size_t i = 0; i < scene->lights.size(); i++) {
-        auto [radiance, L] = scene->lights[i]->sample(f.worldPos);
+    for (size_t i = 0; i < scene.lights.size(); i++) {
+        auto [radiance, L] = scene.lights[i]->sample(f.worldPos, scene);
         Vec3 H = (L + V).normalized();
         Color F0{0.04f, 0.04f, 0.04f, 1.0f};
         F0 = Color::mix(F0, albedo, metallic);
@@ -76,6 +76,6 @@ Color PBRMaterial::shade(Fragment &f, Color previous, Scene *scene) {
         float NdotL = max(N.dot(L), 0.0f);        
         Lo += (kD * albedo / M_PIf + specular) * radiance * NdotL;
     }
-    Color ambient = scene->ambientLight * scene->ambientLight.a * albedo * ao;
+    Color ambient = scene.ambientLight * scene.ambientLight.a * albedo * ao;
     return ambient + Lo;
 }

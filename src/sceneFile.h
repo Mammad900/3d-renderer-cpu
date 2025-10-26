@@ -4,8 +4,8 @@
 #include "data.h"
 #include <filesystem>
 
-void parseSceneFile(std::filesystem::path path, Scene *editingScene);
-void serializeSceneToFile(Scene *scene, const std::filesystem::path &path);
-void serializeEverything(const std::filesystem::path &path);
+// void parseSceneFile(std::filesystem::path path, shared_ptr<Scene> editingScene);
+// void serializeSceneToFile(shared_ptr<Scene> scene, const std::filesystem::path &path);
+// void serializeEverything(const std::filesystem::path &path);
 
 #endif /* __SCENEFILE_H__ */

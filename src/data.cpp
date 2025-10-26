@@ -1,8 +1,8 @@
 #include "data.h"
 
-Scene *scene = nullptr;
+shared_ptr<Scene> scene = nullptr;
 sf::RenderWindow *renderWindow;
-std::vector<Scene *> scenes;
+std::vector<shared_ptr<Scene>> scenes;
 RenderTarget *frame = new RenderTarget({500, 500});
 Vector2u frameSizeTemp = frame->size;
 FrameTimings timing;
