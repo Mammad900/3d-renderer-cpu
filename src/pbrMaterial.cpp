@@ -77,5 +77,10 @@ Color PBRMaterial::shade(Fragment &f, Color previous, Scene &scene) {
         Lo += (kD * albedo / M_PIf + specular) * radiance * NdotL;
     }
     Color ambient = scene.ambientLight * scene.ambientLight.a * albedo * ao;
-    return ambient + Lo;
+    Color res = ambient + Lo;
+
+    if(scene.camera->whitePoint == 0) // Don't waste cycles if it won't be used
+        scene.maximumColor = max(scene.maximumColor, res.luminance()); // This doesn't take transparency into account
+
+    return res;
 }
