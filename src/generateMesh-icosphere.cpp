@@ -1,5 +1,7 @@
 #include "generateMesh.h"
+#include <array>
 #include <memory>
+#include <tuple>
 
 using std::string, std::shared_ptr;
 constexpr float phi = 1.618033988749895f;
@@ -257,7 +259,7 @@ shared_ptr<Mesh> makeBall(string name, shared_ptr<Material> mat, shared_ptr<Mate
     return mesh;
 }
 
-shared_ptr<Mesh> makeCubeSphere(string name, shared_ptr<Material> mat, size_t subdivisions) {
+shared_ptr<Mesh> makeCubeSphere(string name, std::array<shared_ptr<Material>, 6> mats, size_t subdivisions, bool singleTexture) {
     shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
     mesh->label = name;
     mesh->faces = vector<Face>();
@@ -266,13 +268,31 @@ shared_ptr<Mesh> makeCubeSphere(string name, shared_ptr<Material> mat, size_t su
     mesh->vertices.reserve((subdivisions + 1) * (subdivisions + 1) * 6);
     
     std::array<TransformMatrix, 6> sides = {
-        makeRotationMatrix({0, 0, 0}),
-        makeRotationMatrix({M_PI_2, 0, 0}),
-        makeRotationMatrix({-M_PI_2, 0, 0}),
-        makeRotationMatrix({0, M_PI_2, 0}),
-        makeRotationMatrix({0, -M_PI_2, 0}),
-        makeRotationMatrix({0, M_PI, 0}),
+        makeRotationMatrix({0, M_PI_2 , M_PI}), // +x
+        makeRotationMatrix({ M_PI_2, 0, M_PI}), // +y
+        makeRotationMatrix({0, 0      , M_PI}), // +z
+        makeRotationMatrix({0,-M_PI_2 , M_PI}), // -x
+        makeRotationMatrix({-M_PI_2, 0, M_PI}), // -y
+        makeRotationMatrix({0, M_PI   , M_PI}), // -z
     };
+    // scale x, scale y, offset x, offset y
+    using offsets = std::tuple<float,float,float,float>;
+    std::array<offsets, 6> uvOffsets = 
+        singleTexture ? std::array<offsets, 6>{
+            offsets{1/3.0f, 0.5f, 0     , 0   },
+            offsets{1/3.0f, 0.5f, 1/3.0f, 0   },
+            offsets{1/3.0f, 0.5f, 2/3.0f, 0   },
+            offsets{1/3.0f, 0.5f, 0     , 0.5f},
+            offsets{1/3.0f, 0.5f, 1/3.0f, 0.5f},
+            offsets{1/3.0f, 0.5f, 2/3.0f, 0.5f},
+        } : std::array<offsets, 6>{
+            offsets{1,1,0,0},
+            offsets{1,1,0,0},
+            offsets{1,1,0,0},
+            offsets{1,1,0,0},
+            offsets{1,1,0,0},
+            offsets{1,1,0,0},
+        };
 
     for (size_t n = 0; n < 6; n++) {
         for (size_t x = 0; x <= subdivisions; x++) {
@@ -280,9 +300,13 @@ shared_ptr<Mesh> makeCubeSphere(string name, shared_ptr<Material> mat, size_t su
             for (size_t y = 0; y <= subdivisions; y++) {
                 float v = (float)y / subdivisions;
                 Vec3 position = (Vec3{u*2.0f - 1.0f, v*2.0f - 1.0f, 1} * sides[n]).normalized();
+                offsets offset = uvOffsets[n];
                 mesh->vertices.push_back(Vertex{
                     .position = position,
-                    .uv = {u, v},
+                    .uv = {
+                        u * std::get<0>(offset) + std::get<2>(offset), 
+                        v * std::get<1>(offset) + std::get<3>(offset), 
+                    },
                     .normal = -position,
                 });
                 if (x > 0 && y > 0) {
@@ -293,11 +317,11 @@ shared_ptr<Mesh> makeCubeSphere(string name, shared_ptr<Material> mat, size_t su
                     uint16_t v4 = (x - 0) + (y - 0) * (subdivisions + 1) + sideOffset;
                     mesh->faces.push_back(Face{
                         .v1 = v2, .v2 = v1, .v3 = v4,
-                        .material = mat
+                        .material = mats[n]
                     });
                     mesh->faces.push_back(Face{
                         .v1 = v4, .v2 = v1, .v3 = v3,
-                        .material = mat
+                        .material = mats[n]
                     });
                 }
             }

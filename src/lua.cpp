@@ -743,10 +743,23 @@ void lua() {
                 t.get_or("subdivisions", 2)
             );
         } else if (type == "cube_sphere") {
+            std::array<std::shared_ptr<Material>, 6> mats;
+            bool singleTexture = false;
+            if (t["material"].valid()) {
+                auto mat = t["material"].get<std::shared_ptr<Material>>();
+                mats.fill(mat);
+                singleTexture = true;
+            } else if (t["materials"].valid()) {
+                sol::table tbl = t["materials"];
+                for (int i = 0; i < 6; i++) {
+                    mats[i] = tbl[i + 1].get<std::shared_ptr<Material>>();
+                }
+            }
             mesh = makeCubeSphere(
                 t.get_or<std::string>("name", "Cube Sphere"), 
-                t["material"], 
-                t.get_or("subdivisions", 5)
+                mats, 
+                t.get_or("subdivisions", 5),
+                singleTexture
             );
         }
         else mesh = std::make_shared<Mesh>();
