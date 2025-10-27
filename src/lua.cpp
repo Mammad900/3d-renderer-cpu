@@ -758,7 +758,7 @@ void lua() {
             mesh = makeCubeSphere(
                 t.get_or<std::string>("name", "Cube Sphere"), 
                 mats, 
-                t.get_or("subdivisions", 5),
+                t.get_or("subdivisions", 10),
                 singleTexture
             );
         }
