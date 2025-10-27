@@ -159,8 +159,8 @@ public:
     }
 };
 
-template <typename T>
-class ErrorTexture : public ImageTexture<T> {
+template <typename T, typename K = Texture<T>>
+class ErrorTexture : public K {
 public:
     ErrorTexture() {}
     T sample(Vector2f uv, Vector2f, Vector2f) {

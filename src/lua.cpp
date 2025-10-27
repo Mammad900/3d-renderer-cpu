@@ -11,6 +11,7 @@
 #include "earthMaterial.h"
 #include "texture.h"
 #include "textureFiltering.h"
+#include "tinyTexture.h"
 #include "vector3.h"
 #include <SFML/Graphics/Image.hpp>
 #include <SFML/Window/Keyboard.hpp>
@@ -121,7 +122,7 @@ void makeTextureUsertypes(std::string name) {
             std::cout << "Loading texture " << path << std::flush;
             if (!image.loadFromFile(get_calling_script_path(lua) / path)) {
                 std::cerr << "\nFailed to load image: " << path << std::endl;
-                return std::make_shared<ErrorTexture<T>>();
+                return std::make_shared<ErrorTexture<T, ImageTexture<T>>>();
             }
             std::cout << "." << std::flush;
 
@@ -810,6 +811,26 @@ void lua() {
     makeBlendTextureUsertype<Color, float>("Color", "Float");
     makeBlendTextureUsertype<Vec3, float>("Vector", "Float");
     makeBlendTextureUsertype<float, float>("Float", "Float");
+
+
+    Lua.new_usertype<TinyImageTexture>("TinyImageTexture",
+        sol::meta_function::construct, [](sol::this_state s, std::string path, sol::object scale_in)-> shared_ptr<TinyImageTexture> {
+            sol::state_view lua(s);
+            sf::Image image;
+            std::cout << "Loading texture " << path << std::flush;
+            if (!image.loadFromFile(get_calling_script_path(lua) / path)) {
+                std::cerr << "\nFailed to load image: " << path << std::endl;
+                return std::make_shared<ErrorTexture<Color, TinyImageTexture>>();
+            }
+            std::cout << "." << std::flush;
+            shared_ptr<TinyImageTexture> tex = std::make_shared<TinyImageTexture>(image, valueFromObject<Color>(scale_in, Color{1,1,1,1}));
+            std::cout << "." << std::endl;
+            return tex;
+        },
+        "size", sol::readonly_property([](TinyImageTexture& l){return l.image.getSize();}),
+        "scale", &TinyImageTexture::value,
+        "as_texture", [](std::shared_ptr<TinyImageTexture>& l) -> std::shared_ptr<Texture<Color>> { return l; }
+    );
 
 #pragma endregion
 
