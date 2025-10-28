@@ -7,9 +7,7 @@
 #include <memory>
 
 int main(int argc, char** argv) {
-    lua();
-    // return 0;
-    // parseSceneFile(argc > 1 ? argv[1] : "assets/scene.txt", scene);
+    lua(argc > 1 ? argv[1] : "assets/scene.lua");
 
     // Tools window
     sf::RenderWindow window2(sf::VideoMode({1200, 600}), "Tools");

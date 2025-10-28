@@ -183,7 +183,7 @@ void makeBlendTextureUsertype(std::string nameT, std::string nameP) {
 }
 
 
-void lua() {
+void lua(std::string path) {
 	Lua.open_libraries(sol::lib::base, sol::lib::table, sol::lib::debug, sol::lib::package);
 
 #pragma region Simple types
@@ -1001,7 +1001,7 @@ void lua() {
     );
 #pragma endregion
 
-    Lua.script_file("assets/scene.lua");
+    Lua.script_file(path);
     // ObjectVector a = lua["a"];
     return;
 }

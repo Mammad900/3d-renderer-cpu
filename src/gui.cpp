@@ -4,7 +4,6 @@
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "material.h"
-#include "sceneFile.h"
 #include "phongMaterial.h"
 #include "lua.h"
 #include <iostream>

@@ -3,7 +3,7 @@
 
 #include <string>
 
-void lua();
+void lua(std::string path);
 void luaOnFrame();
 void luaDestroy();
 void luaRun(std::string code);
