@@ -238,9 +238,12 @@ void lua() {
             []() { return std::make_shared<Volume>(); },
             [](sol::table t) {
                 shared_ptr<Volume> v = std::make_shared<Volume>();
-                v->diffuse = t.get_or<Color, std::string, Color>("diffuse", Color());
-                v->emissive = t.get_or<Color, std::string, Color>("diffuse", Color());
-                v->transmission = t.get_or<Color, std::string, Color>("diffuse", Color(1,1,1,0));
+                v->name = t.get_or<std::string>("name", "");
+                v->diffuse = valueFromObject(t["diffuse"], Color());
+                v->emissive = valueFromObject(t["emissive"], Color());
+                v->transmission = valueFromObject(t["transmission"], Color(1,1,1,0));
+                volumes.emplace_back(v);
+                return v;
             }
         )
     );

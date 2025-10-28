@@ -14,6 +14,7 @@
 char objFilePath[500];
 shared_ptr<Material> guiSelectedMaterial;
 vector<std::weak_ptr<Material>> materials;
+vector<std::weak_ptr<Volume>> volumes;
 Mesh *selectedMesh;
 GuiMaterialAssignMode guiMaterialAssignMode;
 std::string luaReplInput;
@@ -109,28 +110,40 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene
     }
     ImGui::End();
 
-    ImGui::Begin("Lights");
-    ImGui::ColorEdit4("Ambient lighting", (float*)&editingScene->ambientLight, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-    ImGui::DragFloat("Shadow bias", &editingScene->shadowBias, 0.05);
-    for (auto &&[name, volume] : editingScene->volumes) {
-        ImGui::PushID(volume.get());
-        if(ImGui::TreeNode(("Volume: "+name).c_str())) {
-            ImGui::ColorEdit4("Diffuse", &volume->diffuse.r, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-            ImGui::ColorEdit4("Emissive", &volume->emissive.r, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-            if(ImGui::ColorEdit4("Transmission", &volume->transmission.r, ImGuiColorEditFlags_Float))
-                volume->updateIntensity();
-            ImGui::TreePop();
+    if(ImGui::Begin("Lights")) {
+        ImGui::ColorEdit4("Ambient lighting", (float*)&editingScene->ambientLight, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+        ImGui::DragFloat("Shadow bias", &editingScene->shadowBias, 0.05);
+        bool needsCleanup = false;
+        for (auto &&volume_w : volumes) {
+            if(auto volume = volume_w.lock()) {
+                ImGui::PushID(volume.get());
+                if(ImGui::TreeNode(("Volume: "+volume->name).c_str())) {
+                    ImGui::ColorEdit4("Diffuse", &volume->diffuse.r, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+                    ImGui::ColorEdit4("Emissive", &volume->emissive.r, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+                    if(ImGui::ColorEdit4("Transmission", &volume->transmission.r, ImGuiColorEditFlags_Float))
+                        volume->updateIntensity();
+                    ImGui::TreePop();
+                }
+                ImGui::PopID();
+            }
+            else needsCleanup = true;
         }
-        ImGui::PopID();
-    }
-    for (size_t i = 0; i < editingScene->lights.size(); i++) {
-        ImGui::PushID(i);
-        if(ImGui::TreeNode("Light")) {
-            Light *light = editingScene->lights[i];
-            light->GUI();
-            ImGui::TreePop();
+        if (needsCleanup) {
+            volumes.erase(
+                std::remove_if(volumes.begin(), volumes.end(),
+                            [](auto &w) { return w.expired(); }),
+                volumes.end());
         }
-        ImGui::PopID();
+
+        for (size_t i = 0; i < editingScene->lights.size(); i++) {
+            ImGui::PushID(i);
+            if(ImGui::TreeNode("Light")) {
+                Light *light = editingScene->lights[i];
+                light->GUI();
+                ImGui::TreePop();
+            }
+            ImGui::PopID();
+        }
     }
     ImGui::End();
 

@@ -25,6 +25,7 @@ enum class GuiMaterialAssignMode { None, Face, Mesh };
 extern shared_ptr<Material> guiSelectedMaterial;
 extern GuiMaterialAssignMode guiMaterialAssignMode;
 extern vector<std::weak_ptr<Material>> materials;
+extern vector<std::weak_ptr<Volume>> volumes;
 
 void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene> editingScene);
 #endif /* __GUI_H__ */

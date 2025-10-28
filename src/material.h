@@ -7,6 +7,7 @@
 using std::shared_ptr;
 
 struct Volume {
+    std::string name;
     Color diffuse;
     Color emissive;
     Color transmission;

@@ -86,7 +86,6 @@ struct Scene : public std::enable_shared_from_this<Scene> {
     TextureFilteringMode textureFilteringMode = TextureFilteringMode::NearestNeighbor;
 
     shared_ptr<Volume> volume;
-    std::map<std::string, shared_ptr<Volume>> volumes;
     shared_ptr<Texture<Color>> skyBox = std::make_shared<SolidTexture<Color>>(Color{0, 0, 0, 0});
     shared_ptr<KeyboardControlComponent> keyboardControl;
 
