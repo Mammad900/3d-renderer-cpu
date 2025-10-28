@@ -253,7 +253,6 @@ void lua() {
     Lua.new_usertype<Scene>("Scene",
         sol::meta_function::construct, []() { return std::make_shared<Scene>(); },
         "name", &Scene::name,
-        "volume", &Scene::volume,
         "sky_box", &Scene::skyBox,
         "set_active_camera", &Scene::setActiveCamera,
         "objects", &Scene::objects,
@@ -268,7 +267,39 @@ void lua() {
                 child->setScene(scene.shared_from_this());
                 scene.objects.push_back(child);
             }
-        }
+        },
+        "back_face_culling", &Scene::backFaceCulling,
+        "ambient_light", &Scene::ambientLight,
+        "volume", &Scene::volume,
+        "god_rays", &Scene::godRays,
+        "god_rays_sample_size", &Scene::godRaysSampleSize,
+        "bilinear_shadow_filtering", &Scene::bilinearShadowFiltering,
+        "shadow_bias", &Scene::shadowBias,
+        "texture_filtering_mode", sol::property(
+            [](Scene &s) {
+                using enum TextureFilteringMode;
+                switch (s.textureFilteringMode) {
+                case NearestNeighbor:
+                    return "nearest_neighbor";
+                case Bilinear:
+                    return "bilinear";
+                case Trilinear:
+                    return "trilinear";
+                case None:
+                default:
+                    return "none";
+                }
+            },
+            [](Scene &s, std::string mode) {
+                using enum TextureFilteringMode;
+                if(mode == "nearest_neighbor")
+                    s.textureFilteringMode = NearestNeighbor;
+                else if(mode == "bilinear")
+                    s.textureFilteringMode = Bilinear;
+                else if(mode == "trilinear")
+                    s.textureFilteringMode = Trilinear;
+            }
+        )
     );
     Lua["set_render_scene"] = [](shared_ptr<Scene> s) {
         scene = s;
