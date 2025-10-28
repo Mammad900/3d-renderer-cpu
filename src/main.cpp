@@ -1,7 +1,5 @@
 #include "data.h"
 #include "gui.h"
-#include "generateMesh.h"
-#include "sceneFile.h"
 #include "multithreading.h"
 #include "lua.h"
 #include <SFML/Graphics.hpp>
