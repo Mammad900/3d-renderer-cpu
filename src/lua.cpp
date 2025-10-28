@@ -694,7 +694,9 @@ void lua() {
                     bakeMeshNormals(mesh);
                 }
 
-                return std::make_shared<Mesh>(std::move(mesh));
+                auto meshPtr = std::make_shared<Mesh>(std::move(mesh));
+                meshes.emplace_back(meshPtr);
+                return meshPtr;
             }
         ),
 
@@ -798,6 +800,7 @@ void lua() {
         }
         else mesh = std::make_shared<Mesh>();
         mesh->flatShading = t.get_or("flat_shading", mesh->flatShading);
+        meshes.emplace_back(mesh);
         return mesh;
     };
 #pragma endregion

@@ -15,7 +15,7 @@ char objFilePath[500];
 shared_ptr<Material> guiSelectedMaterial;
 vector<std::weak_ptr<Material>> materials;
 vector<std::weak_ptr<Volume>> volumes;
-Mesh *selectedMesh;
+vector<std::weak_ptr<Mesh>> meshes;
 GuiMaterialAssignMode guiMaterialAssignMode;
 std::string luaReplInput;
 
@@ -191,74 +191,67 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene
     }
     ImGui::End();
 
-    // if(ImGui::Begin("Meshes")) {
-    //     for (size_t i = 0; i < editingScene->meshes.size(); i++)
-    //     {
-    //         ImGui::PushID(i);
-    //         Mesh *mesh = editingScene->meshes[i];
-    //         if(ImGui::TreeNode(mesh->label.c_str())) {
-    //             ImGui::Text("%lu vertices, %lu faces", mesh->vertices.size(), mesh->faces.size());
-    //             ImGui::Checkbox("Flat shading", &mesh->flatShading);
-    //             if(ImGui::TreeNode("Vertices")) {
-    //                 for (uint16_t j = 0; j < mesh->vertices.size(); j++)
-    //                 {
-    //                     ImGui::PushID(j);
-    //                     Vertex &v = mesh->vertices[j];
-    //                     ImGui::DragFloat3("Position", &v.position.x, 0.2f);
-    //                     ImGui::DragFloat2("UV", &v.uv.x, 0.2f);
-    //                     ImGui::PopID();
-    //                 }
-    //                 ImGui::TreePop();
-    //             }
-    //             if(ImGui::TreeNode("Faces")) {
-    //                 static Face *highlightedFace = nullptr;
-    //                 static shared_ptr<Material> highlightedMaterial = nullptr;
-    //                 static shared_ptr<Material> highlightMat = std::make_shared<PhongMaterial>(PhongMaterialProps{
-    //                     .emissive = std::make_shared<SolidTexture<Color>>(Color{1,1,0,1})
-    //                 }, (std::string)"Highlight", MaterialFlags{.doubleSided = true});
+    if(ImGui::Begin("Meshes")) {
+        bool needsCleanup = false;
+        for (size_t i = 0; i < meshes.size(); i++) {
+            ImGui::PushID(i);
+            if(auto mesh = meshes[i].lock()) {
+                if(ImGui::TreeNode(mesh->label.c_str())) {
+                    ImGui::Text("%lu vertices, %lu faces", mesh->vertices.size(), mesh->faces.size());
+                    ImGui::Checkbox("Flat shading", &mesh->flatShading);
+                    if(ImGui::TreeNode("Vertices")) {
+                        for (uint16_t j = 0; j < mesh->vertices.size(); j++)
+                        {
+                            ImGui::PushID(j);
+                            Vertex &v = mesh->vertices[j];
+                            ImGui::DragFloat3("Position", &v.position.x, 0.2f);
+                            ImGui::DragFloat2("UV", &v.uv.x, 0.2f);
+                            ImGui::PopID();
+                        }
+                        ImGui::TreePop();
+                    }
+                    if(ImGui::TreeNode("Faces")) {
+                        static Face *highlightedFace = nullptr;
+                        static shared_ptr<Material> highlightedMaterial = nullptr;
+                        static shared_ptr<Material> highlightMat = std::make_shared<PhongMaterial>(PhongMaterialProps{
+                            .emissive = std::make_shared<SolidTexture<Color>>(Color{1,1,0,1})
+                        }, (std::string)"Highlight", MaterialFlags{.doubleSided = true});
 
-    //                 for (uint16_t j = 0; j < mesh->faces.size(); j++) {
-    //                     ImGui::PushID(j);
-    //                     Face &f = mesh->faces[j];
-    //                     uint16_t step = 1;
-    //                     std::string label = std::to_string(j);
-    //                     ImGui::InputScalarN(label.c_str(), ImGuiDataType_U16, &f.v1, 3, &step);
-    //                     if(ImGui::RadioButton("Highlight", &f == highlightedFace)) {
-    //                         if(highlightedFace) {
-    //                             highlightedFace->material = highlightedMaterial;
-    //                         }
-    //                         if(&f == highlightedFace)
-    //                             highlightedFace = nullptr;
-    //                         else {
-    //                             highlightedFace = &f;
-    //                             highlightedMaterial = f.material;
-    //                             f.material = highlightMat;
-    //                         }
-    //                     }
-    //                     ImGui::PopID();
-    //                 }
-    //                 ImGui::TreePop();
-    //             }
-    //             if(mesh != selectedMesh && ImGui::Button("Select"))
-    //                 selectedMesh = mesh;
-    //             ImGui::TreePop();
-    //         }
-    //         ImGui::PopID();
-    //     }
-    //     // ImGui::Spacing();
-    //     // if (ImGui::TreeNode("Load OBJ")) {
-    //     //     ImGui::Text("OBJ file can only contain vertex and face data (no UV) and must be triangulated.");
-    //     //     if(guiSelectedMaterial == nullptr)
-    //     //         ImGui::Text("Select a material in the materials window.");
-    //     //     ImGui::InputText("Path", objFilePath, 500);
-    //     //     if(guiSelectedMaterial!= nullptr && ImGui::Button("Load")) {
-    //     //         Mesh *m = loadOBJ(objFilePath, guiSelectedMaterial, std::filesystem::path(objFilePath).filename());
-    //     //         editingScene->meshes.push_back(m);
-    //     //     }
-    //     //     ImGui::TreePop();
-    //     // }
-    // }
-    // ImGui::End();
+                        for (uint16_t j = 0; j < mesh->faces.size(); j++) {
+                            ImGui::PushID(j);
+                            Face &f = mesh->faces[j];
+                            uint16_t step = 1;
+                            std::string label = std::to_string(j);
+                            ImGui::InputScalarN(label.c_str(), ImGuiDataType_U16, &f.v1, 3, &step);
+                            if(ImGui::RadioButton("Highlight", &f == highlightedFace)) {
+                                if(highlightedFace) {
+                                    highlightedFace->material = highlightedMaterial;
+                                }
+                                if(&f == highlightedFace)
+                                    highlightedFace = nullptr;
+                                else {
+                                    highlightedFace = &f;
+                                    highlightedMaterial = f.material;
+                                    f.material = highlightMat;
+                                }
+                            }
+                            ImGui::PopID();
+                        }
+                        ImGui::TreePop();
+                    }
+                    ImGui::TreePop();
+                }
+            } else needsCleanup = true;
+            ImGui::PopID();
+        }
+        if (needsCleanup) {
+            meshes.erase(
+                std::remove_if(meshes.begin(), meshes.end(),
+                            [](auto &w) { return w.expired(); }),
+                meshes.end());
+        }
+    }
+    ImGui::End();
 
     if(ImGui::Begin("Scenes")) {
         for (size_t i = 0; i < scenes.size(); i++)
