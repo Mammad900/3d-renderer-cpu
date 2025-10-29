@@ -233,7 +233,15 @@ void lua(std::string path) {
         "Volume", sol::constructors<Volume()>(),
         "diffuse", &Volume::diffuse,
         "emissive", &Volume::emissive,
-        "transmission", &Volume::transmission,
+        "transmission", sol::property(
+            [](Volume &v) {
+                return v.transmission;
+            },
+            [](Volume &v, Color value) {
+                v.transmission = value;
+                v.updateIntensity();
+            }
+        ),
         sol::meta_function::construct, sol::overload(
             []() { return std::make_shared<Volume>(); },
             [](sol::table t) {
@@ -242,6 +250,7 @@ void lua(std::string path) {
                 v->diffuse = valueFromObject(t["diffuse"], Color());
                 v->emissive = valueFromObject(t["emissive"], Color());
                 v->transmission = valueFromObject(t["transmission"], Color(1,1,1,0));
+                v->updateIntensity();
                 volumes.emplace_back(v);
                 return v;
             }
