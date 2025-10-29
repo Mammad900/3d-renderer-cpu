@@ -257,7 +257,7 @@ void lua(std::string path) {
         "set_active_camera", &Scene::setActiveCamera,
         "objects", &Scene::objects,
         "add_object", [](Scene& scene, shared_ptr<Object> child) {
-            child->scene = scene.shared_from_this();
+            child->setScene(scene.shared_from_this());
             child->parent = nullptr;
             scene.objects.push_back(std::move(child));
         },
@@ -265,6 +265,7 @@ void lua(std::string path) {
             for (auto& kv : children.as<sol::table>()) {
                 auto child = kv.second.as<std::shared_ptr<Object>>();
                 child->setScene(scene.shared_from_this());
+                child->parent = nullptr;
                 scene.objects.push_back(child);
             }
         },
