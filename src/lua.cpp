@@ -434,7 +434,7 @@ void lua(std::string path) {
             props.diffuse = properties.get_or("diffuse", props.diffuse);
             props.specular = properties.get_or("specular", props.specular);
             props.tint = properties.get_or("tint", props.tint);
-            props.emissive = properties.get_or("emissive", props.tint);
+            props.emissive = properties.get_or("emissive", props.emissive);
             props.normalMap = properties.get_or("normal_map", props.normalMap);
 
             auto mat = std::make_shared<PhongMaterial>(
