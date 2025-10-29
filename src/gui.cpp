@@ -119,7 +119,7 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene
                 if(ImGui::TreeNode(("Volume: "+volume->name).c_str())) {
                     ImGui::ColorEdit4("Diffuse", &volume->diffuse.r, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
                     ImGui::ColorEdit4("Emissive", &volume->emissive.r, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
-                    if(ImGui::ColorEdit4("Transmission", &volume->transmission.r, ImGuiColorEditFlags_Float))
+                    if(ImGui::ColorEdit4("Transmission", &volume->transmission.r, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR))
                         volume->updateIntensity();
                     ImGui::TreePop();
                 }
