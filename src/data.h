@@ -78,7 +78,6 @@ struct Scene : public std::enable_shared_from_this<Scene> {
     bool reverseAllFaces = false;
     bool fullBright = false;
     bool wireFrame = false;
-    bool orbit = false;
     bool godRays = false;
     float godRaysSampleSize = 1.0f;
     bool bilinearShadowFiltering = true;
@@ -87,7 +86,6 @@ struct Scene : public std::enable_shared_from_this<Scene> {
 
     shared_ptr<Volume> volume;
     shared_ptr<Texture<Color>> skyBox = std::make_shared<SolidTexture<Color>>(Color{0, 0, 0, 0});
-    shared_ptr<KeyboardControlComponent> keyboardControl;
 
     void setActiveCamera(shared_ptr<Camera> camera) {
         if(this->camera)

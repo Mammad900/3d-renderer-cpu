@@ -47,37 +47,6 @@ int main(int argc, char** argv) {
         }
         timing.windowTime.push(timing.clock);
 
-        if (scene->orbit) {
-            scene->lights[0]->obj->rotation.y += 0.1;
-            scene->objects[0]->rotation.y += 0.01;
-        }
-        if(window.hasFocus() && scene->keyboardControl) {
-            Vec3 speed = timing.deltaTime * scene->keyboardControl->speed;
-            Object *obj = scene->keyboardControl->obj;
-            using sf::Keyboard::Key, sf::Keyboard::isKeyPressed;
-            if(isKeyPressed(Key::Right))
-                obj->rotation.y += speed.x;
-            if(isKeyPressed(Key::Left))
-                obj->rotation.y -= speed.x;
-            if(isKeyPressed(Key::Up))
-                obj->rotation.x += speed.y;
-            if(isKeyPressed(Key::Down))
-                obj->rotation.x -= speed.y;
-            if(scene->keyboardControl->scaleIsChildZ && obj->children.size() > 0) {
-                shared_ptr<Object> child = obj->children[0];
-                if(isKeyPressed(Key::Add))
-                    child->position.z += speed.z;
-                if(isKeyPressed(Key::Subtract))
-                    child->position.z -= speed.z;
-            } else {
-                if(isKeyPressed(Key::Add))
-                    obj->scale *= 1 - speed.z;
-                if(isKeyPressed(Key::Subtract))
-                    obj->scale *= 1 + speed.z;
-            }
-            obj->rotation.x = std::clamp(obj->rotation.x, -M_PI_2f, M_PI_2f);
-        }
-
         for (auto &&obj : scene->objects)
             obj->update();
 

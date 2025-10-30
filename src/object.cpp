@@ -75,8 +75,3 @@ void RotatorComponent::GUI() {
     ImGui::Checkbox("Enable", &enable);
     ImGui::DragFloat3("Rotation per second", &rotatePerSecond.x, 0.05f);
 }
-
-void KeyboardControlComponent::GUI() {
-    ImGui::DragFloat3("Speed", &speed.x, 0.05f);
-    ImGui::Checkbox("Scale is child Z", &scaleIsChildZ);
-}

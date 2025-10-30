@@ -65,17 +65,4 @@ class RotatorComponent : public Component {
     std::string name() { return "Rotator"; }
 };
 
-class KeyboardControlComponent : public Component {
-    // This doesn't actually do anything itself. 
-    // sceneFile assigns scene->keyboardControl to this
-    // And main.cpp does the input handling
-  public:
-    Vec3 speed = {1,1,1};
-    bool scaleIsChildZ = false;
-    KeyboardControlComponent(Vec3 speed, bool scaleIsChildZ)
-        : speed(speed), scaleIsChildZ(scaleIsChildZ) {}
-    std::string name() { return "Keyboard Control"; }
-    void GUI();
-};
-
 #endif /* __OBJECT_H__ */
