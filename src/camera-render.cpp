@@ -1,5 +1,7 @@
 #include "camera.h"
+#include "color.h"
 #include "data.h"
+#include "texture.h"
 #include "triangle.h"
 #include "fog.h"
 #include "multithreading.h"
@@ -19,7 +21,6 @@ void Camera::render() {
         makePerspectiveProjectionMatrix();
 
         std::fill(tFrame->zBuffer.begin(), tFrame->zBuffer.end(), INFINITY);
-        drawSkyBox();
 
         std::vector<Triangle> triangles;
         std::vector<TransparentTriangle> transparents;
@@ -33,7 +34,8 @@ void Camera::render() {
         timing.clock.restart();
         makePerspectiveProjectionMatrix();
         std::fill(tFrame->zBuffer.begin(), tFrame->zBuffer.end(), INFINITY);
-        drawSkyBox();
+        if(!tFrame->deferred)
+            drawSkyBox();
         timing.skyBoxTime.push(timing.clock);
 
 
@@ -125,34 +127,39 @@ void Camera::buildTriangles(
         handleObject(obj);
 }
 
+void skyBoxPixel(Camera *camera, RenderTarget *frame, uint i, uint x, uint y) {
+    Vec3 lookVector = camera->screenSpaceToCameraSpace(x, y, 1) * camera->obj->transformRotation;
+    lookVector = lookVector.normalized();
+
+    Vector2f uv {
+        0.5f +(atan2f(lookVector.z, lookVector.x) / (2.0f * M_PIf)),
+        0.5f - (asinf(lookVector.y) / M_PIf)
+    };
+
+    frame->framebuffer[i] = scene->skyBox->sample(uv, {0, 0}, {0, 0});
+}
+
+SolidTexture<Color> *checkSolidSkyBox(shared_ptr<Texture<Color>> skyBox) {
+    // dynamic_cast alone doesn't work because we don't want derived classes
+    std::type_index ti(typeid(*scene->skyBox));
+    if (ti == std::type_index(typeid(SolidTexture<Color>)))
+        return dynamic_cast<SolidTexture<Color> *>(scene->skyBox.get());
+    return nullptr;
+}
+
 void Camera::drawSkyBox() {
     shared_ptr<Scene> scene = obj->scene.lock();
     if(!scene) return;
 
-    SolidTexture<Color> *solidSkyBox = nullptr;
-    { // dynamic_cast alone doesn't work because we don't want derived classes
-        std::type_index ti(typeid(*scene->skyBox));
-        if (ti == std::type_index(typeid(SolidTexture<Color>)))
-            solidSkyBox = dynamic_cast<SolidTexture<Color> *>(scene->skyBox.get());
+    if(auto solid = checkSolidSkyBox(scene->skyBox)) {
+        std::fill(tFrame->framebuffer.begin(), tFrame->framebuffer.end(), solid->value);
+        return;
     }
-    if(!shadowMap) {
-        if (solidSkyBox) {
-            std::fill(tFrame->framebuffer.begin(), tFrame->framebuffer.end(), solidSkyBox->value);
-        } else {
-            for (uint y = 0; y < tFrame->size.y; y++) {
-                for (uint x = 0; x < tFrame->size.x; x++) {
-                    size_t i = y * tFrame->size.x + x;
-                    Vec3 lookVector = screenSpaceToCameraSpace(x, y, 1) * obj->transformRotation;
-                    lookVector = lookVector.normalized();
 
-                    Vector2f uv {
-                        0.5f +(atan2f(lookVector.z, lookVector.x) / (2.0f * M_PIf)),
-                        0.5f - (asinf(lookVector.y) / M_PIf)
-                    };
-
-                    tFrame->framebuffer[i] = scene->skyBox->sample(uv, {0, 0}, {0, 0});
-                }
-            }
+    for (uint y = 0; y < tFrame->size.y; y++) {
+        for (uint x = 0; x < tFrame->size.x; x++) {
+            size_t i = y * tFrame->size.x + x;
+            skyBoxPixel(this, tFrame, i, x, y);
         }
     }
 }
@@ -163,9 +170,19 @@ void deferredPass(uint n, uint i0, Camera *camera) {
     if(!scene) return;
 
     RenderTarget *frame = camera->tFrame;
+
+    SolidTexture<Color> *solidSkyBox = checkSolidSkyBox(scene->skyBox);
+
     for (size_t i = i0; i < frame->size.x * frame->size.y; i += n) {
-        if (frame->zBuffer[i] == INFINITY) // No fragment here
+        if (frame->zBuffer[i] == INFINITY) { // No fragment here, must be skyBox
+            if (solidSkyBox) {
+                frame->framebuffer[i] = solidSkyBox->value; // No need to compute UV
+            } else {
+                int x = i % frame->size.x, y= i / frame->size.x;
+                skyBoxPixel(camera, frame, i, x, y);
+            }
             continue;
+        }
 
         Fragment &f = frame->gBuffer[i];
         if (frame->deferred && !f.face->material->flags.alphaCutout)
