@@ -8,15 +8,16 @@
 #include <SFML/Graphics.hpp>
 #include <map>
 #include <memory>
+#include <vector>
 
 using sf::Vector2u, std::shared_ptr;
 
 extern sf::RenderWindow *renderWindow;
 struct RenderTarget {
     Vector2u size;
-    Color *framebuffer = nullptr;
-    float *zBuffer = nullptr;
-    Fragment *gBuffer = nullptr;
+    vector<Color> framebuffer;
+    vector<float> zBuffer;
+    vector<Fragment> gBuffer;
     bool deferred, shadowMap;
     void changeSize(sf::Vector2u newSize, bool deferred);
 

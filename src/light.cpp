@@ -55,7 +55,7 @@ std::pair<Color, Vec3> SpotLight::sample(Vec3 pos, Scene &scene) {
                 float decimalsX = pos.x - floor(pos.x);
                 float decimalsY = pos.y - floor(pos.y);
 
-                float *zBuffer = shadowMap->tFrame->zBuffer;
+                vector<float> &zBuffer = shadowMap->tFrame->zBuffer;
                 uint sizeX = shadowMap->tFrame->size.x;
 
                 float z1 = zBuffer[(uint)floor(pos.x) + sizeX * (uint)floor(pos.y)];

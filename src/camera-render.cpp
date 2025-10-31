@@ -3,6 +3,8 @@
 #include "triangle.h"
 #include "fog.h"
 #include "multithreading.h"
+#include <algorithm>
+#include <cmath>
 #include <imgui.h>
 #include <functional>
 #include <SFML/System/Clock.hpp>
@@ -16,6 +18,7 @@ void Camera::render() {
     if(shadowMap) {
         makePerspectiveProjectionMatrix();
 
+        std::fill(tFrame->zBuffer.begin(), tFrame->zBuffer.end(), INFINITY);
         drawSkyBox();
 
         std::vector<Triangle> triangles;
@@ -29,6 +32,7 @@ void Camera::render() {
     else {
         timing.clock.restart();
         makePerspectiveProjectionMatrix();
+        std::fill(tFrame->zBuffer.begin(), tFrame->zBuffer.end(), INFINITY);
         drawSkyBox();
         timing.skyBoxTime.push(timing.clock);
 
@@ -131,13 +135,13 @@ void Camera::drawSkyBox() {
         if (ti == std::type_index(typeid(SolidTexture<Color>)))
             solidSkyBox = dynamic_cast<SolidTexture<Color> *>(scene->skyBox.get());
     }
-    for (uint y = 0; y < tFrame->size.y; y++) {
-        for (uint x = 0; x < tFrame->size.x; x++) {
-            size_t i = y * tFrame->size.x + x;
-            if(!shadowMap) {
-                if (solidSkyBox) {
-                    tFrame->framebuffer[i] = solidSkyBox->value; // No need to compute UV
-                } else {
+    if(!shadowMap) {
+        if (solidSkyBox) {
+            std::fill(tFrame->framebuffer.begin(), tFrame->framebuffer.end(), solidSkyBox->value);
+        } else {
+            for (uint y = 0; y < tFrame->size.y; y++) {
+                for (uint x = 0; x < tFrame->size.x; x++) {
+                    size_t i = y * tFrame->size.x + x;
                     Vec3 lookVector = screenSpaceToCameraSpace(x, y, 1) * obj->transformRotation;
                     lookVector = lookVector.normalized();
 
@@ -149,7 +153,6 @@ void Camera::drawSkyBox() {
                     tFrame->framebuffer[i] = scene->skyBox->sample(uv, {0, 0}, {0, 0});
                 }
             }
-            tFrame->zBuffer[i] = INFINITY;
         }
     }
 }
