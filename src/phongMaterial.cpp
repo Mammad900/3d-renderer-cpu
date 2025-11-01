@@ -1,5 +1,6 @@
 #include "phongMaterial.h"
 #include "data.h"
+#include "imgui.h"
 
 using std::max, std::min;
 
@@ -12,6 +13,8 @@ void PhongMaterial::GUI() {
     mat.specular->Gui("Specular");
     mat.tint->Gui("Tint");
     mat.emissive->Gui("Emissive");
+    ImGui::ColorEdit4("Environment reflection", (float*)&mat.environmentReflection, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+
     if(mat.normalMap)
         mat.normalMap->Gui("Normal map");
     Material::GUI();
@@ -78,6 +81,11 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene &scene) {
         sss * matTint +
         specular * matSpecular +
         matEmissive;
+
+    if (mat.environmentReflection.a > 0) {
+        Vec3 R = -v2reflect(viewDir, normal);
+        lighting += mat.environmentReflection * scene.skyBox->sample(R);
+    }
 
     if(flags.transparent) {
         if(matTint.a == 0)

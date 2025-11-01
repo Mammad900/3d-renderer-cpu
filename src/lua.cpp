@@ -447,6 +447,8 @@ void lua(std::string path) {
             props.tint = properties.get_or("tint", props.tint);
             props.emissive = properties.get_or("emissive", props.emissive);
             props.normalMap = properties.get_or("normal_map", props.normalMap);
+            if(properties["environment_reflection"].valid())
+                props.environmentReflection = valueFromObject<Color>(properties["environment_reflection"]);
 
             auto mat = std::make_shared<PhongMaterial>(
                 props,

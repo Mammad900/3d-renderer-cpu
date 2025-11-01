@@ -398,6 +398,7 @@ my_mat = PhongMaterial.new{
   - **Non-transparent materials**: Controls subsurface scattering.  
     In other words, light hitting the back of a flat object creates diffuse lighting visible at the front.  
     Alpha controls how much the intensity depends on view direction. Most useful for leaves. Only works for flat materials.
+- **`environment_reflection`** (Color): How much the sky-box contributes to specular reflections.
 - **`normal_map`** (vector texture): See normal maps.
 - **`volume_front`** (Volume): The volume in front of faces with this material. If nil, scene Volume is used.
 - **`volume_back`** (Volume): The volume behind faces with this material. If nil, scene Volume is used.
