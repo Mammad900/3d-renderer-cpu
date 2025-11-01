@@ -49,6 +49,24 @@ something(0.1) -- == something{0.1, 0.1, 0.1, 1}
 something(nil) -- == something{1, 1, 1, 1}
 ```
 
+### `Volume`
+
+A structure to control volume properties like diffuse and transmission. Can be used to create fog, glass, fluids, etc.
+
+```lua
+glass = Volume.new{
+    name= "Glass",
+    diffuse= {0, 0, 0},
+    emissive= {0, 0, 0},
+    transmission= {0.77, 0.88, 0.88, 5} -- Bluish
+}
+```
+
+- **`name`**: Used in the GUI
+- **`transmission`**: The amount of light that passes through the volume. The longer the distance, the less light passes. Alpha multiplies density (decreases transmission). The amount of light that gets blocked is directly proportional to diffuse and emissive lighting.
+- **`diffuse`**: Controls how much of blocked light is reflected. Diffuse lighting is directly proportional to incoming light, blocked light %, and this property. If god-rays are disabled, incoming light is assumed to be 1.
+- **`emissive`**: Like diffuse, but doesn't depend on incoming light, so it always affects lighting.
+
 ## `Scene`
 
 Self explanatory name. Scenes contain objects. A scene must have an active camera.
@@ -382,6 +400,8 @@ my_mat = PhongMaterial.new{
     In other words, light hitting the back of a flat object creates diffuse lighting visible at the front.  
     Alpha controls how much the intensity depends on view direction. Most useful for leaves. Only works for flat materials.
 - **`normal_map`** (vector texture): See normal maps.
+- **`volume_front`** (Volume): The volume in front of faces with this material. If nil, scene Volume is used.
+- **`volume_back`** (Volume): The volume behind faces with this material. If nil, scene Volume is used.
 - **`transparent`** (boolean): See flags.
 - **`double_sided`** (boolean): See flags.
 - **`alpha_cutout`** (boolean): See flags.
