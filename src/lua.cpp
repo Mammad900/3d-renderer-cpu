@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "color.h"
 #include "data.h"
+#include "environmentMap.h"
 #include "generateMesh.h"
 #include "gui.h"
 #include "miscTypes.h"
@@ -15,6 +16,7 @@
 #include "vector3.h"
 #include <SFML/Graphics/Image.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <array>
 #include <cmath>
 #include <filesystem>
 #include <memory>
@@ -890,6 +892,41 @@ void lua(std::string path) {
         "size", sol::readonly_property([](TinyImageTexture& l){return l.image.getSize();}),
         "scale", &TinyImageTexture::value,
         "as_texture", [](std::shared_ptr<TinyImageTexture>& l) -> std::shared_ptr<Texture<Color>> { return l; }
+    );
+
+    Lua.new_usertype<EnvironmentMap>("EnvironmentMap", 
+        sol::no_constructor
+    );
+    Lua.new_usertype<SolidEnvironmentMap>("SolidEnvironmentMap",
+        sol::meta_function::construct, [](sol::object value) {
+            return std::make_shared<SolidEnvironmentMap>(valueFromObject<Color>(value));
+        },
+        "color", &SolidEnvironmentMap::value,
+        "as_environment_map", [](std::shared_ptr<SolidEnvironmentMap>& l) -> std::shared_ptr<EnvironmentMap> { return l; }
+    );
+    Lua.new_usertype<PanoramaMap>("PanoramaMap",
+        sol::meta_function::construct, [](shared_ptr<Texture<Color>> texture) {
+            return std::make_shared<PanoramaMap>(texture);
+        },
+        "texture", &PanoramaMap::texture,
+        "as_environment_map", [](std::shared_ptr<PanoramaMap>& l) -> std::shared_ptr<EnvironmentMap> { return l; }
+    );
+    Lua.new_usertype<AtlasCubeMap>("AtlasCubeMap",
+        sol::meta_function::construct, [](shared_ptr<Texture<Color>> texture) {
+            return std::make_shared<AtlasCubeMap>(texture);
+        },
+        "texture", &AtlasCubeMap::texture,
+        "as_environment_map", [](std::shared_ptr<AtlasCubeMap>& l) -> std::shared_ptr<EnvironmentMap> { return l; }
+    );
+    Lua.new_usertype<CubeMap>("CubeMap",
+        sol::meta_function::construct, [](sol::table textures) {
+            return std::make_shared<CubeMap>(std::array<shared_ptr<Texture<Color>>, 6>{
+                textures[1], textures[2], textures[3],
+                textures[4], textures[5], textures[6],
+            });
+        },
+        // "textures", &AtlasCubeMap::textures,
+        "as_environment_map", [](std::shared_ptr<CubeMap>& l) -> std::shared_ptr<EnvironmentMap> { return l; }
     );
 
 #pragma endregion

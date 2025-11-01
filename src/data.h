@@ -1,12 +1,13 @@
 #ifndef __DATA_H__
 #define __DATA_H__
 
+#include "color.h"
 #include "material.h"
 #include "object.h"
 #include "light.h"
 #include "camera.h"
 #include <SFML/Graphics.hpp>
-#include <map>
+#include "environmentMap.h"
 #include <memory>
 #include <vector>
 
@@ -86,7 +87,7 @@ struct Scene : public std::enable_shared_from_this<Scene> {
     TextureFilteringMode textureFilteringMode = TextureFilteringMode::NearestNeighbor;
 
     shared_ptr<Volume> volume;
-    shared_ptr<Texture<Color>> skyBox = std::make_shared<SolidTexture<Color>>(Color{0, 0, 0, 0});
+    shared_ptr<EnvironmentMap> skyBox = std::make_shared<SolidEnvironmentMap>(Color{0, 0, 0, 0});
 
     void setActiveCamera(shared_ptr<Camera> camera) {
         if(this->camera)

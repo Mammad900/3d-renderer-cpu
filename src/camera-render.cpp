@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "color.h"
 #include "data.h"
+#include "environmentMap.h"
 #include "texture.h"
 #include "triangle.h"
 #include "fog.h"
@@ -130,20 +131,14 @@ void Camera::buildTriangles(
 void skyBoxPixel(Camera *camera, RenderTarget *frame, uint i, uint x, uint y) {
     Vec3 lookVector = camera->screenSpaceToCameraSpace(x, y, 1) * camera->obj->transformRotation;
     lookVector = lookVector.normalized();
-
-    Vector2f uv {
-        0.5f +(atan2f(lookVector.z, lookVector.x) / (2.0f * M_PIf)),
-        0.5f - (asinf(lookVector.y) / M_PIf)
-    };
-
-    frame->framebuffer[i] = scene->skyBox->sample(uv, {0, 0}, {0, 0});
+    frame->framebuffer[i] = scene->skyBox->sample(lookVector);
 }
 
-SolidTexture<Color> *checkSolidSkyBox(shared_ptr<Texture<Color>> skyBox) {
+SolidEnvironmentMap *checkSolidSkyBox(shared_ptr<EnvironmentMap> skyBox) {
     // dynamic_cast alone doesn't work because we don't want derived classes
     std::type_index ti(typeid(*scene->skyBox));
-    if (ti == std::type_index(typeid(SolidTexture<Color>)))
-        return dynamic_cast<SolidTexture<Color> *>(scene->skyBox.get());
+    if (ti == std::type_index(typeid(SolidEnvironmentMap)))
+        return dynamic_cast<SolidEnvironmentMap *>(scene->skyBox.get());
     return nullptr;
 }
 
@@ -171,7 +166,7 @@ void deferredPass(uint n, uint i0, Camera *camera) {
 
     RenderTarget *frame = camera->tFrame;
 
-    SolidTexture<Color> *solidSkyBox = checkSolidSkyBox(scene->skyBox);
+    SolidEnvironmentMap *solidSkyBox = checkSolidSkyBox(scene->skyBox);
 
     for (size_t i = i0; i < frame->size.x * frame->size.y; i += n) {
         if (frame->zBuffer[i] == INFINITY) { // No fragment here, must be skyBox

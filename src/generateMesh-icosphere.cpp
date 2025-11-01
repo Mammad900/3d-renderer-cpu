@@ -1,3 +1,4 @@
+#include "environmentMap.h"
 #include "generateMesh.h"
 #include <array>
 #include <memory>
@@ -278,14 +279,7 @@ shared_ptr<Mesh> makeCubeSphere(string name, std::array<shared_ptr<Material>, 6>
     // scale x, scale y, offset x, offset y
     using offsets = std::tuple<float,float,float,float>;
     std::array<offsets, 6> uvOffsets = 
-        singleTexture ? std::array<offsets, 6>{
-            offsets{1/3.0f, 0.5f, 0     , 0   },
-            offsets{1/3.0f, 0.5f, 1/3.0f, 0   },
-            offsets{1/3.0f, 0.5f, 2/3.0f, 0   },
-            offsets{1/3.0f, 0.5f, 0     , 0.5f},
-            offsets{1/3.0f, 0.5f, 1/3.0f, 0.5f},
-            offsets{1/3.0f, 0.5f, 2/3.0f, 0.5f},
-        } : std::array<offsets, 6>{
+        singleTexture ? cubeMapFaces : std::array<offsets, 6>{
             offsets{1,1,0,0},
             offsets{1,1,0,0},
             offsets{1,1,0,0},

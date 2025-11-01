@@ -225,7 +225,6 @@ Vertex.new{
 > 2. Apparently all normals in this engine are reversed.
 > 3. Normals are optional (and overridden) if you enable `auto_normals` or `flat_shading`. See `Mesh.new` below.
 
-
 ### `Face`
 
 A face, aka a triangle, is the graphics primitive, a surface that intersects three vertices. A face has a direction, which depends on its winding, affecting back-face culling. To be honest, I don't know which direction/winding this engine uses.
@@ -544,6 +543,61 @@ Depending on the data types, not all modes are available:
 texture_1 = ImageColorTexture.new("./earth.png", {0, 1, 0}):as_texture()
 texture_2 = SineWaveTexture.new(0.5, 500, 5, 0, 0.5, true):as_texture()
 texture_mixed = BlendImageFloatTexture(texture_1, "multiply", texture_2):as_texture()
+```
+
+## `EnvironmentMap`
+
+Maps a 3D direction (vector) to a color. Used to render sky-boxes, baked reflections, etc.
+
+> [!Warning]
+> Do not pass environment maps directly. You have to use the method `as_environment_map()` to convert it to the base type.
+
+### `SolidEnvironmentMap`
+
+Resolves to a single color no matter the direction. Has the best performance. Recommended over other types with solid textures. Constructor takes a color as its parameter.
+
+```lua
+scene.sky_box = SolidEnvironmentMap.new{1,1,1}:as_environment_map()
+```
+
+### `PanoramaMap`
+
+Maps directions to latitudes and longitudes on a texture with equirectangular / panorama projection. The simplest but slowest. Tip to tell if a texture is panorama: most have width twice their height.
+
+> [!Note]
+> `TinyImageTexture` is recommended over `ImageColorTexture` as panorama maps do not support mipmaps, and the reduced memory usage is much needed for high resolution sky-boxes.
+
+```lua
+scene.sky_box = PanoramaMap.new(TinyImageTexture.new("./my-sky-box.png"):as_texture()):as_environment_map()
+```
+
+### `CubeMap`
+
+Maps directions to faces of a cube. Way faster than `PanoramaMap` and more uniform resolution. Constructor takes an array of six textures in the order: +x, +y, +z, -x, -y, -z.
+
+> [!Note]
+> `TinyImageTexture` is recommended over `ImageColorTexture` as cube-maps do not support mipmaps, and the reduced memory usage is much needed for high resolution sky-boxes.
+
+```lua
+scene.sky_box = CubeMap.new{
+    TinyImageTexture.new("./my-cube-map/px.png"):as_texture(),
+    TinyImageTexture.new("./my-cube-map/py.png"):as_texture(),
+    TinyImageTexture.new("./my-cube-map/pz.png"):as_texture(),
+    TinyImageTexture.new("./my-cube-map/nx.png"):as_texture(),
+    TinyImageTexture.new("./my-cube-map/ny.png"):as_texture(),
+    TinyImageTexture.new("./my-cube-map/nz.png"):as_texture(),
+}:as_environment_map()
+```
+
+### `AtlasCubeMap`
+
+Like `CubeMap`, but uses a single texture containing the six faces.
+
+> [!Note]
+> In addition to the previously mentioned advantages, `TinyImageTexture` has another advantage that it does not require texture resolution to be a power of 2, which is especially useful in this case.
+
+```lua
+scene.sky_box = AtlasCubeMap.new(TinyImageTexture.new("./my-cube-map.png"):as_texture()):as_environment_map()
 ```
 
 ## Scripting
