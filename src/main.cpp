@@ -11,7 +11,6 @@ int main(int argc, char** argv) {
 
     // Tools window
     sf::RenderWindow window2(sf::VideoMode({1200, 600}), "Tools");
-    window2.setFramerateLimit(60);
     if (!ImGui::SFML::Init(window2))
         return -1;
     sf::Clock deltaClock;
@@ -22,7 +21,6 @@ int main(int argc, char** argv) {
         sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize
     );
     renderWindow = &window;
-    window.setFramerateLimit(144);
 
     while (window.isOpen() && window2.isOpen()) {
         timing.deltaTime = deltaClock.getElapsedTime().asSeconds();
