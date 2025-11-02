@@ -792,7 +792,7 @@ void lua(std::string path) {
                 t.get_or("pentagons_material", mat), 
                 t.get_or("subdivisions", 2)
             );
-        } else if (type == "cube_sphere") {
+        } else if (type == "cube_sphere" || type == "cube") {
             std::array<std::shared_ptr<Material>, 6> mats;
             bool singleTexture = false;
             if (t["material"].valid()) {
@@ -808,8 +808,9 @@ void lua(std::string path) {
             mesh = makeCubeSphere(
                 t.get_or<std::string>("name", "Cube Sphere"), 
                 mats, 
-                t.get_or("subdivisions", 10),
-                singleTexture
+                t.get_or("subdivisions", type == "cube" ? 1 : 10),
+                singleTexture,
+                type == "cube"
             );
         }
         else mesh = std::make_shared<Mesh>();

@@ -23,6 +23,6 @@ shared_ptr<Mesh> makeIcoSphere(std::string name, shared_ptr<Material> mat, size_
 shared_ptr<Mesh> makeDodecahedron(std::string name, shared_ptr<Material> mat, bool pentakis);
 shared_ptr<Mesh> makeTruncatedIcosahedron(std::string name, shared_ptr<Material> mat, shared_ptr<Material> matPentagons = nullptr);
 shared_ptr<Mesh> makeBall(std::string name, shared_ptr<Material> mat, shared_ptr<Material> matPentagons, size_t subdivisionSteps);
-shared_ptr<Mesh> makeCubeSphere(std::string name, std::array<shared_ptr<Material>, 6> mats, size_t subdivisions, bool singleTexture);
+shared_ptr<Mesh> makeCubeSphere(std::string name, std::array<shared_ptr<Material>, 6> mats, size_t subdivisions, bool singleTexture, bool isCube);
 
 #endif /* __GENERATEMESH_H__ */

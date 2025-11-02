@@ -260,13 +260,14 @@ shared_ptr<Mesh> makeBall(string name, shared_ptr<Material> mat, shared_ptr<Mate
     return mesh;
 }
 
-shared_ptr<Mesh> makeCubeSphere(string name, std::array<shared_ptr<Material>, 6> mats, size_t subdivisions, bool singleTexture) {
+shared_ptr<Mesh> makeCubeSphere(string name, std::array<shared_ptr<Material>, 6> mats, size_t subdivisions, bool singleTexture, bool isCube) {
     shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
     mesh->label = name;
     mesh->faces = vector<Face>();
     mesh->faces.reserve(subdivisions * subdivisions * 6);
     mesh->vertices = vector<Vertex>();
     mesh->vertices.reserve((subdivisions + 1) * (subdivisions + 1) * 6);
+    mesh->flatShading = isCube;
     
     std::array<TransformMatrix, 6> sides = {
         makeRotationMatrix({0, M_PI_2 , M_PI}), // +x
@@ -293,15 +294,15 @@ shared_ptr<Mesh> makeCubeSphere(string name, std::array<shared_ptr<Material>, 6>
             float u = (float)x / subdivisions;
             for (size_t y = 0; y <= subdivisions; y++) {
                 float v = (float)y / subdivisions;
-                Vec3 position = (Vec3{u*2.0f - 1.0f, v*2.0f - 1.0f, 1} * sides[n]).normalized();
+                Vec3 position = (Vec3{u*2.0f - 1.0f, v*2.0f - 1.0f, 1} * sides[n]);
                 offsets offset = uvOffsets[n];
                 mesh->vertices.push_back(Vertex{
-                    .position = position,
+                    .position = isCube ? position : position.normalized(),
                     .uv = {
                         u * std::get<0>(offset) + std::get<2>(offset), 
                         v * std::get<1>(offset) + std::get<3>(offset), 
                     },
-                    .normal = -position,
+                    .normal = -position.normalized(),
                 });
                 if (x > 0 && y > 0) {
                     uint16_t sideOffset = (n * (subdivisions+1) * (subdivisions+1));

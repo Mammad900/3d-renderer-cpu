@@ -348,7 +348,11 @@ A cube, subdivided and projected to a sphere, resulting in what's known as a [qu
   | -x | -y | -z |
 
 - **`materials`**: An array of six materials for each face, in the order: +x, +y, +z, -x, -y, -z. Required if `material` isn't set. If set, each face has its independent UV space, so each face's texture is separate.
-- **`subdivisions`**: The number of face rows and columns on each face.
+- **`subdivisions`**: The number of face rows and columns on each face. Default is 10.
+
+#### `cube`
+
+Like `cube_sphere`, but not projected to a sphere, so it remains a cube. Subdivisions now defaults to 1.
 
 ## Materials
 
