@@ -849,7 +849,8 @@ void lua(std::string path) {
         },
         "color", &SpotLight::color,
         "spread_inner", &SpotLight::spreadInner,
-        "spread_outer", &SpotLight::spreadOuter
+        "spread_outer", &SpotLight::spreadOuter,
+        "as_component", [](std::shared_ptr<SpotLight>& l) -> std::shared_ptr<Component> { return l; }
     );
 #pragma endregion
     
