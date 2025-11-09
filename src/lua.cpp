@@ -15,8 +15,11 @@
 #include "tinyTexture.h"
 #include "vector3.h"
 #include <SFML/Graphics/Image.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <SFML/System/String.hpp>
 #include <array>
+#include <cctype>
 #include <cmath>
 #include <filesystem>
 #include <memory>
@@ -143,6 +146,35 @@ void makeTextureUsertypes(std::string name) {
         "scale", &ImageTexture<T>::value,
         "as_texture", [](std::shared_ptr<ImageTexture<T>>& l) -> std::shared_ptr<Texture<T>> { return l; }
     );
+
+    Lua.new_usertype<SliceTexture<T>>("Slice"+name+"Texture",
+        sol::meta_function::construct, [](shared_ptr<Texture<T>> texture, sol::table scale, sol::table offset) {
+            return std::make_shared<SliceTexture<T>>(
+                texture,
+                Vector2f(scale.get<float>(1), scale.get<float>(2)),
+                Vector2f(offset.get<float>(1), offset.get<float>(2))
+            );
+        },
+        "scale", &SliceTexture<T>::scale,
+        "offset", &SliceTexture<T>::offset,
+        "texture", &SliceTexture<T>::texture,
+        "as_texture", [](std::shared_ptr<SliceTexture<T>>& l) -> std::shared_ptr<Texture<T>> { return l; }
+    );
+    name[0] = tolower(name[0]);
+    Lua.set_function("slice_"+name+"_texture", [](shared_ptr<Texture<T>> texture, sol::table nt) {        
+        Vector2u n(nt.get<unsigned int>(1), nt.get<unsigned int>(2));
+        sol::table slices = Lua.create_table();
+        Vector2f scale(1.0f / n.x, 1.0f / n.y);
+
+        for (unsigned int y = 0; y < n.y; ++y) {
+            for (unsigned int x = 0; x < n.x; ++x) {
+                Vector2f offset(x * scale.x, y * scale.y);
+                slices[y * n.x + x + 1] = std::make_shared<SliceTexture<T>>(texture, scale, offset);
+            }
+        }
+
+        return slices;
+    });
 }
 
 template<typename T, typename P>

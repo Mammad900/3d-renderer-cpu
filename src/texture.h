@@ -100,4 +100,30 @@ class BlendTexture : public Texture<T> {
     }
 };
 
+template<typename T>
+class SliceTexture : public Texture<T> {
+  public:
+    Vector2f scale = {0, 0};
+    Vector2f offset = {0, 0};
+    shared_ptr<Texture<T>> texture;
+    SliceTexture(shared_ptr<Texture<T>> texture, Vector2f scale, Vector2f offset) : texture(texture), offset(offset), scale(scale) {}
+
+    T sample(Vector2f uv, Vector2f dUVdX, Vector2f dUVdY) {
+        return texture->sample(
+            uv.componentWiseMul(scale) + offset, 
+            dUVdX.componentWiseMul(scale),
+            dUVdY.componentWiseMul(scale)
+        );
+    }
+
+    void Gui(std::string label) {
+        if(ImGui::TreeNode(label.c_str())) {
+            ImGui::SliderFloat2("Offset", &offset.x, 0, 1);
+            ImGui::SliderFloat2("Scale", &scale.x, 0, 1);
+            texture->Gui("Source");
+            ImGui::TreePop();
+        }
+    }
+};
+
 #endif /* __TEXTURE_H__ */

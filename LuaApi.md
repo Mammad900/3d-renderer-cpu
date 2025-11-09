@@ -550,6 +550,29 @@ texture_2 = SineWaveTexture.new(0.5, 500, 5, 0, 0.5, true):as_texture()
 texture_mixed = BlendImageFloatTexture(texture_1, "multiply", texture_2):as_texture()
 ```
 
+### `SliceColorTexture`, `SliceVectorTexture`, `SliceFloatTexture`
+
+This texture type crops a source texture into a "slice". Does not do any copies but instead references the source texture and transforms the UV at sample time. Useful for packing several related textures into one.
+
+First parameter is the source texture. Second parameter is scale x and y (how big the slice is relative to the source, 0 is infinitely small and 1 is full), third parameter is offset x and y (position of slice, {0,0} is top left and {1,1} is bottom right)
+
+```lua
+source = ImageColorTexture.new("..."):as_texture()
+textures = {
+    SliceColorTexture.new(source, {0.5, 0.5}, {0.0, 0.0}), -- Top left
+    SliceColorTexture.new(source, {0.5, 0.5}, {0.5, 0.0}), -- Top right
+    SliceColorTexture.new(source, {0.5, 0.5}, {0.0, 0.5}), -- Bottom left
+    SliceColorTexture.new(source, {0.5, 0.5}, {0.5, 0.5}), -- Bottom right
+}
+first_texture = textures[1]:as_texture()
+```
+
+Alternatively you can call `slice_color_texture` (and similar for other types) to divide a texture into a grid and output the array. First parameter is the source texture, second parameter is {columns, rows}
+
+```lua
+textures = slice_color_texture(source, {2, 2}) -- same result as previous one
+```
+
 ## `EnvironmentMap`
 
 Maps a 3D direction (vector) to a color. Used to render sky-boxes, baked reflections, etc.
