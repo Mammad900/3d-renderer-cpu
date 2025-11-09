@@ -287,6 +287,7 @@ void lua(std::string path) {
         "god_rays_sample_size", &Scene::godRaysSampleSize,
         "bilinear_shadow_filtering", &Scene::bilinearShadowFiltering,
         "shadow_bias", &Scene::shadowBias,
+        "wire_frame", &Scene::wireFrame,
         "texture_filtering_mode", sol::property(
             [](Scene &s) {
                 using enum TextureFilteringMode;
@@ -315,6 +316,9 @@ void lua(std::string path) {
     );
     Lua["set_render_scene"] = [](shared_ptr<Scene> s) {
         scene = s;
+    };
+    Lua["set_deferred"] = [](bool deferred) {
+        frame->changeSize(frame->size, deferred);
     };
 
     Lua.new_usertype<Component>("Component",
