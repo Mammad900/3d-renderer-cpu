@@ -1,9 +1,11 @@
 #include "triangle.h"
 #include "color.h"
+#include "data.h"
 #include "textureFiltering.h"
 #include "fog.h"
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Image.hpp>
+#include <cstdint>
 #include <iostream>
 
 using sf::Vector2f, sf::Vector2u, sf::Vector2i;
@@ -163,13 +165,36 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
 
         if (baseColor.a < 0.5f)
             return;
-        if (frame->zBuffer[index] < f.z || f.z<0)
+        if ((frame->zBuffer[index] < f.z && !(defer && tri.mat->flags.transparent)) || f.z<0)
             return;
         float previousZ = frame->zBuffer[index];
         frame->zBuffer[index] = f.z;
 
         if (defer) {
-            frame->gBuffer[index] = f;
+            if (tri.mat->flags.transparent) {
+                uint32_t &currentHead = frame->transparencyHeads[index];
+                uint32_t prev = UINT32_MAX;
+                uint32_t current = currentHead;
+            
+                // Traverse the linked list to find the correct insertion point (z descending)
+                while (current != UINT32_MAX && frame->transparencyFragments[current].f.z > f.z) {
+                    prev = current;
+                    current = frame->transparencyFragments[current].next;
+                }
+            
+                // Insert fragment
+                frame->transparencyFragments.push_back(FragmentNode{f, current});
+                uint32_t newIndex = frame->transparencyFragments.size() - 1;
+            
+                // Update the linked list pointers
+                if (prev == UINT32_MAX) { // inserted at front of list, have to update head
+                    currentHead = newIndex;
+                } else { // Inserted in the middle or end of the list
+                    frame->transparencyFragments[prev].next = newIndex;
+                }
+            }
+            else
+                frame->gBuffer[index] = f;
         } else {
             shared_ptr<Volume> volume = f.isBackFace ? tri.mat->volumeFront : tri.mat->volumeBack;
             if(!volume) volume = scene->volume;

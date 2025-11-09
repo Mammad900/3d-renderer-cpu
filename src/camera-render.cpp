@@ -2,6 +2,7 @@
 #include "color.h"
 #include "data.h"
 #include "environmentMap.h"
+#include "object.h"
 #include "texture.h"
 #include "triangle.h"
 #include "fog.h"
@@ -33,10 +34,18 @@ void Camera::render() {
     } 
     else {
         timing.clock.restart();
+
         makePerspectiveProjectionMatrix();
         std::fill(tFrame->zBuffer.begin(), tFrame->zBuffer.end(), INFINITY);
-        if(!tFrame->deferred)
+        if(tFrame->deferred) {
+            for (Fragment &f : tFrame->gBuffer)
+                f.z = INFINITY;
+            std::fill(tFrame->transparencyHeads.begin(), tFrame->transparencyHeads.end(), (uint32_t)-1);
+            tFrame->transparencyFragments.clear();
+        }
+        else
             drawSkyBox();
+
         timing.skyBoxTime.push(timing.clock);
 
 
@@ -50,6 +59,10 @@ void Camera::render() {
         for (auto &&tri : triangles)
             drawTriangle(this, tri, tFrame->deferred);
 
+        if(tFrame->deferred)
+            for (auto &&tri : transparents)
+                drawTriangle(this, tri.tri, true);
+
         timing.geometryTime.push(timing.clock);
 
 
@@ -59,11 +72,12 @@ void Camera::render() {
 
         timing.lightingTime.push(timing.clock);
 
-
-        auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z > b.z; };
-        std::sort(transparents.begin(), transparents.end(), compareZ);
-        for (auto &&tri : transparents)
-            drawTriangle(this, tri.tri, false);
+        if(!tFrame->deferred) {
+            auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z > b.z; };
+            std::sort(transparents.begin(), transparents.end(), compareZ);
+            for (auto &&tri : transparents)
+                drawTriangle(this, tri.tri, false);
+        }
         
         timing.forwardTime.push(timing.clock);
         timing.clock.stop();
@@ -169,20 +183,43 @@ void deferredPass(uint n, uint i0, Camera *camera) {
     SolidEnvironmentMap *solidSkyBox = checkSolidSkyBox(scene->skyBox);
 
     for (size_t i = i0; i < frame->size.x * frame->size.y; i += n) {
-        if (frame->zBuffer[i] == INFINITY) { // No fragment here, must be skyBox
+        Fragment &f = frame->gBuffer[i];
+        float z = f.z; // keep track of last shaded Z for fog
+        if (z == INFINITY) { // No opaque fragment here, must be skyBox
             if (solidSkyBox) {
                 frame->framebuffer[i] = solidSkyBox->value; // No need to compute UV
             } else {
                 int x = i % frame->size.x, y= i / frame->size.x;
                 skyBoxPixel(camera, frame, i, x, y);
             }
-            continue;
+        } else { // Opaque fragment here
+            if (frame->deferred && !f.face->material->flags.alphaCutout)
+                f.baseColor = f.face->material->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
+            frame->framebuffer[i] = f.face->material->shade(f, frame->framebuffer[i], *scene);
         }
 
-        Fragment &f = frame->gBuffer[i];
-        if (frame->deferred && !f.face->material->flags.alphaCutout)
-            f.baseColor = f.face->material->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
-        frame->framebuffer[i] = f.face->material->shade(f, frame->framebuffer[i], *scene);
+        // Transparent fragments
+        for (uint32_t next = frame->transparencyHeads[i]; next != (uint32_t)-1;) {
+            FragmentNode &node = frame->transparencyFragments[next];
+            Fragment &f = node.f;
+
+            shared_ptr<Volume> volume = f.isBackFace ? f.face->material->volumeFront : f.face->material->volumeBack;
+            if(!volume) volume = scene->volume;
+            if(volume && f.face->material->flags.transparent) { // Fog behind the fragment
+                if(z == INFINITY)
+                    z = camera->farClip;
+                if(z != INFINITY || scene->godRays) {
+                    Vec3 previousPixelPos = camera->screenSpaceToWorldSpace(f.screenPos.x, f.screenPos.y, z);
+                    frame->framebuffer[i] = sampleFog(previousPixelPos, f.worldPos, frame->framebuffer[i], *scene, volume);
+                }
+            }
+
+            frame->framebuffer[i] = f.face->material->shade(f, frame->framebuffer[i], *scene);
+
+            z = f.z;
+            next = node.next;
+        }
+        frame->zBuffer[i] = z; // z buffer isn't accurate after geometry pass because triangle order is reverse, so here we fix it
     }
 }
 

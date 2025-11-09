@@ -14,7 +14,7 @@ This is a 3D renderer engine written from scratch and only uses the CPU. The onl
 - Flexible material system, works like shaders
 - Phong shading (per pixel lighting)
 - Alpha testing
-- Transparency support
+- Order Independent Transparency
 - Flat material support
 - Simple subsurface scattering for flat materials
 - Directional lights, point lights, spotlights, and ambient lighting

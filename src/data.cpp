@@ -1,6 +1,8 @@
 #include "data.h"
 #include "color.h"
 #include "object.h"
+#include <cstddef>
+#include <cstdint>
 #include <vector>
 
 shared_ptr<Scene> scene = nullptr;
@@ -11,17 +13,13 @@ Vector2u frameSizeTemp = frame->size;
 FrameTimings timing;
 
 void RenderTarget::changeSize(sf::Vector2u newSize, bool deferred) {
-    if(!shadowMap) // Shadowmaps only have z buffer
-        framebuffer = vector<Color>(newSize.x * newSize.y);
-    else
-        framebuffer = vector<Color>(0);
+    size_t n = newSize.x * newSize.y;
 
-    zBuffer = vector<float>(newSize.x * newSize.y);
-    
-    if(deferred && !shadowMap)
-        gBuffer = vector<Fragment>(newSize.x * newSize.y);
-    else
-        gBuffer = vector<Fragment>(0);
+    framebuffer = vector<Color>(shadowMap ? 0 : n); // Shadowmaps only have z buffer
+    zBuffer = vector<float>(n);
+    bool useGBuffer = deferred && !shadowMap;
+    gBuffer = vector<Fragment>(useGBuffer ? n : 0);
+    transparencyHeads = vector<uint32_t>(useGBuffer ? n : 0);
 
     this->deferred = deferred;
     size = frameSizeTemp = newSize;

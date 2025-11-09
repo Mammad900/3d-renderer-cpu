@@ -8,10 +8,16 @@
 #include "camera.h"
 #include <SFML/Graphics.hpp>
 #include "environmentMap.h"
+#include <cstdint>
 #include <memory>
 #include <vector>
 
 using sf::Vector2u, std::shared_ptr;
+
+struct FragmentNode {
+    Fragment f;
+    uint32_t next;
+};
 
 extern sf::RenderWindow *renderWindow;
 struct RenderTarget {
@@ -19,6 +25,8 @@ struct RenderTarget {
     vector<Color> framebuffer;
     vector<float> zBuffer;
     vector<Fragment> gBuffer;
+    vector<FragmentNode> transparencyFragments;
+    vector<uint32_t> transparencyHeads;
     bool deferred, shadowMap;
     void changeSize(sf::Vector2u newSize, bool deferred);
 
