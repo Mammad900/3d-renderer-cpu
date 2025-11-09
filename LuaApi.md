@@ -632,3 +632,22 @@ end)
 ```
 
 For a list of key names, consult [SFML documentation](https://www.sfml-dev.org/documentation/3.0.2/namespacesf_1_1Keyboard.html#acb4cacd7cc5802dec45724cf3314a142). All key names have been converted to snake_case.
+
+## Miscellaneous
+
+### `set_deferred()`
+
+```lua
+set_deferred(false) -- Forward rendering
+set_deferred(true) -- Deferred rendering (default)
+```
+
+Changes the rendering mode used. Can be used at runtime.
+
+#### Deferred rendering advantages and disadvantages
+
+- Prevents overdraw for opaque surfaces, increasing performance
+- Multithreaded shading, increasing performance
+- More memory consumption and bandwidth, slightly decreasing performance
+- Supports order independent transparency, keeping results correct when transparent surfaces are very close together
+- Does not support fullbright (no lighting) and wireframe modes
