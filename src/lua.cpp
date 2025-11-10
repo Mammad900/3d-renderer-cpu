@@ -218,7 +218,7 @@ void makeBlendTextureUsertype(std::string nameT, std::string nameP) {
 
 
 void lua(std::string path) {
-	Lua.open_libraries(sol::lib::base, sol::lib::table, sol::lib::debug, sol::lib::package);
+	Lua.open_libraries(sol::lib::base, sol::lib::table, sol::lib::debug, sol::lib::package, sol::lib::math);
 
 #pragma region Simple types
     Lua.new_usertype<Color>("Color",
