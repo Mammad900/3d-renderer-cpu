@@ -1,5 +1,12 @@
 #include "generateMesh.h"
+#include "material.h"
+#include "object.h"
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <memory>
+#include <string>
+#include <vector>
 
 Vector2f invertUV(Vector2f a, bool invertU, bool invertV) {
     return {
@@ -14,7 +21,7 @@ Vector2f invertUV(Vector2f a, bool invertU, bool invertV) {
 /// @param stacks Number of vertical subdivisions (10-20 is good)
 /// @param sectors Number of horizontal subdivisions (20 is good)
 /// @return Pointer to mesh object
-shared_ptr<Mesh> createSphere(shared_ptr<Material> material, std::string name, uint16_t stacks, uint16_t sectors, bool invertU, bool invertV) {
+shared_ptr<Mesh> makeSphere(shared_ptr<Material> material, std::string name, uint16_t stacks, uint16_t sectors, bool invertU, bool invertV) {
     // Allocate the mesh and assign a label.
     shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
     mesh->label = name;
@@ -92,5 +99,94 @@ shared_ptr<Mesh> createSphere(shared_ptr<Material> material, std::string name, u
         }
     }
     
+    return mesh;
+}
+
+shared_ptr<Mesh> makeCylinder(shared_ptr<Material> material, std::string name, uint16_t sectors, shared_ptr<Material> endCap, shared_ptr<Material> startCap) {
+    shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
+    mesh->label = name;
+
+    bool hasStartCap = startCap != nullptr;
+    bool hasEndCap = endCap != nullptr;
+    
+    // Note: cap can't share vertices with main body because of normals
+    mesh->vertices = vector<Vertex>(sectors * (2 + hasStartCap + hasEndCap) + hasStartCap + hasEndCap);
+    mesh->faces = vector<Face>(sectors * (2 + hasStartCap + hasEndCap));
+
+    uint16_t startCapVI = 0, endCapVI = 0;
+    size_t startCapFI = 2 * sectors, endCapFI = 2 * sectors;
+    if(hasStartCap) {
+        startCapVI = 2 * sectors;
+        endCapVI += sectors + 1;
+        endCapFI += sectors;
+        mesh->vertices[startCapVI] = Vertex{
+            .position = {0, 0, 0.5},
+            .uv = {0.5, 0.5},
+            .normal = {0, 0, -1}
+        };
+    }
+    if(hasEndCap) {
+        endCapVI += 2 * sectors;
+        mesh->vertices[endCapVI] = Vertex{
+            .position = {0, 0, -0.5},
+            .uv = {0.5, 0.5},
+            .normal = {0, 0, 1}
+        };
+    }
+
+    for (uint16_t i = 0; i < sectors; i++) {
+        float u = (float)i / sectors;
+        float θ = M_PI * 2.0f * u;
+        float x = sinf(θ) * 0.5, y = cosf(θ) * 0.5;
+        mesh->vertices[i] = Vertex{
+            .position= {x, y, 0.5},
+            .uv = {u, 0},
+            .normal= {-x, -y, 0}
+        };
+        mesh->vertices[sectors + i] = Vertex{
+            .position= {x, y, -0.5},
+            .uv = {u, 1},
+            .normal= {-x, -y, 0}
+        };
+        uint16_t iNext = (i + 1) % sectors;
+        mesh->faces[i] = Face{
+            iNext, 
+            (uint16_t)(sectors + i), 
+            i, material
+        };
+        mesh->faces[sectors + i] = Face{
+            iNext, 
+            (uint16_t)(sectors + iNext), 
+            (uint16_t)(sectors + i), material
+        };
+
+        if(hasStartCap) {
+            mesh->vertices[startCapVI+1+i] = Vertex{
+                .position= {x, y, 0.5},
+                .uv = {x + 0.5f, y + 0.5f},
+                .normal= {0, 0, -1}
+            };
+            mesh->faces[startCapFI+i] = Face{
+                startCapVI,
+                (uint16_t)(startCapVI + 1 + iNext),
+                (uint16_t)(startCapVI + 1 + i),
+                startCap
+            };
+        }
+        if(hasEndCap) {
+            mesh->vertices[endCapVI+1+i] = Vertex{
+                .position= {x, y, -0.5},
+                .uv = {x + 0.5f, y + 0.5f},
+                .normal= {0, 0, 1}
+            };
+            mesh->faces[endCapFI+i] = Face{
+                endCapVI,
+                (uint16_t)(endCapVI + 1 + i),
+                (uint16_t)(endCapVI + 1 + iNext),
+                endCap
+            };
+        }
+    }
+
     return mesh;
 }

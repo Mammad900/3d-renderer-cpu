@@ -294,6 +294,17 @@ A UV sphere made of stacks and sectors.
 - **`invert_u`**: If true, flips textures horizontally.
 - **`invert_v`**: If true, flips textures vertically.
 
+#### `cylinder`
+
+A cylinder, with or without caps.
+
+- **`material`**: Material to assign to main body. Required.
+- **`sectors`**: Controls face count. Default 20.
+- **`end_cap`**: Whether to add an end cap. Default true.
+- **`start_cap`**: Whether to add a start cap. Default true.
+- **`end_cap_material`**: Material to assign to end cap faces. If not provided, same material as main body is used.
+- **`start_cap_material`**: Material to assign to start cap faces. If not provided, same material as main body is used.
+
 #### `plane`
 
 A flat plane / quad. Usually you don't need subdivisions unless the plane is very large, in which case subdivisions can help with frustum culling.

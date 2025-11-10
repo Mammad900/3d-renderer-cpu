@@ -770,13 +770,24 @@ void lua(std::string path) {
         std::string type = t["type"];
         shared_ptr<Mesh> mesh;
         if(type == "sphere") {
-            mesh = createSphere(
+            mesh = makeSphere(
                 t["material"], 
                 t.get_or<std::string>("name", "Sphere"), 
                 t.get_or("stacks", 20), 
                 t.get_or("sectors", 40), 
                 t.get_or("invert_u", false),
                 t.get_or("invert_v", false)
+            );
+        } else if(type == "cylinder") {
+            shared_ptr<Material> mat = t["material"];
+            bool hasEndCap = t.get_or("end_cap", true);
+            bool hasStartCap = t.get_or("start_cap", true);
+            mesh = makeCylinder(
+                mat,  
+                t.get_or<std::string>("name", "cylinder"), 
+                t.get_or("sectors", 20), 
+                hasEndCap ? t.get_or("end_cap_material", mat) : nullptr,
+                hasStartCap ? t.get_or("start_cap_material", mat) : nullptr
             );
         } else if(type == "plane") {
             mesh = createPlane(
