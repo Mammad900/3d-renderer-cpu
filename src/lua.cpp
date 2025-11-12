@@ -754,7 +754,9 @@ void lua(std::string path) {
         "label", &Mesh::label,
         // "vertices", &Mesh::vertices, // vector<Vertex> (sol can handle vectors if Vertex usertype exists) // no it cant
         // "faces", &Mesh::faces,       // vector<Face>
-        "flatShading", &Mesh::flatShading
+        "flatShading", &Mesh::flatShading,
+        "vertex_at", [](shared_ptr<Mesh> &mesh, size_t i) {return &mesh->vertices[i-1];},
+        "face_at", [](shared_ptr<Mesh> &mesh, size_t i) {return &mesh->faces[i-1];}
     );
 
     Lua.new_usertype<MeshComponent>("MeshComponent",
