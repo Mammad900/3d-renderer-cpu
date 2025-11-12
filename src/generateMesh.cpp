@@ -33,6 +33,7 @@ shared_ptr<Mesh> loadOBJ(const std::filesystem::path &filename, shared_ptr<Mater
 
     std::vector<Vertex> vertices;
     std::vector<Face> faces;
+    uint16_t vt_n = 0;
 
     std::string line;
     while (std::getline(file, line)) {
@@ -43,6 +44,11 @@ shared_ptr<Mesh> loadOBJ(const std::filesystem::path &filename, shared_ptr<Mater
             float x, y, z;
             iss >> x >> y >> z;
             vertices.push_back(Vertex{.position = {x, y, z}});
+        }
+        else if (prefix == "vt") {
+            float u, v;
+            iss >> u >> v;
+            vertices[vt_n++].uv = {u,v};
         }
         else if (prefix == "f") {
             uint16_t a, b, c;
