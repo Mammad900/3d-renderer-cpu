@@ -190,6 +190,9 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene
     ImGui::End();
 
     if(ImGui::Begin("Meshes")) {
+        static bool findFaceMode = false;
+        ImGui::Checkbox("Find Face Mode", &findFaceMode);
+
         bool needsCleanup = false;
         for (size_t i = 0; i < meshes.size(); i++) {
             ImGui::PushID(i);
@@ -220,17 +223,29 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene
                             Face &f = mesh->faces[j];
                             uint16_t step = 1;
                             std::string label = std::to_string(j);
-                            ImGui::InputScalarN(label.c_str(), ImGuiDataType_U16, &f.v1, 3, &step);
-                            if(ImGui::RadioButton("Highlight", &f == highlightedFace)) {
-                                if(highlightedFace) {
-                                    highlightedFace->material = highlightedMaterial;
-                                }
-                                if(&f == highlightedFace)
-                                    highlightedFace = nullptr;
-                                else {
+                            if(findFaceMode) {
+                                ImGui::Text("%s", (label+"               ").c_str());
+                                if(ImGui::IsItemHovered()) {
+                                    if(highlightedFace) {
+                                        highlightedFace->material = highlightedMaterial;
+                                    }
                                     highlightedFace = &f;
                                     highlightedMaterial = f.material;
                                     f.material = highlightMat;
+                                }
+                            } else {
+                                ImGui::InputScalarN(label.c_str(), ImGuiDataType_U16, &f.v1, 3, &step);
+                                if(ImGui::RadioButton("Highlight", &f == highlightedFace)) {
+                                    if(highlightedFace) {
+                                        highlightedFace->material = highlightedMaterial;
+                                    }
+                                    if(&f == highlightedFace)
+                                        highlightedFace = nullptr;
+                                    else {
+                                        highlightedFace = &f;
+                                        highlightedMaterial = f.material;
+                                        f.material = highlightMat;
+                                    }
                                 }
                             }
                             ImGui::PopID();
