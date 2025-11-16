@@ -643,14 +643,14 @@ scene.sky_box = AtlasCubeMap.new(TinyImageTexture.new("./my-cube-map.png"):as_te
 
 ### `on_frame`
 
-Calls a function every frame and passes it the time passed, in seconds.
+An array of functions that are called every frame and passed it the time passed, in seconds.
 
 ```lua
-on_frame(function(dt)
+on_frame[1] = function(dt)
     if dt > 0.016 then
         print("We droppin' frames mate!")
     end
-end)
+end
 ```
 
 ### `is_key_pressed`

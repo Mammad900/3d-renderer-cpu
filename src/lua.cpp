@@ -29,15 +29,19 @@
 #include "material.h"
 
 sol::state Lua;
-std::vector<std::function<void(float)>> onFrameCallbacks;
 
 void luaOnFrame() {
-    for (auto& cb : onFrameCallbacks)
-        cb(timing.deltaTime);
+    sol::table callbacks = Lua["on_frame"];
+    for (auto [_, val] : callbacks) {
+        if(val.get_type() == sol::type::function) {
+            sol::function fn = val;
+            fn(timing.deltaTime);
+        }
+    }
 }
 
 void luaDestroy() {
-    onFrameCallbacks.clear(); // otherwise the lua functions outliving the lua state will cause a segfault.
+    // onFrameCallbacks.clear(); // otherwise the lua functions outliving the lua state will cause a segfault.
 }
 
 template<typename T>
@@ -986,12 +990,7 @@ void lua(std::string path) {
 #pragma endregion
 
 #pragma region Scripting
-    Lua.set_function("on_frame", [](sol::function f) {
-        onFrameCallbacks.emplace_back([f](float dt) {
-            if(f.valid())
-                f(dt); // call Lua function every frame
-        });
-    });
+    Lua["on_frame"] = sol::table(Lua, sol::create);
     Lua.set_function("is_key_pressed", [](int key) {
         return sf::Keyboard::isKeyPressed((sf::Keyboard::Key)key);
     });
