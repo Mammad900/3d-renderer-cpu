@@ -320,6 +320,7 @@ void lua(std::string path) {
         "bilinear_shadow_filtering", &Scene::bilinearShadowFiltering,
         "shadow_bias", &Scene::shadowBias,
         "wire_frame", &Scene::wireFrame,
+        "full_bright", &Scene::fullBright,
         "texture_filtering_mode", sol::property(
             [](Scene &s) {
                 using enum TextureFilteringMode;
