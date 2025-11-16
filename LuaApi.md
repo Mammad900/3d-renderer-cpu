@@ -653,6 +653,16 @@ on_frame[1] = function(dt)
 end
 ```
 
+### `total_time`
+
+Total time since the program started, in seconds.
+
+```lua
+print(total_time) -- ~0
+-- a second later
+print(total_time) -- ~1
+```
+
 ### `is_key_pressed`
 
 Determines if a keyboard key is currently being held.

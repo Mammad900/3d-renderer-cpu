@@ -38,6 +38,7 @@ void luaOnFrame() {
             fn(timing.deltaTime);
         }
     }
+    Lua["total_time"] = timing.totalTime;
 }
 
 void luaDestroy() {
