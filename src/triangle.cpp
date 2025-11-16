@@ -165,10 +165,11 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
 
         if (baseColor.a < 0.5f)
             return;
-        if ((frame->zBuffer[index] < f.z && !(defer && tri.mat->flags.transparent)) || f.z<0)
+        if ((frame->zBuffer[index] < f.z) || f.z<0)
             return;
         float previousZ = frame->zBuffer[index];
-        frame->zBuffer[index] = f.z;
+        if(!(defer && tri.mat->flags.transparent))
+            frame->zBuffer[index] = f.z;
 
         if (defer) {
             if (tri.mat->flags.transparent) {
