@@ -202,7 +202,7 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
             if(volume && tri.mat->flags.transparent) { // Fog behind the fragment
                 if(previousZ == INFINITY)
                     previousZ = camera->farClip;
-                if(previousZ != INFINITY || scene->godRays) {
+                if(previousZ != INFINITY || (scene->volume && scene->volume->godRays)) {
                     Vec3 previousPixelPos = camera->screenSpaceToWorldSpace(f.screenPos.x, f.screenPos.y, previousZ);
                     frame->framebuffer[index] = sampleFog(previousPixelPos, f.worldPos, frame->framebuffer[index], *scene, volume);
                 }

@@ -12,6 +12,8 @@ struct Volume {
     Color emissive;
     Color transmission;
     Color intensity; // Not user facing
+    bool godRays = false;
+    float godRaysSampleSize = 1.0f;
 
     void updateIntensity() {
         intensity = {

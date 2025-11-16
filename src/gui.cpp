@@ -53,8 +53,6 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene
     ImGui::Checkbox("Reverse all faces", &editingScene->reverseAllFaces);
     ImGui::Checkbox("Full-bright mode", &editingScene->fullBright);
     ImGui::Checkbox("Show wireframe mesh", &editingScene->wireFrame);
-    ImGui::Checkbox("God-rays", &editingScene->godRays);
-    ImGui::SliderFloat("Sample size", &editingScene->godRaysSampleSize, 0.01, 1, "%.3f", ImGuiSliderFlags_Logarithmic);
     ImGui::Checkbox("Bilinear shadow filtering", &editingScene->bilinearShadowFiltering);
     ImGui::Text("Texture filtering:");
     ImGui::RadioButton("Nearest Neighbor", &editingScene->textureFilteringMode, TextureFilteringMode::NearestNeighbor);
@@ -120,6 +118,8 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene
                     ImGui::ColorEdit4("Emissive", &volume->emissive.r, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
                     if(ImGui::ColorEdit4("Transmission", &volume->transmission.r, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR))
                         volume->updateIntensity();
+                    ImGui::Checkbox("God-rays", &volume->godRays);
+                    ImGui::SliderFloat("Sample size", &volume->godRaysSampleSize, 0.01, 1, "%.3f", ImGuiSliderFlags_Logarithmic);
                     ImGui::TreePop();
                 }
                 ImGui::PopID();

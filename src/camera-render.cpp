@@ -208,7 +208,7 @@ void deferredPass(uint n, uint i0, Camera *camera) {
             if(volume && f.face->material->flags.transparent) { // Fog behind the fragment
                 if(z == INFINITY)
                     z = camera->farClip;
-                if(z != INFINITY || scene->godRays) {
+                if(z != INFINITY || (scene->volume && scene->volume->godRays)) {
                     Vec3 previousPixelPos = camera->screenSpaceToWorldSpace(f.screenPos.x, f.screenPos.y, z);
                     frame->framebuffer[i] = sampleFog(previousPixelPos, f.worldPos, frame->framebuffer[i], *scene, volume);
                 }
@@ -231,13 +231,13 @@ void fogPass(uint n, uint i0, Camera *camera) {
 
     RenderTarget *frame = camera->tFrame;
     for (size_t i = i0; i < frame->size.x * frame->size.y; i += n) {
-        if(frame->zBuffer[i] == INFINITY && !scene->godRays) // Sky-box pixels don't get fog unless its godRays
+        if(frame->zBuffer[i] == INFINITY && !(scene->volume && scene->volume->godRays)) // Sky-box pixels don't get fog unless its godRays
             continue;
         int x = i % frame->size.x, y= i / frame->size.x;
         float z = camera->tFrame->zBuffer[i];
 
         if(z == INFINITY) {
-            if(scene->godRays)
+            if(scene->volume && scene->volume->godRays)
                 z = camera->farClip;
             else
                 return;

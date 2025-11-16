@@ -88,8 +88,6 @@ struct Scene : public std::enable_shared_from_this<Scene> {
     bool reverseAllFaces = false;
     bool fullBright = false;
     bool wireFrame = false;
-    bool godRays = false;
-    float godRaysSampleSize = 1.0f;
     bool bilinearShadowFiltering = true;
     float shadowBias = 0.1f;
     TextureFilteringMode textureFilteringMode = TextureFilteringMode::NearestNeighbor;

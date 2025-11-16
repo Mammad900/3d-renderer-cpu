@@ -66,6 +66,8 @@ glass = Volume.new{
 - **`transmission`**: The amount of light that passes through the volume. The longer the distance, the less light passes. Alpha multiplies density (decreases transmission). The amount of light that gets blocked is directly proportional to diffuse and emissive lighting.
 - **`diffuse`**: Controls how much of blocked light is reflected. Diffuse lighting is directly proportional to incoming light, blocked light %, and this property. If god-rays are disabled, incoming light is assumed to be 1.
 - **`emissive`**: Like diffuse, but doesn't depend on incoming light, so it always affects lighting.
+- **`god_rays`** (boolean): Defaults to false. Enables ray-marched god-rays, aka volumetric lighting.
+- **`god_rays_sample_size`** (number): Sample size used to ray-march god-rays. The lower, the slower, but more detailed. Default is 1.
 
 ## `Scene`
 
@@ -87,8 +89,6 @@ Fields and methods:
 - **`back_face_culling`** (boolean): Defaults to true. When set to false, back-face culling is disabled. Can decrease performance especially in forward mode. Useful for debugging face winding.
 - **`ambient_light`** (Color): Ambient lighting. Contributes to the lighting of every pixel (as long as the material allows it)
 - **`volume`** (Volume): The global volume. If nil (default), a volume with 100% transmission is assumed.
-- **`god_rays`** (boolean): Defaults to false. Enables ray-marched god-rays, aka volumetric lighting.
-- **`god_rays_sample_size`** (number): Sample size used to ray-march god-rays. The lower, the slower, but higher quality. Default is 1.
 - **`bilinear_shadow_filtering`** (boolean): Defaults to true. Enables bilinear filtering for shadow maps. Otherwise nearest neighbor is used.
 - **`shadow_bias`** (number): Controls the shadow bias. Higher values decrease accuracy, but too low values may cause a visual glitch called shadow acne, which gets worse as the surface angle increases.
 - **`texture_filtering_mode`** (enum): Controls the filtering method used when sampling textures.

@@ -13,8 +13,8 @@ Color sampleFog(Vec3 start, Vec3 end, Color background, Scene &scene, shared_ptr
     if(!volume)
         return background;
     
-    if (scene.godRays) {
-        float sampleLength = scene.godRaysSampleSize;
+    if (volume->godRays) {
+        float sampleLength = volume->godRaysSampleSize;
         Color visibility = getVisibility(volume->intensity, sampleLength);
         Vec3 diff = end - start;
         Vec3 now = start;

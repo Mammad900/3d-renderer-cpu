@@ -272,6 +272,8 @@ void lua(std::string path) {
         "Volume", sol::constructors<Volume()>(),
         "diffuse", &Volume::diffuse,
         "emissive", &Volume::emissive,
+        "god_rays", &Volume::godRays,
+        "god_rays_sample_size", &Volume::godRaysSampleSize,
         "transmission", sol::property(
             [](Volume &v) {
                 return v.transmission;
@@ -289,6 +291,8 @@ void lua(std::string path) {
                 v->diffuse = valueFromObject(t["diffuse"], Color());
                 v->emissive = valueFromObject(t["emissive"], Color());
                 v->transmission = valueFromObject(t["transmission"], Color(1,1,1,0));
+                v->godRays = t.get_or("god_rays", false);
+                v->godRaysSampleSize = t.get_or("god_rays_sample_size", 1.0f);
                 v->updateIntensity();
                 volumes.emplace_back(v);
                 return v;
@@ -320,8 +324,6 @@ void lua(std::string path) {
         "back_face_culling", &Scene::backFaceCulling,
         "ambient_light", &Scene::ambientLight,
         "volume", &Scene::volume,
-        "god_rays", &Scene::godRays,
-        "god_rays_sample_size", &Scene::godRaysSampleSize,
         "bilinear_shadow_filtering", &Scene::bilinearShadowFiltering,
         "shadow_bias", &Scene::shadowBias,
         "wire_frame", &Scene::wireFrame,
