@@ -149,7 +149,11 @@ void makeTextureUsertypes(std::string name) {
         },
         "size", sol::readonly(&ImageTexture<T>::size),
         "scale", &ImageTexture<T>::value,
-        "as_texture", [](std::shared_ptr<ImageTexture<T>>& l) -> std::shared_ptr<Texture<T>> { return l; }
+        "as_texture", [](std::shared_ptr<ImageTexture<T>>& l) -> std::shared_ptr<Texture<T>> { return l; },
+        "save_to_file", [](sol::this_state s, std::shared_ptr<ImageTexture<T>>& tex, std::string path) {
+            sol::state_view lua(s);
+            return tex->saveToImage().saveToFile(get_calling_script_path(lua) / path);
+        }
     );
 
     Lua.new_usertype<SliceTexture<T>>("Slice"+name+"Texture",
@@ -952,7 +956,11 @@ void lua(std::string path) {
         },
         "size", sol::readonly_property([](TinyImageTexture& l){return l.image.getSize();}),
         "scale", &TinyImageTexture::value,
-        "as_texture", [](std::shared_ptr<TinyImageTexture>& l) -> std::shared_ptr<Texture<Color>> { return l; }
+        "as_texture", [](std::shared_ptr<TinyImageTexture>& l) -> std::shared_ptr<Texture<Color>> { return l; },
+        "save_to_file", [](sol::this_state s, std::shared_ptr<TinyImageTexture>& tex, std::string path) {
+            sol::state_view lua(s);
+            return tex->image.saveToFile(get_calling_script_path(lua) / path);
+        }
     );
 
     Lua.new_usertype<EnvironmentMap>("EnvironmentMap", 
