@@ -48,6 +48,9 @@ int main(int argc, char** argv) {
                 if(window->hasGui) {
                     ImGui::SFML::ProcessEvent(window->window, *event);
                 }
+                if(window->onEvent) {
+                    window->onEvent(event);
+                }
                 if (const auto* resized = event->getIf<sf::Event::Resized>()) {
                     window->changeSize(resized->size);
                 }

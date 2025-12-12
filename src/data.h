@@ -9,6 +9,7 @@
 #include <SFML/Graphics.hpp>
 #include "environmentMap.h"
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Event.hpp>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -104,6 +105,7 @@ class Window {
     Vector2u size{500, 500};
     bool syncFrameSize = true;
     std::function<void()> gui;
+    std::function<void(std::optional<sf::Event>)> onEvent;
     
     void changeSize(Vector2u newSize);
     void changeFrameSize(Vector2u newSize);

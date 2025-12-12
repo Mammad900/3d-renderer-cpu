@@ -17,6 +17,7 @@
 #include "vector3.h"
 #include <SFML/Graphics/Image.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/System/String.hpp>
 #include <array>
@@ -367,7 +368,13 @@ void lua(std::string path) {
     );
     Lua.new_usertype<Window>("Window",
         sol::meta_function::construct, [](sol::table props) {
-            Vector2u size{props.get<sol::table>("size").get<uint>(1), props.get<sol::table>("size").get<uint>(2)};
+            Vector2u size{
+                props.get<sol::table>("size").get<uint>(1), 
+                props.get<sol::table>("size").get<uint>(2)
+            };
+            std::function<void(sol::table)> onEvent = 
+                props.get_or<std::function<void(sol::table)>>("on_event", [](sol::table _){});
+
             shared_ptr<Window> window = std::make_shared<Window>(Window{
                 .quitWhenClosed = props.get_or("quit_when_closed", false),
                 .frame = props["camera"].valid() ? std::make_shared<RenderTarget>(size, props.get_or("deferred", true)) : nullptr,
@@ -378,7 +385,58 @@ void lua(std::string path) {
                 .name = props["name"],
                 .size = size,
                 .syncFrameSize = props.get_or("sync_frame_size", true),
-                .gui = props.get_or<std::function<void()>>("on_gui", [](){})
+                .gui = props.get_or<std::function<void()>>("on_gui", [](){}),
+                .onEvent = props["on_event"].valid() ? (std::function<void(std::optional<sf::Event>)>)(
+                    [onEvent](std::optional<sf::Event> event) {
+                        sol::table t = Lua.create_table();
+                        if(const auto *resized = event->getIf<sf::Event::Resized>()) {
+                            t["type"] = "resized";
+                            t["x"] = resized->size.x;
+                            t["y"] = resized->size.y;
+                        }
+                        else if(const auto *press = event->getIf<sf::Event::KeyPressed>()) {
+                            t["type"] = "key_pressed";
+                            t["key"] = (int)press->code;
+                            t["alt"] = press->alt;
+                            t["ctrl"] = press->control;
+                            t["super"] = press->system;
+                            t["shift"] = press->shift;
+                        }
+                        else if(const auto *release = event->getIf<sf::Event::KeyReleased>()) {
+                            t["type"] = "key_released";
+                            t["key"] = (int)release->code;
+                            t["alt"] = release->alt;
+                            t["ctrl"] = release->control;
+                            t["super"] = release->system;
+                            t["shift"] = release->shift;
+                        }
+                        else if(const auto *moved = event->getIf<sf::Event::MouseMoved>()) {
+                            t["type"] = "mouse_moved";
+                            t["position_x"] = moved->position.x;
+                            t["position_y"] = moved->position.y;
+                        }
+                        else if(const auto *movedRaw = event->getIf<sf::Event::MouseMovedRaw>()) {
+                            t["type"] = "mouse_moved_raw";
+                            t["delta_x"] = movedRaw->delta.x;
+                            t["delta_y"] = movedRaw->delta.y;
+                        }
+                        else if(const auto *mousePressed = event->getIf<sf::Event::MouseButtonPressed>()) {
+                            t["type"] = "mouse_button_pressed";
+                            t["position_x"] = mousePressed->position.x;
+                            t["position_y"] = mousePressed->position.y;
+                            t["button"] = (int)mousePressed->button + 1;
+                        }
+                        else if(const auto *mouseReleased = event->getIf<sf::Event::MouseButtonReleased>()) {
+                            t["type"] = "mouse_button_released";
+                            t["position_x"] = mouseReleased->position.x;
+                            t["position_y"] = mouseReleased->position.y;
+                            t["button"] = (int)mouseReleased->button + 1;
+                        } else {
+                            return;
+                        }
+                        onEvent(t);
+                    }
+                ) : [](std::optional<sf::Event> _){}
             });
             if((window->camera != nullptr) + (window->scene != nullptr) == 1)
                 throw std::runtime_error("One of window camera/scene was specified but not the other");
