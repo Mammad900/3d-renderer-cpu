@@ -962,6 +962,7 @@ void lua(std::string path) {
         sol::meta_function::construct, [](shared_ptr<Mesh> mesh) {
             return std::make_shared<MeshComponent>(mesh);
         },
+        "mesh", &MeshComponent::mesh,
         "as_component", [](shared_ptr<MeshComponent> &c)-> shared_ptr<Component> { return c; }
     );
 
