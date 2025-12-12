@@ -62,7 +62,8 @@ void guiUpdate(shared_ptr<Window> window) {
         if(!res.saveToFile("render.png"))
             std::cerr << "Failed to save to render.png" << std::endl;
     }
-    ImGui::Text("FPS: %.1f", 1.f / timing.deltaTime);
+    ImGui::Text("FPS: %.1f", 1000.f / timing.overallTime.average());
+    Timing(timing.overallTime, "Total");
     Timing(timing.windowTime, "Window");
     Timing(timing.updateTime, "Update");
     Timing(timing.skyBoxTime, "SkyBox");

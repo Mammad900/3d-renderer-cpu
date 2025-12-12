@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
         }
         luaOnFrame();
         timing.updateTime.push(timing.clock);
-        deltaClock.restart();
+        timing.overallTime.push(deltaClock);
 
         for (auto &&window : windows) {
             currentWindow = window;
