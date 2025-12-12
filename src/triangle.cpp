@@ -53,9 +53,9 @@ void drawLine(Vector2f from, Vector2f to, RenderTarget *frame) {
 }
 
 void drawTriangle(Camera *camera, Triangle tri, bool defer) {
-    RenderTarget *frame = camera->tFrame;
-    if(shared_ptr<Scene> scene = camera->obj->scene.lock());
-    else return;
+    RenderTarget *frame = camera->frame;
+    shared_ptr<Scene> scene = camera->obj->scene.lock();
+    if(!scene) return;
 
     if (
             (camera->shadowMap ? !tri.cull : tri.cull) && // Shadow maps have front face culling

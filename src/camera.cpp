@@ -1,16 +1,11 @@
 #include "camera.h"
+#include "data.h"
 #include "triangle.h"
 #include <imgui.h>
-#include <functional>
 #include <SFML/System/Clock.hpp>
 
 void Camera::update() {
-    if(shouldSetAsSceneCamera) {
-        shared_ptr<Scene> scene = obj->scene.lock();
-        if(!scene) return;
-        scene->setActiveCamera(shared_from_this());
-        shouldSetAsSceneCamera = false;
-    }
+
 }
 
 Projection Camera::perspectiveProject(Vec3 a) {
@@ -29,7 +24,7 @@ sf::Image Camera::getRenderedFrame(int renderMode) {
         for (unsigned int x = 0; x < frame->size.x; x++)
             if (renderMode == 0) { // Frame buffer
                 Color pixel = frame->framebuffer[y * frame->size.x + x];
-                img.setPixel({x, y}, pixel.reinhardtTonemap(whitePoint==0 ? obj->scene.lock()->maximumColor : whitePoint));
+                img.setPixel({x, y}, pixel.reinhardtTonemap(whitePoint==0 ? maximumColor : whitePoint));
             }
             else if (renderMode == 1) { // Z buffer
                 // Z buffer range is really display-to-end-user unfriendly
@@ -40,13 +35,13 @@ sf::Image Camera::getRenderedFrame(int renderMode) {
 }
 
 Vec3 Camera::screenSpaceToCameraSpace(int x, int y) { 
-    size_t i = x + tFrame->size.x * y;
-    float z = tFrame->zBuffer[i];
+    size_t i = x + frame->size.x * y;
+    float z = frame->zBuffer[i];
     return screenSpaceToCameraSpace(x, y, z);
 }
 
 Vec3 Camera::screenSpaceToCameraSpace(int x, int y, float z) { 
-    Vector2f worldPos{x / (float)tFrame->size.x, y / (float)tFrame->size.y};
+    Vector2f worldPos{x / (float)frame->size.x, y / (float)frame->size.y};
     worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * z * tanHalfFov;
     return Vec3{worldPos.x, worldPos.y, z};
 }
@@ -72,11 +67,11 @@ void Camera::makePerspectiveProjectionMatrix() {
 
 void Camera::GUI() {
     shared_ptr<Scene> scene = obj->scene.lock();
-    if(!scene) return;
-
+    if(!scene || currentWindow->scene != scene) return;
+    
     if(ImGui::Button("Set as scene camera")) {
-        scene->camera->tFrame = nullptr;
-        scene->camera = shared_from_this();
-        tFrame = frame;
+        currentWindow->camera->frame = nullptr;
+        currentWindow->camera = shared_from_this();
+        frame = currentWindow->frame.get();
     }
 }

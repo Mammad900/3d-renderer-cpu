@@ -49,14 +49,14 @@ std::pair<Color, Vec3> SpotLight::sample(Vec3 pos, Scene &scene) {
         else {
             dist = projected.z;
             Vector2f pos = Vector2f{projected.x + 1, projected.y + 1}
-                .componentWiseMul(Vector2f{shadowMap->tFrame->size.x / 2.0f, shadowMap->tFrame->size.y / 2.0f});
+                .componentWiseMul(Vector2f{shadowMap->frame->size.x / 2.0f, shadowMap->frame->size.y / 2.0f});
 
             if(scene.bilinearShadowFiltering) {
                 float decimalsX = pos.x - floor(pos.x);
                 float decimalsY = pos.y - floor(pos.y);
 
-                vector<float> &zBuffer = shadowMap->tFrame->zBuffer;
-                uint sizeX = shadowMap->tFrame->size.x;
+                vector<float> &zBuffer = shadowMap->frame->zBuffer;
+                uint sizeX = shadowMap->frame->size.x;
 
                 float z1 = zBuffer[(uint)floor(pos.x) + sizeX * (uint)floor(pos.y)];
                 float z2 = zBuffer[(uint)floor(pos.x) + sizeX * (uint)ceil(pos.y)];
@@ -72,7 +72,7 @@ std::pair<Color, Vec3> SpotLight::sample(Vec3 pos, Scene &scene) {
                 );
             }
             else {
-                float z = shadowMap->tFrame->zBuffer[(uint)round(pos.x) + shadowMap->tFrame->size.x * (uint)round(pos.y)];
+                float z = shadowMap->frame->zBuffer[(uint)round(pos.x) + shadowMap->frame->size.x * (uint)round(pos.y)];
                 if (dist > z + bias)
                     strength = 0;
             }
@@ -89,7 +89,7 @@ void SpotLight::setupShadowMap(Vector2u size) {
     shadowMap = new Camera();
     shadowMap->init(obj);
     shadowMap->shadowMap = true;
-    shadowMap->tFrame = new RenderTarget(size, true);
+    shadowMap->frame = new RenderTarget(size, true);
 }
 
 void SpotLight::GUI() {
@@ -97,8 +97,8 @@ void SpotLight::GUI() {
     ImGui::SliderFloat("Spread inner", &spreadInner, 0, M_PI_2);
     ImGui::SliderFloat("Spread outer", &spreadOuter, 0, M_PI_2);
     if (shadowMap && ImGui::TreeNode("Shadow map")) {
-        if(ImGui::DragScalarN("Resolution", ImGuiDataType_U32, &shadowMap->tFrame->size.x, 2))
-            shadowMap->tFrame->changeSize(shadowMap->tFrame->size, true);
+        if(ImGui::DragScalarN("Resolution", ImGuiDataType_U32, &shadowMap->frame->size.x, 2))
+            shadowMap->frame->changeSize(shadowMap->frame->size, true);
         ImGui::TreePop();
     }
 }

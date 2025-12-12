@@ -8,7 +8,9 @@
 #include "camera.h"
 #include <SFML/Graphics.hpp>
 #include "environmentMap.h"
+#include <SFML/System/Vector2.hpp>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -19,7 +21,6 @@ struct FragmentNode {
     uint32_t next;
 };
 
-extern sf::RenderWindow *renderWindow;
 struct RenderTarget {
     Vector2u size;
     vector<Color> framebuffer;
@@ -33,11 +34,6 @@ struct RenderTarget {
     RenderTarget(Vector2u size, bool deferred = true, bool shadowMap = false) : shadowMap(shadowMap)
         { changeSize(size, deferred); }
 };
-
-void changeWindowSize(Vector2u size);
-
-extern Vector2u frameSizeTemp;
-extern RenderTarget *frame;
 
 template<typename T>
 struct Metric {
@@ -64,7 +60,7 @@ struct FrameTimings {
     float deltaTime;
     float totalTime = 0;
     Metric<float> windowTime, updateTime, skyBoxTime, renderPrepareTime,
-        geometryTime, lightingTime, forwardTime, postProcessTIme;
+        geometryTime, lightingTime, forwardTime, postProcessTime, overallTime;
     bool render = true;
 };
 
@@ -74,14 +70,13 @@ class Camera;
 
 struct Scene : public std::enable_shared_from_this<Scene> {
     std::string name;
+    bool shouldUpdate = false;
+    bool alwaysUpdate = false;
     
     std::vector<Light *> lights;
     Color ambientLight = {1, 1, 1, 0.1};
 
     std::vector<shared_ptr<Object>> objects;
-
-    shared_ptr<Camera> camera;
-    float maximumColor;
 
     int renderMode = 0;
     bool backFaceCulling = true;
@@ -94,15 +89,29 @@ struct Scene : public std::enable_shared_from_this<Scene> {
 
     shared_ptr<Volume> volume;
     shared_ptr<EnvironmentMap> skyBox = std::make_shared<SolidEnvironmentMap>(Color{0, 0, 0, 0});
-
-    void setActiveCamera(shared_ptr<Camera> camera) {
-        if(this->camera)
-            this->camera->tFrame = nullptr;
-        this->camera = camera;
-        camera->tFrame = frame;
-    }
 };
 
-extern shared_ptr<Scene> scene;
-extern std::vector<shared_ptr<Scene>> scenes;
+class Window {
+  public:
+    sf::RenderWindow window;
+    bool quitWhenClosed = false;
+    std::shared_ptr<RenderTarget> frame;
+    shared_ptr<Camera> camera;
+    shared_ptr<Scene> scene;
+    shared_ptr<Window> toolWindowFor;
+    bool hasGui = false;
+    std::string name;
+    Vector2u size{500, 500};
+    bool syncFrameSize = true;
+    std::function<void()> gui;
+    
+    void changeSize(Vector2u newSize);
+    void changeFrameSize(Vector2u newSize);
+
+    void init();
+};
+
+extern std::vector<std::weak_ptr<Scene>> scenes;
+extern std::shared_ptr<Window> currentWindow;
+extern bool initComplete;
 #endif /* __DATA_H__ */

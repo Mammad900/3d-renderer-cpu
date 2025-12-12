@@ -117,7 +117,7 @@ private:
 public:
     T sample(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) {
         TextureFilteringMode mode =
-            filteringMode == TextureFilteringMode::None ? scene->textureFilteringMode : filteringMode;
+            filteringMode == TextureFilteringMode::None ? currentWindow->scene->textureFilteringMode : filteringMode;
         // Check mip level
         float rho = max(dUVdx.length(), dUVdy.length());
         Vector2f mipLevelF{

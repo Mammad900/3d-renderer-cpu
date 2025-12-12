@@ -5,6 +5,7 @@
 #include "environmentMap.h"
 #include "generateMesh.h"
 #include "gui.h"
+#include "main.h"
 #include "miscTypes.h"
 #include "object.h"
 #include "pbrMaterial.h"
@@ -23,6 +24,7 @@
 #include <cmath>
 #include <filesystem>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #define SOL_ALL_SAFETIES_ON 1
 #include "sol/sol.hpp"
@@ -307,10 +309,13 @@ void lua(std::string path) {
 
 #pragma region Scene Comopenent Object
     Lua.new_usertype<Scene>("Scene",
-        sol::meta_function::construct, []() { return std::make_shared<Scene>(); },
+        sol::meta_function::construct, []() { 
+            std::shared_ptr<Scene> scene = std::make_shared<Scene>(); 
+            scenes.push_back(scene);
+            return scene;
+        },
         "name", &Scene::name,
         "sky_box", &Scene::skyBox,
-        "set_active_camera", &Scene::setActiveCamera,
         "objects", &Scene::objects,
         "add_object", [](Scene& scene, shared_ptr<Object> child) {
             child->setScene(scene.shared_from_this());
@@ -358,12 +363,133 @@ void lua(std::string path) {
             }
         )
     );
-    Lua["set_render_scene"] = [](shared_ptr<Scene> s) {
-        scene = s;
-    };
-    Lua["set_deferred"] = [](bool deferred) {
-        frame->changeSize(frame->size, deferred);
-    };
+    Lua.new_usertype<Window>("Window",
+        sol::meta_function::construct, [](sol::table props) {
+            Vector2u size{props.get<sol::table>("size").get<uint>(1), props.get<sol::table>("size").get<uint>(2)};
+            shared_ptr<Window> window = std::make_shared<Window>(Window{
+                .quitWhenClosed = props.get_or("quit_when_closed", false),
+                .frame = props["camera"].valid() ? std::make_shared<RenderTarget>(size, props.get_or("deferred", true)) : nullptr,
+                .camera = props.get_or<shared_ptr<Camera>>("camera", nullptr),
+                .scene = props.get_or<shared_ptr<Scene>>("scene", nullptr),
+                .toolWindowFor = props.get_or<shared_ptr<Window>>("tool_window_for", nullptr),
+                .hasGui = props.get_or("has_gui", false),
+                .name = props["name"],
+                .size = size,
+                .syncFrameSize = props.get_or("sync_frame_size", true),
+            });
+            if((window->camera != nullptr) + (window->scene != nullptr) == 1)
+                throw std::runtime_error("One of window camera/scene was specified but not the other");
+            if(window->toolWindowFor && !window->hasGui)
+                throw std::runtime_error("has_gui has to be true when tool_window_for is set");
+            if(window->frame)
+                window->camera->frame = window->frame.get();
+            if(initComplete)
+                window->init();
+            windows.push_back(window);
+            return window;
+        },
+        "close", [](shared_ptr<Window> self) {
+            self->window.close();
+        },
+        "size", sol::property(
+            [](Window& self) { 
+                sol::table res = Lua.create_table();
+                res[1] = self.size.x;
+                res[2] = self.size.y;
+                return res;
+            },
+            [](Window& self, sol::table value) { 
+                self.changeSize({value.get<uint>(1), value.get<uint>(2)});
+            }
+        ),
+        "frame_size", sol::property(
+            [](Window& self)-> sol::object { 
+                sol::table res = Lua.create_table();
+                if(!self.frame)
+                    return sol::nil;
+                res[1] = self.frame->size.x;
+                res[2] = self.frame->size.y;
+                return res;
+            },
+            [](Window& self, sol::table value) { 
+                if(!self.frame)
+                    throw std::runtime_error("Cannot change frame_size to a camera-less window, use set_camera first or set 'size' instead");
+                Vector2u size{value.get<uint>(1), value.get<uint>(2)};
+                if(self.syncFrameSize)
+                    self.changeSize(size);
+                else
+                    self.changeFrameSize(size);
+            }
+        ),
+        "tool_window_for", sol::property(
+            [](Window& self) { return self.toolWindowFor; },
+            [](Window& self, shared_ptr<Window> value) {
+                if(value != nullptr && !self.hasGui)
+                    throw std::runtime_error("Tried to set tool_window_for without setting has_gui to true");
+                self.toolWindowFor = value;
+            }
+        ),
+        "has_gui", sol::property(
+            [](Window& self) { return self.hasGui; },
+            [](Window& self, bool value) {
+                if(self.toolWindowFor != nullptr && !value)
+                    throw std::runtime_error("Tried to set has_gui to false before unsetting tool_window_for");
+                self.hasGui = value;
+            }
+        ),
+        "name", sol::property(
+            [](Window& self) { return self.name; },
+            [](Window& self, std::string value) { self.name = value; self.window.setTitle(value); }
+        ),
+        "camera", sol::property(
+            [](Window& self) { return self.camera; },
+            [](Window& self, shared_ptr<Camera> value) {
+                if(!self.camera || !self.scene || !self.frame)
+                    throw std::runtime_error("Cannot set camera for a camera-less window, use set_camera instead.");
+                if(!value)
+                    throw std::runtime_error("Tried to set camera to nil, use remove_camera instead.");
+                self.camera->frame = self.frame.get();
+                self.camera = value;
+            }
+        ),
+        "scene", sol::readonly(&Window::scene),
+        "quit_when_closed", &Window::quitWhenClosed,
+        "sync_frame_size", &Window::syncFrameSize,
+        "set_camera", [](shared_ptr<Window> self, shared_ptr<Scene> scene, shared_ptr<Camera> camera) {
+            if(!scene)
+                throw std::runtime_error("Scene is nil");
+            if(!camera)
+                throw std::runtime_error("Camera is nil");
+            if(self->camera)
+                self->camera->frame = nullptr;
+            if(!self->frame)
+                self->frame = std::make_shared<RenderTarget>(self->size, true);
+            self->scene = scene;
+            self->camera = camera;
+            camera->frame = self->frame.get();
+        },
+        "remove_camera", [](shared_ptr<Window> self) {
+            if(!self->camera || !self->scene || !self->frame)
+                throw std::runtime_error("Tried to remove camera from a window that doesn't have one");
+            self->camera->frame = nullptr;
+            self->frame = nullptr;
+            self->camera = nullptr;
+            self->scene = nullptr;
+        },
+        "deferred", sol::property(
+            [](Window& self)-> sol::object { 
+                if(self.frame)
+                    return sol::make_object(Lua, self.frame->deferred);
+                else
+                    return sol::nil;
+            },
+            [](Window& self, bool value) {
+                if(!self.frame)
+                    throw std::runtime_error("Cannot set deferred for a camera-less window, use set_camera first.");
+                self.frame->changeSize(self.frame->size, value);
+            }
+        )
+    );
 
     Lua.new_usertype<Component>("Component",
         sol::no_constructor,
@@ -448,7 +574,6 @@ void lua(std::string path) {
                 camera->nearClip = properties.get_or("near", camera->nearClip);
                 camera->farClip = properties.get_or("far", camera->farClip);
                 camera->whitePoint = properties.get_or("white_point", camera->whitePoint);
-                camera->shouldSetAsSceneCamera = properties.get_or("active", false);
                 return camera;
             }
         ),

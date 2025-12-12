@@ -75,13 +75,11 @@ Self explanatory name. Scenes contain objects. A scene must have an active camer
 
 ```lua
 my_scene = Scene.new() -- No parameters
-set_render_scene(my_scene)
 ```
 
 Fields and methods:
 
 - **`name`** (string): Used in the GUI
-- **`set_active_camera(camera)`**: Sets a `Camera` as the active one. Alternatively set `active` to true in the camera.
 - **`objects`** (vector\<Object>): List of top level objects in the scene. Read only.
 - **`add_object(object)`**: Add an object to the scene.
 - **`add_objects{object1, object2, ...}`**: Add multiple objects to the scene.
@@ -220,7 +218,7 @@ Vertex.new{
 ```
 
 > [!Note]
-> 
+>
 > 1. `Vertex.new` can be omitted while using the Mesh constructor, and the table can be directly passed.
 > 2. Apparently all normals in this engine are reversed.
 > 3. Normals are optional (and overridden) if you enable `auto_normals` or `flat_shading`. See `Mesh.new` below.
@@ -677,21 +675,61 @@ end)
 
 For a list of key names, consult [SFML documentation](https://www.sfml-dev.org/documentation/3.0.2/namespacesf_1_1Keyboard.html#acb4cacd7cc5802dec45724cf3314a142). All key names have been converted to snake_case.
 
-## Miscellaneous
+## `Window`
 
-### `set_deferred()`
+An application window. Can be used to show a camera's render output, a GUI (powered by Dear ImGui), or both.
 
 ```lua
-set_deferred(false) -- Forward rendering
-set_deferred(true) -- Deferred rendering (default)
+local scene = Scene.new()
+local camera = Camera.new{
+    ...
+}
+scene:add_object(Object.new{
+    ...
+    components= { camera:as_component() }
+})
+local window = Window.new{
+    size= {500, 500},
+    name= "3D Renderer",
+    scene= scene,
+    camera= camera
+}
 ```
 
-Changes the rendering mode used. Can be used at runtime.
+Constructor arguments:
 
-#### Deferred rendering advantages and disadvantages
+- **`name`** (string): The window title used by the OS. Required.
+- **`size`**: Window size in pixels, as a 2 item array of x and y. Required.
+- **`camera`**: The camera to render in the window. Do not use `as_component()` when passing it. Required if `scene` is set.
+- **`scene`**: The scene in which `camera` is. Required if `camera` is set.
+- **`deferred`**: Whether to use deferred rendering. See below for whether you should use deferred or forward rendering. Default is true.
+- **`quit_when_closed`** (boolean): If true, the all windows will close when this one is closed and the application quits. If false, the application continues running without this window. Default is false.
+- **`has_gui`** (boolean): Whether the window will render a GUI. Defaults to false.
+- **`tool_window_for`** (Window): If set, a tools GUI will be rendered on this window, with the set window as the subject. `has_gui` must be true if this is set. Default is nil.
+- **`sync_frame_size`** (boolean): If true, resizing the window will resize the render resolution to match it and vice versa. Default is true.
 
-- Prevents overdraw for opaque surfaces, increasing performance
+Methods and fields (descriptions from constructor arguments apply here):
+
+- **`name`** (string, read/write)
+- **`size`** (read/write): If `sync_frame_size` is true, also changes `frame_size`.
+- **`frame_size`** (read/write): Controls the render resolution. If `sync_frame_size` is true, also changes `size`. If no camera is set, reads nil and cannot be changed.
+- **`camera`** (read/write): Cannot be set to nil, use `remove_camera` instead. Cannot be set if there's no camera already, use `set_camera` instead. Can only change to another camera within the same scene, otherwise use `set_camera`.
+- **`scene`** (readonly): Can only be changed together with camera using `set_camera`.
+- **`remove_camera()`**: Removes the camera and scene from the window, making it a GUI-only or blank window.
+- **`set_camera(scene, camera)`**: Adds a camera to a GUI-only or blank window. Can also change the camera and scene together.
+- **`deferred`** (boolean, read/write)
+- **`has_gui`** (boolean, read/write): Cannot be set to false if `tool_window_for` is set.
+- **`tool_window_for`** (Window, read/write): Cannot be set if `has_gui` is false.
+- **`sync_frame_size`** (boolean, read/write): Can still be set if there's no camera but has no effect.
+- **`close()`**: Closes the window.
+
+> [!Note]
+> If you have a render window and a GUI window, the GUI window might jitter when resized. This is due to it not responding to the resize until the render is done. To fix this, create the tool window first, then set its `tool_window_for` once the render window is created. This way, the tool window is updated first, massively reducing jitter.
+
+### Deferred rendering advantages and disadvantages
+
+- Prevents overdraw for opaque surfaces, increasing performance.
 - Multithreaded shading, increasing performance
-- More memory consumption and bandwidth, slightly decreasing performance
-- Supports order independent transparency, keeping results correct when transparent surfaces are very close together
-- Does not support fullbright (no lighting) and wireframe modes
+- More memory consumption and bandwidth, slightly decreasing performance.
+- Supports order independent transparency, keeping results correct when transparent surfaces are very close together. This is the only difference that affects the final image output.
+- Does not support full-bright (no lighting) and wireframe debug modes.

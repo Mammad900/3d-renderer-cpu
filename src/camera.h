@@ -10,9 +10,9 @@ class Camera : public Component, public std::enable_shared_from_this<Camera> {
   public:
     float fov = 60, nearClip = 0.1, farClip = 100;
     float whitePoint = 0;
+    float maximumColor = 0;
     bool shadowMap = false;
-    bool shouldSetAsSceneCamera = false;
-    RenderTarget *tFrame;
+    RenderTarget *frame;
     void render();
     std::string name() { return "Camera"; }
     void GUI();

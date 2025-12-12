@@ -19,10 +19,12 @@ void Camera::render() {
     shared_ptr<Scene> scene = obj->scene.lock();
     if(!scene) return;
 
+    maximumColor = 0;
+
     if(shadowMap) {
         makePerspectiveProjectionMatrix();
 
-        std::fill(tFrame->zBuffer.begin(), tFrame->zBuffer.end(), INFINITY);
+        std::fill(frame->zBuffer.begin(), frame->zBuffer.end(), INFINITY);
 
         std::vector<Triangle> triangles;
         std::vector<TransparentTriangle> transparents;
@@ -30,18 +32,18 @@ void Camera::render() {
         buildTriangles(transparents, triangles);
 
         for (auto &&tri : triangles)
-            drawTriangle(this, tri, tFrame->deferred);
+            drawTriangle(this, tri, frame->deferred);
     } 
     else {
         timing.clock.restart();
 
         makePerspectiveProjectionMatrix();
-        std::fill(tFrame->zBuffer.begin(), tFrame->zBuffer.end(), INFINITY);
-        if(tFrame->deferred) {
-            for (Fragment &f : tFrame->gBuffer)
+        std::fill(frame->zBuffer.begin(), frame->zBuffer.end(), INFINITY);
+        if(frame->deferred) {
+            for (Fragment &f : frame->gBuffer)
                 f.z = INFINITY;
-            std::fill(tFrame->transparencyHeads.begin(), tFrame->transparencyHeads.end(), (uint32_t)-1);
-            tFrame->transparencyFragments.clear();
+            std::fill(frame->transparencyHeads.begin(), frame->transparencyHeads.end(), (uint32_t)-1);
+            frame->transparencyFragments.clear();
         }
         else
             drawSkyBox();
@@ -57,9 +59,9 @@ void Camera::render() {
 
 
         for (auto &&tri : triangles)
-            drawTriangle(this, tri, tFrame->deferred);
+            drawTriangle(this, tri, frame->deferred);
 
-        if(tFrame->deferred)
+        if(frame->deferred)
             for (auto &&tri : transparents)
                 drawTriangle(this, tri.tri, true);
 
@@ -67,12 +69,12 @@ void Camera::render() {
 
 
         // Deferred pass
-        if(tFrame->deferred)
+        if(frame->deferred)
             startThreads(this, false);
 
         timing.lightingTime.push(timing.clock);
 
-        if(!tFrame->deferred) {
+        if(!frame->deferred) {
             auto &&compareZ = [](TransparentTriangle &a, TransparentTriangle &b){ return a.z > b.z; };
             std::sort(transparents.begin(), transparents.end(), compareZ);
             for (auto &&tri : transparents)
@@ -92,6 +94,7 @@ void Camera::buildTriangles(
     std::vector<TransparentTriangle> &transparents,
     std::vector<Triangle> &triangles
 ) {
+    shared_ptr<Scene> scene = obj->scene.lock();
     std::function<void(shared_ptr<Object>)> handleObject = [&](shared_ptr<Object> obj) {
         for (auto &&comp : obj->components) {
             if (MeshComponent *meshComp = dynamic_cast<MeshComponent *>(comp.get())) {
@@ -143,6 +146,7 @@ void Camera::buildTriangles(
 }
 
 void skyBoxPixel(Camera *camera, RenderTarget *frame, uint i, uint x, uint y) {
+    shared_ptr<Scene> scene = camera->obj->scene.lock();
     Vec3 lookVector = camera->screenSpaceToCameraSpace(x, y, 1) * camera->obj->transformRotation;
     lookVector = lookVector.normalized();
     frame->framebuffer[i] = scene->skyBox->sample(lookVector);
@@ -150,9 +154,9 @@ void skyBoxPixel(Camera *camera, RenderTarget *frame, uint i, uint x, uint y) {
 
 SolidEnvironmentMap *checkSolidSkyBox(shared_ptr<EnvironmentMap> skyBox) {
     // dynamic_cast alone doesn't work because we don't want derived classes
-    std::type_index ti(typeid(*scene->skyBox));
+    std::type_index ti(typeid(*skyBox));
     if (ti == std::type_index(typeid(SolidEnvironmentMap)))
-        return dynamic_cast<SolidEnvironmentMap *>(scene->skyBox.get());
+        return dynamic_cast<SolidEnvironmentMap *>(skyBox.get());
     return nullptr;
 }
 
@@ -161,14 +165,14 @@ void Camera::drawSkyBox() {
     if(!scene) return;
 
     if(auto solid = checkSolidSkyBox(scene->skyBox)) {
-        std::fill(tFrame->framebuffer.begin(), tFrame->framebuffer.end(), solid->value);
+        std::fill(frame->framebuffer.begin(), frame->framebuffer.end(), solid->value);
         return;
     }
 
-    for (uint y = 0; y < tFrame->size.y; y++) {
-        for (uint x = 0; x < tFrame->size.x; x++) {
-            size_t i = y * tFrame->size.x + x;
-            skyBoxPixel(this, tFrame, i, x, y);
+    for (uint y = 0; y < frame->size.y; y++) {
+        for (uint x = 0; x < frame->size.x; x++) {
+            size_t i = y * frame->size.x + x;
+            skyBoxPixel(this, frame, i, x, y);
         }
     }
 }
@@ -178,7 +182,7 @@ void deferredPass(uint n, uint i0, Camera *camera) {
     shared_ptr<Scene> scene = camera->obj->scene.lock();
     if(!scene) return;
 
-    RenderTarget *frame = camera->tFrame;
+    RenderTarget *frame = camera->frame;
 
     SolidEnvironmentMap *solidSkyBox = checkSolidSkyBox(scene->skyBox);
 
@@ -229,12 +233,12 @@ void fogPass(uint n, uint i0, Camera *camera) {
     if(!scene->volume)
         return;
 
-    RenderTarget *frame = camera->tFrame;
+    RenderTarget *frame = camera->frame;
     for (size_t i = i0; i < frame->size.x * frame->size.y; i += n) {
         if(frame->zBuffer[i] == INFINITY && !(scene->volume && scene->volume->godRays)) // Sky-box pixels don't get fog unless its godRays
             continue;
         int x = i % frame->size.x, y= i / frame->size.x;
-        float z = camera->tFrame->zBuffer[i];
+        float z = camera->frame->zBuffer[i];
 
         if(z == INFINITY) {
             if(scene->volume && scene->volume->godRays)
@@ -243,10 +247,10 @@ void fogPass(uint n, uint i0, Camera *camera) {
                 return;
         }
 
-        camera->tFrame->framebuffer[i] = sampleFog(
+        camera->frame->framebuffer[i] = sampleFog(
             camera->screenSpaceToWorldSpace(x, y, z), 
             camera->obj->globalPosition,
-            camera->tFrame->framebuffer[i],
+            camera->frame->framebuffer[i],
             *scene,
             scene->volume
         );

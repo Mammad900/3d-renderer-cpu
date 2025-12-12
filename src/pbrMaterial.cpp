@@ -1,5 +1,7 @@
 #include "pbrMaterial.h"
+#include "camera.h"
 #include "data.h"
+#include <memory>
 
 using std::clamp, std::pow, std::max;
 
@@ -50,13 +52,14 @@ float GeometrySmith(Vec3 N, Vec3 V, Vec3 L, float roughness)
 }
 
 Color PBRMaterial::shade(Fragment &f, Color previous, Scene &scene) {
+    shared_ptr<Camera> camera = currentWindow->camera;
     Color albedo = f.baseColor;
     float metallic = this->metallic->sample(f);
     float roughness = this->roughness->sample(f);
     float ao = this->ambientOcclusion->sample(f);
 
     Vec3 N = f.normal;
-    Vec3 V = (f.worldPos - scene.camera->obj->globalPosition).normalized();
+    Vec3 V = (f.worldPos - camera->obj->globalPosition).normalized();
 
     Color Lo{0, 0, 0, 0};
     for (size_t i = 0; i < scene.lights.size(); i++) {
@@ -79,8 +82,8 @@ Color PBRMaterial::shade(Fragment &f, Color previous, Scene &scene) {
     Color ambient = scene.ambientLight * scene.ambientLight.a * albedo * ao;
     Color res = ambient + Lo;
 
-    if(scene.camera->whitePoint == 0) // Don't waste cycles if it won't be used
-        scene.maximumColor = max(scene.maximumColor, res.luminance()); // This doesn't take transparency into account
+    if(currentWindow->camera->whitePoint == 0) // Don't waste cycles if it won't be used
+        currentWindow->camera->maximumColor = max(currentWindow->camera->maximumColor, res.luminance()); // This doesn't take transparency into account
 
     return res;
 }

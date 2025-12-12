@@ -1,16 +1,13 @@
 #include "data.h"
 #include "color.h"
 #include "object.h"
-#include <cstddef>
-#include <cstdint>
+#include "gui.h"
 #include <vector>
 
-shared_ptr<Scene> scene = nullptr;
-sf::RenderWindow *renderWindow;
-std::vector<shared_ptr<Scene>> scenes;
-RenderTarget *frame = new RenderTarget({500, 500});
-Vector2u frameSizeTemp = frame->size;
+std::vector<std::weak_ptr<Scene>> scenes;
 FrameTimings timing;
+std::shared_ptr<Window> currentWindow;
+bool initComplete = false;
 
 void RenderTarget::changeSize(sf::Vector2u newSize, bool deferred) {
     size_t n = newSize.x * newSize.y;
@@ -22,12 +19,28 @@ void RenderTarget::changeSize(sf::Vector2u newSize, bool deferred) {
     transparencyHeads = vector<uint32_t>(useGBuffer ? n : 0);
 
     this->deferred = deferred;
-    size = frameSizeTemp = newSize;
+    size = newSize;
 }
 
-void changeWindowSize(Vector2u newSize) {
+void Window::init()  {
+    window = sf::RenderWindow(
+        sf::VideoMode(size), name,
+        sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize
+    );
+    if(toolWindowFor && !ImGui::SFML::Init(window))
+        throw std::runtime_error("Could not init ImGui for window: " + name);
+}
+
+void Window::changeSize(Vector2u newSize) {
+    size = newSize;
+    window.setSize(newSize);
+    if(syncFrameSize && frame) {
+        changeFrameSize(newSize);
+    }
+}
+
+void Window::changeFrameSize(Vector2u newSize) {
     frame->changeSize(newSize, frame->deferred);
-    // renderWindow->setSize(newSize);
     sf::FloatRect visibleArea({0.f, 0.f}, sf::Vector2f(newSize));
-    renderWindow->setView(sf::View(visibleArea));
+    window.setView(sf::View(visibleArea));
 }

@@ -28,5 +28,5 @@ extern vector<std::weak_ptr<Material>> materials;
 extern vector<std::weak_ptr<Volume>> volumes;
 extern vector<std::weak_ptr<Mesh>> meshes;
 
-void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene> editingScene);
+void guiUpdate(shared_ptr<Window> window);
 #endif /* __GUI_H__ */

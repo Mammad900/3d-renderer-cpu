@@ -1,11 +1,12 @@
 #include "gui.h"
+#include "camera.h"
 #include "data.h"
-#include "generateMesh.h"
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "material.h"
 #include "phongMaterial.h"
 #include "lua.h"
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -22,19 +23,9 @@ void Timing(Metric<float> &m, const char *name) {
     ImGui::Text("%s: Last %04.1f / Mean %04.1f / Max %04.1f", name, m.last, m.average(), m.maximum);
 }
 
-void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene> editingScene)
-{
-    while (const auto event = window.pollEvent())
-    {
-        ImGui::SFML::ProcessEvent(window, *event);
-
-        if (event->is<sf::Event::Closed>())
-        {
-            window.close();
-        }
-    }
-
-    ImGui::SFML::Update(window, deltaClock.restart());
+void guiUpdate(shared_ptr<Window> window) {
+    shared_ptr<Camera> camera = window->camera;
+    shared_ptr<Scene> editingScene = window->scene;
 
     if(ImGui::Begin("Lua REPL")) {
         ImGui::InputTextMultiline("##", &luaReplInput);
@@ -44,9 +35,9 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene
     ImGui::End();
 
     ImGui::Begin("Options");
-    ImGui::InputFloat("Near", &editingScene->camera->nearClip);
-    ImGui::InputFloat("Far", &editingScene->camera->farClip);
-    ImGui::SliderFloat("FOV", &editingScene->camera->fov, 10, 150);
+    ImGui::InputFloat("Near", &camera->nearClip);
+    ImGui::InputFloat("Far", &camera->farClip);
+    ImGui::SliderFloat("FOV", &camera->fov, 10, 150);
     ImGui::RadioButton("Frame buffer", &editingScene->renderMode, 0);
     ImGui::RadioButton("Z buffer", &editingScene->renderMode, 1);
     ImGui::Checkbox("Back-face culling", &editingScene->backFaceCulling);
@@ -58,18 +49,18 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene
     ImGui::RadioButton("Nearest Neighbor", &editingScene->textureFilteringMode, TextureFilteringMode::NearestNeighbor);
     ImGui::RadioButton("Bilinear", &editingScene->textureFilteringMode, TextureFilteringMode::Bilinear);
     ImGui::RadioButton("Trilinear", &editingScene->textureFilteringMode, TextureFilteringMode::Trilinear);
-    ImGui::SliderFloat("White point", (float *)&editingScene->camera->whitePoint, 0, 5);
+    ImGui::SliderFloat("White point", (float *)&camera->whitePoint, 0, 5);
     ImGui::End();
 
     ImGui::Begin("Performance");
     ImGui::Checkbox("Render", &timing.render);
     if(ImGui::Button("Render one frame now and save")) {
-        editingScene->camera->render();
-        sf::Image res = editingScene->camera->getRenderedFrame(0);
+        camera->render();
+        sf::Image res = camera->getRenderedFrame(0);
         if(!res.saveToFile("render.png"))
             std::cerr << "Failed to save to render.png" << std::endl;
     }
-    ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+    ImGui::Text("FPS: %.1f", 1.f / timing.deltaTime);
     Timing(timing.windowTime, "Window");
     Timing(timing.updateTime, "Update");
     Timing(timing.skyBoxTime, "SkyBox");
@@ -77,12 +68,16 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene
     Timing(timing.geometryTime, "Geometry");
     Timing(timing.lightingTime, "Lighting");
     Timing(timing.forwardTime, "Forward pass");
-    Timing(timing.postProcessTIme, "Post processing");
-    ImGui::DragScalarN("Frame size", ImGuiDataType_U32, &frameSizeTemp, 2);
-    if(ImGui::Button("Set frame size"))
-        changeWindowSize(frameSizeTemp);
-    if(ImGui::Checkbox("Use Deferred rendering", &frame->deferred))
-        frame->changeSize(frame->size, frame->deferred);
+    Timing(timing.postProcessTime, "Post processing");
+    ImGui::Checkbox("Sync frame size to window size", &window->syncFrameSize);
+    if(ImGui::DragScalarN("Frame size", ImGuiDataType_U32, &window->frame->size, 2)) {
+        if(window->syncFrameSize)
+            window->changeSize(window->frame->size);
+        else
+            window->changeFrameSize(window->frame->size);
+    }
+    if(ImGui::Checkbox("Use Deferred rendering", &window->frame->deferred))
+        window->frame->changeSize(window->frame->size, window->frame->deferred);
     ImGui::End();
 
     if(ImGui::Begin("Objects")) {
@@ -267,21 +262,14 @@ void guiUpdate(sf::RenderWindow &window, sf::Clock &deltaClock, shared_ptr<Scene
     ImGui::End();
 
     if(ImGui::Begin("Scenes")) {
-        for (size_t i = 0; i < scenes.size(); i++)
-        {
-            ImGui::PushID(i);
-            shared_ptr<Scene> &s = scenes[i];
-            if (ImGui::RadioButton(s->name.c_str(), s == scene))
-                scene = s;
-
-            ImGui::PopID();
+        for (size_t i = 0; i < scenes.size(); i++) {
+            std::weak_ptr<Scene> &s = scenes[i];
+            if(shared_ptr<Scene> scene = s.lock()) {
+                ImGui::PushID(i);
+                ImGui::Text("%s", scene->name.c_str());
+                ImGui::PopID();
+            }
         }
-        // if(ImGui::Button("Save"))
-        //     serializeEverything("assets/save");
     }
     ImGui::End();
-
-    window.clear();
-    ImGui::SFML::Render(window);
-    window.display();
 }

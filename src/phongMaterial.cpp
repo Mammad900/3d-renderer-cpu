@@ -1,6 +1,8 @@
 #include "phongMaterial.h"
+#include "camera.h"
 #include "data.h"
 #include "imgui.h"
+#include <memory>
 
 using std::max, std::min;
 
@@ -21,7 +23,8 @@ void PhongMaterial::GUI() {
 }
 
 Color PhongMaterial::shade(Fragment &f, Color previous, Scene &scene) {
-    Vec3 viewDir = (scene.camera->obj->globalPosition - f.worldPos).normalized();
+    shared_ptr<Camera> camera = currentWindow->camera;
+    Vec3 viewDir = (camera->obj->globalPosition - f.worldPos).normalized();
     if(!flags.transparent && flags.doubleSided && f.isBackFace)
         f.normal *= -1.0f;
     Color matSpecular = mat.specular->sample(f);
@@ -93,8 +96,8 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene &scene) {
         lighting = previous * matTint + lighting;
     }
 
-    if(scene.camera->whitePoint == 0) // Don't waste cycles if it won't be used
-        scene.maximumColor = max(scene.maximumColor, lighting.luminance()); // This doesn't take transparency into account
+    if(currentWindow->camera->whitePoint == 0) // Don't waste cycles if it won't be used
+        currentWindow->camera->maximumColor = max(currentWindow->camera->maximumColor, lighting.luminance()); // This doesn't take transparency into account
 
     return lighting;
 }
