@@ -27,6 +27,8 @@ void guiUpdate(shared_ptr<Window> window) {
     shared_ptr<Camera> camera = window->camera;
     shared_ptr<Scene> editingScene = window->scene;
 
+    ImGui::ShowDemoWindow();
+
     if(ImGui::Begin("Lua REPL")) {
         ImGui::InputTextMultiline("##", &luaReplInput);
         if(ImGui::Button("Run"))

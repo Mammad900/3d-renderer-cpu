@@ -1,6 +1,6 @@
 # CPU 3D renderer
 
-This is a 3D renderer engine written from scratch and only uses the CPU. The only libraries used are the standard library, SFML for window creation and Dear ImGui for the GUI.
+This is a 3D renderer engine written from scratch and only uses the CPU. The only libraries used are the standard library, SFML for window creation, Dear ImGui for the GUI and Sol3 for Lua integration.
 
 ## Features
 

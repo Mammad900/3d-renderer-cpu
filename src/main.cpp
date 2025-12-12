@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
                         windows.clear();
                     }
                 }
-                if(window->toolWindowFor) {
+                if(window->hasGui) {
                     ImGui::SFML::ProcessEvent(window->window, *event);
                 }
                 if (const auto* resized = event->getIf<sf::Event::Resized>()) {
@@ -93,6 +93,8 @@ int main(int argc, char** argv) {
                 ImGui::SFML::Update(window->window, deltaClock.getElapsedTime());
                 if(window->toolWindowFor)
                     guiUpdate(window->toolWindowFor);
+                if(window->gui)
+                    window->gui();
                 ImGui::SFML::Render(window->window);
             }
             window->window.display();

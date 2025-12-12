@@ -23,11 +23,13 @@
 #include <cctype>
 #include <cmath>
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #define SOL_ALL_SAFETIES_ON 1
 #include "sol/sol.hpp"
+#include "sol/sol_ImGui.h"
 #include "material.h"
 
 sol::state Lua;
@@ -376,6 +378,7 @@ void lua(std::string path) {
                 .name = props["name"],
                 .size = size,
                 .syncFrameSize = props.get_or("sync_frame_size", true),
+                .gui = props.get_or<std::function<void()>>("on_gui", [](){})
             });
             if((window->camera != nullptr) + (window->scene != nullptr) == 1)
                 throw std::runtime_error("One of window camera/scene was specified but not the other");
@@ -1237,6 +1240,7 @@ void lua(std::string path) {
     );
 #pragma endregion
 
+    sol_ImGui::Init(Lua);
     Lua.script_file(path);
     // ObjectVector a = lua["a"];
     return;
