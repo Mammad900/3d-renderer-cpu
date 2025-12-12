@@ -89,6 +89,7 @@ int main(int argc, char** argv) {
                 timing.clock.restart();
 
                 sf::Texture tex(window->camera->getRenderedFrame(window->scene->renderMode));
+                tex.setSmooth(true);
                 sf::Sprite spr(tex);
                 window->window.draw(spr);
             }
