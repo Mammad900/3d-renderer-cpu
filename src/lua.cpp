@@ -523,8 +523,10 @@ void lua(std::string path) {
                 throw std::runtime_error("Camera is nil");
             if(self->camera)
                 self->camera->frame = nullptr;
-            if(!self->frame)
-                self->frame = std::make_shared<RenderTarget>(self->size, true);
+            if(!self->frame) {
+                self->frame = std::make_shared<RenderTarget>(Vector2u{0, 0}, true);
+                self->changeFrameSize(self->size);
+            }
             self->scene = scene;
             self->camera = camera;
             camera->frame = self->frame.get();
