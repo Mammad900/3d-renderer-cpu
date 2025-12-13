@@ -28,7 +28,7 @@ public:
         size = img.getSize();
         atlasSize = {size.x * 2 - 1, size.y * 2 - 1};
         mipCount = {(int)log2(size.x), (int)log2(size.y)};
-        pixels = new T[atlasSize.x * atlasSize.y];
+        pixels = vector<T>(atlasSize.x * atlasSize.y);
         for (uint y = 0; y < size.y; y++)
             for (uint x = 0; x < size.x; x++)
                 pixels[y * atlasSize.x + x] = Color::fromSFColor(img.getPixel({x, y}));
@@ -69,7 +69,7 @@ public:
     }
 
 private:
-    T* pixels;
+    vector<T> pixels;
     Vector2u atlasSize;
     Vector2i mipCount;
 
