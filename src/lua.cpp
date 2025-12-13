@@ -700,6 +700,26 @@ void lua(std::string path) {
             materials.emplace_back(mat);
             return mat;
         },
+        "diffuse", sol::property(
+            [](PhongMaterial &self) { return self.mat.diffuse; },
+            [](PhongMaterial &self, shared_ptr<Texture<Color>> value) { self.mat.diffuse = value; }
+        ),
+        "specular", sol::property(
+            [](PhongMaterial &self) { return self.mat.specular; },
+            [](PhongMaterial &self, shared_ptr<Texture<Color>> value) { self.mat.specular = value; }
+        ),
+        "tint", sol::property(
+            [](PhongMaterial &self) { return self.mat.tint; },
+            [](PhongMaterial &self, shared_ptr<Texture<Color>> value) { self.mat.tint = value; }
+        ),
+        "emissive", sol::property(
+            [](PhongMaterial &self) { return self.mat.emissive; },
+            [](PhongMaterial &self, shared_ptr<Texture<Color>> value) { self.mat.emissive = value; }
+        ),
+        "normal_map", sol::property(
+            [](PhongMaterial &self) { return self.mat.normalMap; },
+            [](PhongMaterial &self, shared_ptr<Texture<Vec3>> value) { self.mat.normalMap = value; }
+        ),
         "as_material", [](shared_ptr<PhongMaterial> &c)-> shared_ptr<Material> { return c; }
     );
 
