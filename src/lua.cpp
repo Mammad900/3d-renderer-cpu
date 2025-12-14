@@ -623,6 +623,15 @@ void lua(std::string path) {
         "add_component", [](Object& obj, shared_ptr<Component> component) {
             component->init(&obj);
             obj.components.push_back(std::move(component));
+        },
+        "transform", [](Object &obj, Vec3 vec) {
+            return vec * obj.transform;
+        },
+        "transform_normal", [](Object &obj, Vec3 vec) {
+            return vec * obj.transformNormals;
+        },
+        "transform_rotation", [](Object &obj, Vec3 vec) {
+            return vec * obj.transformRotation;
         }
     );
 #pragma endregion
@@ -718,7 +727,7 @@ void lua(std::string path) {
         ),
         "normal_map", sol::property(
             [](PhongMaterial &self) { return self.mat.normalMap; },
-            [](PhongMaterial &self, shared_ptr<Texture<Vec3>> value) { self.mat.normalMap = value; }
+            [](PhongMaterial &self, shared_ptr<Texture<Vec3>> value) { self.mat.normalMap = value; self.needsTBN = value != nullptr; }
         ),
         "as_material", [](shared_ptr<PhongMaterial> &c)-> shared_ptr<Material> { return c; }
     );
