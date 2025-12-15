@@ -1,6 +1,12 @@
 #include "lua-state.h"
 #include "../light.h"
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#elif __clang__
+#pragma clang diagnostic ignored "-Warray-bounds"
+#endif
+
 void luaLights() {
         Lua.new_usertype<Light>("Light",
         sol::no_constructor,

@@ -3,6 +3,12 @@
 #include "../textureFiltering.h"
 #include "../tinyTexture.h"
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#elif __clang__
+#pragma clang diagnostic ignored "-Warray-bounds"
+#endif
+
 template <typename T>
 void makeTextureUsertypes(std::string name) {
     Lua.new_usertype<Texture<T>>(name+"Texture",

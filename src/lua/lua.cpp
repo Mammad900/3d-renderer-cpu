@@ -14,6 +14,12 @@
 #include <filesystem>
 #include <string>
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#elif __clang__
+#pragma clang diagnostic ignored "-Warray-bounds"
+#endif
+
 sol::state Lua;
 
 void luaOnFrame() {

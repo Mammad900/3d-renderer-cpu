@@ -2,6 +2,12 @@
 #include "../data.h"
 #include "../main.h"
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#elif __clang__
+#pragma clang diagnostic ignored "-Warray-bounds"
+#endif
+
 void luaWindow() {
         Lua.new_usertype<Window>("Window",
         sol::meta_function::construct, [](sol::table props) {

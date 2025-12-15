@@ -4,6 +4,12 @@
 #include "../generateMesh.h"
 #include "../gui.h"
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#elif __clang__
+#pragma clang diagnostic ignored "-Warray-bounds"
+#endif
+
 void luaMesh() {
         auto VertexConstructor = [](sol::table t) {
         Vertex v{};

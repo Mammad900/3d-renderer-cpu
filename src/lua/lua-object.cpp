@@ -1,6 +1,12 @@
 #include "lua-state.h"
 #include "../object.h"
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#elif __clang__
+#pragma clang diagnostic ignored "-Warray-bounds"
+#endif
+
 void luaObject() {
         Lua.new_usertype<Component>("Component",
         sol::no_constructor,
@@ -82,7 +88,7 @@ void luaObject() {
             return vec * obj.transformRotation;
         }
     );
-    
+
     Lua.new_usertype<RotatorComponent>("RotatorComponent",
         sol::base_classes, sol::bases<Component>(),
         sol::meta_function::construct, [](sol::object rotatePerSecond) {

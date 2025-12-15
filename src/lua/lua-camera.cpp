@@ -1,6 +1,12 @@
 #include "lua-state.h"
 #include "../camera.h"
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#elif __clang__
+#pragma clang diagnostic ignored "-Warray-bounds"
+#endif
+
 void luaCamera() {
     Lua.new_usertype<Camera>("Camera",
         sol::base_classes, sol::bases<Component>(),

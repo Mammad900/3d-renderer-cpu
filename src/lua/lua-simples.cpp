@@ -4,6 +4,12 @@
 #include "../miscTypes.h"
 #include "../gui.h"
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#elif __clang__
+#pragma clang diagnostic ignored "-Warray-bounds"
+#endif
+
 void luaSimples() {
         Lua.new_usertype<Color>("Color",
         "r", &Color::r,
