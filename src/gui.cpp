@@ -5,7 +5,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "material.h"
 #include "phongMaterial.h"
-#include "lua.h"
+#include "lua/lua.h"
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <iostream>
 #include <memory>

@@ -52,7 +52,7 @@ option(IMGUI_SFML_IMGUI_DEMO "Build imgui_demo.cpp" ON)
 
 FetchContent_MakeAvailable(imgui-sfml)
 
-file(GLOB main_SRC CONFIGURE_DEPENDS "src/*.cpp")
+file(GLOB_RECURSE main_SRC CONFIGURE_DEPENDS "src/*.cpp")
 add_executable(main ${main_SRC})
 add_dependencies(main lua_project) # Ensure Lua is built before your project
 target_include_directories(main PRIVATE ${LUA_INCLUDE_DIR})

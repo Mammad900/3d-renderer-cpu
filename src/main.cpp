@@ -2,7 +2,7 @@
 #include "gui.h"
 #include "multithreading.h"
 #include "main.h"
-#include "lua.h"
+#include "lua/lua.h"
 #include <SFML/Graphics.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <memory>
