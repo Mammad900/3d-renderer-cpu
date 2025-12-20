@@ -733,3 +733,4 @@ Methods and fields (descriptions from constructor arguments apply here):
 - More memory consumption and bandwidth, slightly decreasing performance.
 - Supports order independent transparency, keeping results correct when transparent surfaces are very close together. This is the only difference that affects the final image output.
 - Does not support full-bright (no lighting) and wireframe debug modes.
+- Overall faster in more complex scenes but slower in simpler scenes.
