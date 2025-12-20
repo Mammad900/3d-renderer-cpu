@@ -21,6 +21,7 @@ void Light::update() { // Try every frame to add this light to the scene. Can't 
 }
 
 Light::~Light() {
+    if(!obj) return;
     shared_ptr<Scene> scene = obj->scene.lock();
     if(!scene) return;
     auto it = std::find(scene->lights.begin(), scene->lights.end(), this);

@@ -8,7 +8,7 @@ struct Object;
 
 class Component {
   public:
-    Object *obj;
+    Object *obj = nullptr;
     // Called after object transform updates
     virtual void update(){};
     // Called before object transform updates
