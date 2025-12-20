@@ -74,6 +74,12 @@ void luaMaterial() {
             [](PhongMaterial &self) { return self.mat.normalMap; },
             [](PhongMaterial &self, shared_ptr<Texture<Vec3>> value) { self.mat.normalMap = value; self.needsTBN = value != nullptr; }
         ),
+        "volume_front", &PhongMaterial::volumeFront,
+        "volume_back", &PhongMaterial::volumeBack,
+        "environment_reflection", sol::property(
+            [](PhongMaterial &self) { return self.mat.environmentReflection; },
+            [](PhongMaterial &self, Color value) { self.mat.environmentReflection = value; }
+        ),
         "as_material", [](shared_ptr<PhongMaterial> &c)-> shared_ptr<Material> { return c; }
     );
 
