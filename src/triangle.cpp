@@ -79,12 +79,6 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
              b = (v3to2(tri.s2.screenPos) + Vector2f{1, 1}).componentWiseMul(Vector2f{frame->size.x / 2.0f, frame->size.y / 2.0f}),
              c = (v3to2(tri.s3.screenPos) + Vector2f{1, 1}).componentWiseMul(Vector2f{frame->size.x / 2.0f, frame->size.y / 2.0f});
 
-    if (scene->wireFrame) {
-        drawLine(a, b, frame);
-        drawLine(c, b, frame);
-        drawLine(a, c, frame);
-    }
-
     float areaOfTriangle = abs((b - a).cross(c - a)); // Two times the area of the triangle
 
     Vec3 triangleNormal = tri.mesh->flatShading ?
@@ -237,5 +231,11 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
             postFragment(f3);
             postFragment(f4);
         }
+    }
+
+    if (scene->wireFrame) {
+        drawLine(a, b, frame);
+        drawLine(c, b, frame);
+        drawLine(a, c, frame);
     }
 }
