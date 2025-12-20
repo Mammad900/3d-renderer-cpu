@@ -1,5 +1,6 @@
 #include "lua-state.h"
 #include "../object.h"
+#include "../data.h"
 #include <memory>
 #include <algorithm>
 
@@ -71,9 +72,14 @@ void luaObject() {
             }
         ),
         "add_child", [](Object& obj, shared_ptr<Object> child) {
-            if(child->parent) { // it already has a parent, gotta remove it
-                vector<shared_ptr<Object>> &vec = child->parent->children;
-                vec.erase(std::remove(vec.begin(), vec.end(), child), vec.end());
+            if(auto scene = child->scene.lock()) {
+                if(child->parent) { // it already has a parent, gotta remove it
+                    vector<shared_ptr<Object>> &vec = child->parent->children;
+                    vec.erase(std::remove(vec.begin(), vec.end(), child), vec.end());
+                } else {
+                    vector<shared_ptr<Object>> &vec = scene->objects;
+                    vec.erase(std::remove(vec.begin(), vec.end(), child), vec.end());
+                }
             }
             obj.children.push_back(child);
             if(!obj.scene.expired() && (child->scene.expired() || obj.scene.lock() == child->scene.lock()))

@@ -119,7 +119,7 @@ Fields and methods:
 - **`scale`** (Vec3): Object's scale. Only use for objects which only contain meshes.
 - **`children`** (vector\<Object>): List of child objects. Can be passed as lua array to the constructor.
 - **`components`** (vector\<Component>): List of components. Components add behavior to the object. Can be passed as lua array to the constructor.
-- **`add_child(object)`**: Adds an object to the children. If the object is already a child of another object, it will be removed from that object's children.
+- **`add_child(object)`**: Adds an object to the children. If the object is already part of a scene tree, it will be removed from where it was.
 - **`add_component(component)`**: Adds a component to the object.
 
 ## `Component`
