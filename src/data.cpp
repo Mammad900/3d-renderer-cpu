@@ -27,6 +27,7 @@ void Window::init()  {
         sf::VideoMode(size), name,
         sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize
     );
+    window.setVerticalSyncEnabled(true);
     if(hasGui && !ImGui::SFML::Init(window))
         throw std::runtime_error("Could not init ImGui for window: " + name);
 }
