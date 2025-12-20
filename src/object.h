@@ -28,8 +28,8 @@ struct Object {
 
     std::vector<std::shared_ptr<Component>> components;
     std::vector<std::shared_ptr<Object>> children;
-    Object *parent;
-    std::weak_ptr<Scene> scene;
+    Object *parent = nullptr;
+    std::weak_ptr<Scene> scene = std::weak_ptr<Scene>();
 
     TransformMatrix transform = identityMatrix;
     TransformMatrix transformRotation = identityMatrix;
