@@ -20,6 +20,7 @@ void luaScene() {
         "add_object", [](Scene& scene, shared_ptr<Object> child) {
             child->setScene(scene.shared_from_this());
             child->parent = nullptr;
+            child->update();
             scene.objects.push_back(std::move(child));
         },
         "add_objects", [](Scene &scene, sol::table children) {
@@ -27,6 +28,7 @@ void luaScene() {
                 auto child = kv.second.as<std::shared_ptr<Object>>();
                 child->setScene(scene.shared_from_this());
                 child->parent = nullptr;
+                child->update();
                 scene.objects.push_back(child);
             }
         },
@@ -37,6 +39,7 @@ void luaScene() {
         "shadow_bias", &Scene::shadowBias,
         "wire_frame", &Scene::wireFrame,
         "full_bright", &Scene::fullBright,
+        "always_update", &Scene::alwaysUpdate,
         "texture_filtering_mode", sol::property(
             [](Scene &s) {
                 using enum TextureFilteringMode;

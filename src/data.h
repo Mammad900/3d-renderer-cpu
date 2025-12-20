@@ -71,7 +71,7 @@ class Camera;
 
 struct Scene : public std::enable_shared_from_this<Scene> {
     std::string name;
-    bool shouldUpdate = false;
+    bool shouldUpdate = true;
     bool alwaysUpdate = false;
     
     std::vector<Light *> lights;

@@ -7,6 +7,15 @@
 
 
 using TransformMatrix = std::array<float, 16>;
+
+const TransformMatrix identityMatrix = {
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1,
+};
+
+
 void matAdd(float *a, float *b, float *out, int rows, int cols);
 void matSub(float *a, float *b, float *out, int rows, int cols);
 void matScalarMul(float *a, float scalar, float *out, int rows, int cols);

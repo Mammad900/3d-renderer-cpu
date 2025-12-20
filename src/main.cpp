@@ -83,6 +83,8 @@ int main(int argc, char** argv) {
             currentWindow = window;
             window->window.clear();
             if(window->frame) {
+                if(window->scene->shouldUpdate) // Oh no didn't update
+                    continue;
                 if(timing.render)
                     window->camera->render();
 

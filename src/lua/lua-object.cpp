@@ -1,5 +1,7 @@
 #include "lua-state.h"
 #include "../object.h"
+#include <memory>
+#include <algorithm>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Warray-bounds"
@@ -73,6 +75,7 @@ void luaObject() {
             if(!obj.scene.expired())
                 child->setScene(obj.scene);
             child->parent = &obj;
+            child->update();
         },
         "add_component", [](Object& obj, shared_ptr<Component> component) {
             component->init(&obj);

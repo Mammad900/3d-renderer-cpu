@@ -31,11 +31,11 @@ struct Object {
     Object *parent;
     std::weak_ptr<Scene> scene;
 
-    TransformMatrix transform;
-    TransformMatrix transformRotation;
-    TransformMatrix myTransform;
-    TransformMatrix myTransformRotation;
-    TransformMatrix transformNormals;
+    TransformMatrix transform = identityMatrix;
+    TransformMatrix transformRotation = identityMatrix;
+    TransformMatrix myTransform = identityMatrix;
+    TransformMatrix myTransformRotation = identityMatrix;
+    TransformMatrix transformNormals = identityMatrix;
     Vec3 globalPosition;
 
     void update();
