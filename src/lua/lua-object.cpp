@@ -71,8 +71,12 @@ void luaObject() {
             }
         ),
         "add_child", [](Object& obj, shared_ptr<Object> child) {
-            obj.children.push_back(std::move(child));
-            if(!obj.scene.expired())
+            if(child->parent) { // it already has a parent, gotta remove it
+                vector<shared_ptr<Object>> &vec = child->parent->children;
+                vec.erase(std::remove(vec.begin(), vec.end(), child), vec.end());
+            }
+            obj.children.push_back(child);
+            if(!obj.scene.expired() && (child->scene.expired() || obj.scene.lock() == child->scene.lock()))
                 child->setScene(obj.scene);
             child->parent = &obj;
             child->update();
