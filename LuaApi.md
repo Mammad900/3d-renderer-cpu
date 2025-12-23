@@ -167,6 +167,40 @@ my_rotator.enabled = true
 my_rotator.rotate_per_second = deg_to_rad{45, 0, 0}
 ```
 
+### `ScriptComponent`
+
+A component designed to be scripted with Lua. With this you can implement custom behaviour.
+
+Example: A script component that keeps the object's Y position in a specified range
+
+```lua
+function altitudeClamp(args)
+    return ScriptComponent.new{
+        name= "Altitude clamp",
+        pre_update= function (dt, comp)
+            comp.object.position.y = math.max(math.min(comp.object.position.y, args.maximum), args.minimum)
+        end,
+        update= function (dt, comp)
+            print(dt, "seconds passed")
+        end,
+        gui= function (comp)
+            args.minimum = ImGui.DragFloat("Minimum altitude", args.minimum, 1, -100, 100)
+            args.maximum = ImGui.DragFloat("Maximum altitude", args.minimum, 1, -100, 100)
+        end
+    }
+end
+myObject:add_component(altitudeClamp{minimum= 0, maximum= 10}:as_component())
+```
+
+Arguments (all optional):
+
+- **`name`** (string/function): Shown in GUI. Can be a string, or a function that receives the component as argument and returns the name.
+- **`update`** (function): Runs each frame after the object's transform is calculated. Takes two parameters:
+  - **`dt`**: Frame delta time in seconds
+  - **`comp`**: The script component instance. Its `object` field can be used to access the object.
+- **`pre_update`** (function): Like `update` but runs before the object's transform is calculated. Code that changes the object's position/rotation/scale should be run here, otherwise changes aren't applied until the next frame. Takes the same arguments as `update`.
+- **`gui`** (function): Code to draw GUI for the component in tools window. Receives the component as an argument.
+
 ### `Light`
 
 They emit light. There are several types of them. Each light has a color, with the alpha determining the intensity.

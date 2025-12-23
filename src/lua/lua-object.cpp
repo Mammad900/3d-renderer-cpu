@@ -1,8 +1,10 @@
 #include "lua-state.h"
 #include "../object.h"
 #include "../data.h"
+#include "sol/sol.hpp"
 #include <memory>
 #include <algorithm>
+#include <string>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Warray-bounds"
@@ -110,5 +112,34 @@ void luaObject() {
         "as_component", [](std::shared_ptr<RotatorComponent> &c) -> std::shared_ptr<Component> { return c; },
         "rotate_per_second", &RotatorComponent::rotatePerSecond,
         "enabled", &RotatorComponent::enable
+    );
+
+    Lua.new_usertype<ScriptComponent>("ScriptComponent",
+        sol::meta_function::construct, [](sol::table props) {
+            shared_ptr<ScriptComponent> comp = std::make_shared<ScriptComponent>();
+            if (props["update"].get_type() == sol::type::function) {
+                sol::function update = props["update"];
+                comp->onUpdate = [update, comp]() { update(timing.deltaTime, comp); };
+            }
+            if (props["pre_update"].get_type() == sol::type::function) {
+                sol::function preUpdate = props["pre_update"];
+                comp->onPreUpdate = [preUpdate, comp]() { preUpdate(timing.deltaTime, comp); };
+            }
+            if (props["gui"].get_type() == sol::type::function) {
+                sol::function gui = props["gui"];
+                comp->onGUI = [gui, comp]() { gui(comp); };
+            }
+            if (props["name"].get_type() == sol::type::function) {
+                sol::function name = props["name"];
+                comp->onName = [name, comp]()-> std::string { return name(comp); };
+            }
+            else if (props["name"].get_type() == sol::type::string) {
+                std::string name = props["name"];
+                comp->onName = [name]()-> std::string { return name; };
+            }
+            return comp;
+        },
+        "object", &ScriptComponent::obj,
+        "as_component", [](std::shared_ptr<ScriptComponent> &c) -> std::shared_ptr<Component> { return c; }
     );
 }

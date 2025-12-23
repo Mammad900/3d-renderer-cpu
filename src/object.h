@@ -2,7 +2,9 @@
 #define __OBJECT_H__
 #include "matrix.h"
 #include "miscTypes.h"
+#include <functional>
 #include <memory>
+#include <string>
 
 struct Object;
 
@@ -63,6 +65,32 @@ class RotatorComponent : public Component {
     void preUpdate();
     void GUI();
     std::string name() { return "Rotator"; }
+};
+
+class ScriptComponent : public Component {
+  public:
+    std::function<void()> onUpdate;
+    void update() override {
+        if(onUpdate)
+            onUpdate();
+    }
+    std::function<void()> onPreUpdate;
+    void preUpdate() override {
+        if(onPreUpdate)
+            onPreUpdate();
+    }
+    std::function<void()> onGUI;
+    void GUI() override {
+        if(onGUI)
+            onGUI();
+    }
+    std::function<std::string()> onName;
+    std::string name() override {
+        if(onName)
+            return onName();
+        else
+            return "Script";
+    }
 };
 
 #endif /* __OBJECT_H__ */
