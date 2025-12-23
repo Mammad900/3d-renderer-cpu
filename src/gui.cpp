@@ -57,6 +57,7 @@ void guiUpdate(shared_ptr<Window> window) {
     ImGui::Begin("Performance");
     ImGui::Checkbox("Render", &timing.render);
     if(ImGui::Button("Render one frame now and save")) {
+        currentWindow = window;
         camera->render();
         sf::Image res = camera->getRenderedFrame(0);
         if(!res.saveToFile("render.png"))
