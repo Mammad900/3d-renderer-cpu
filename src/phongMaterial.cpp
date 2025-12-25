@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "data.h"
 #include "imgui.h"
+#include "vector3.h"
 #include <memory>
 
 using std::max, std::min;
@@ -24,7 +25,9 @@ void PhongMaterial::GUI() {
 
 Color PhongMaterial::shade(Fragment &f, Color previous, Scene &scene) {
     shared_ptr<Camera> camera = currentWindow->camera;
-    Vec3 viewDir = (camera->obj->globalPosition - f.worldPos).normalized();
+    Vec3 viewDir = camera->orthographic ?
+        Vec3{0, 0, -1} * camera->obj->transformRotation :
+        (camera->obj->globalPosition - f.worldPos).normalized();
     if(!flags.transparent && flags.doubleSided && f.isBackFace)
         f.normal *= -1.0f;
     Color matSpecular = mat.specular->sample(f);

@@ -4,5 +4,6 @@
 #include "data.h"
 
 Color sampleFog(Vec3 start, Vec3 end, Color background, Scene &scene, shared_ptr<Volume> volume);
+void fogTransparency(Fragment &f, Color &pixel, float &z);
 
 #endif /* __FOG_H__ */

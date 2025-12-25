@@ -18,6 +18,7 @@ void luaCamera() {
                 camera->nearClip = properties.get_or("near", camera->nearClip);
                 camera->farClip = properties.get_or("far", camera->farClip);
                 camera->whitePoint = properties.get_or("white_point", camera->whitePoint);
+                camera->orthographic = properties.get_or("orthographic", camera->orthographic);
                 return camera;
             }
         ),

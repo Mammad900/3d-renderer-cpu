@@ -114,9 +114,11 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
         }
         float C3 = 1.0f - C1 - C2; // C1+C2+C3=1 so take a shortcut
         bool inside = C1 >= 0 && C2 >= 0 && C3 >= 0;
-        C1 /= tri.s1.screenPos.z; // Perspective correction
-        C2 /= tri.s2.screenPos.z;
-        C3 /= tri.s3.screenPos.z;
+        if(!camera->orthographic) {
+            C1 /= tri.s1.screenPos.z; // Perspective correction
+            C2 /= tri.s2.screenPos.z;
+            C3 /= tri.s3.screenPos.z;
+        }
         float denom = 1 / (C1 + C2 + C3);
 
         #define INTERPOLATE_TRI(A,B,C) ((C1*(A) + C2*(B) + C3*(C))*denom)
@@ -191,16 +193,7 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
             else
                 frame->gBuffer[index] = f;
         } else {
-            shared_ptr<Volume> volume = f.isBackFace ? tri.mat->volumeFront : tri.mat->volumeBack;
-            if(!volume) volume = scene->volume;
-            if(volume && tri.mat->flags.transparent) { // Fog behind the fragment
-                if(previousZ == INFINITY)
-                    previousZ = camera->farClip;
-                if(previousZ != INFINITY || (scene->volume && scene->volume->godRays)) {
-                    Vec3 previousPixelPos = camera->screenSpaceToWorldSpace(f.screenPos.x, f.screenPos.y, previousZ);
-                    frame->framebuffer[index] = sampleFog(previousPixelPos, f.worldPos, frame->framebuffer[index], *scene, volume);
-                }
-            }
+            fogTransparency(f, frame->framebuffer[index], previousZ);
             frame->framebuffer[index] = scene->fullBright ?
                 baseColor :
                 tri.mat->shade(f, frame->framebuffer[index], *scene);

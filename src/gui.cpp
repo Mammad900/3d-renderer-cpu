@@ -40,6 +40,7 @@ void guiUpdate(shared_ptr<Window> window) {
     ImGui::InputFloat("Near", &camera->nearClip);
     ImGui::InputFloat("Far", &camera->farClip);
     ImGui::SliderFloat("FOV", &camera->fov, 10, 150);
+    ImGui::Checkbox("Orthographic", &camera->orthographic);
     ImGui::RadioButton("Frame buffer", &editingScene->renderMode, 0);
     ImGui::RadioButton("Z buffer", &editingScene->renderMode, 1);
     ImGui::Checkbox("Back-face culling", &editingScene->backFaceCulling);

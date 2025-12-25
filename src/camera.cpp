@@ -14,7 +14,7 @@ Projection Camera::perspectiveProject(Vec3 a) {
     matMul(vM, projectionMatrix.data(), vM, 1, 4, 4);
     return Projection{
         .worldPos = a,
-        .screenPos = Vec3{vM[0] / vM[3], vM[1] / vM[3], -vM[3]},
+        .screenPos = orthographic ? -Vec3{vM[0], vM[1], vM[3]} : Vec3{vM[0] / vM[3], vM[1] / vM[3], -vM[3]},
     };
 }
 
@@ -42,7 +42,7 @@ Vec3 Camera::screenSpaceToCameraSpace(int x, int y) {
 
 Vec3 Camera::screenSpaceToCameraSpace(int x, int y, float z) { 
     Vector2f worldPos{x / (float)frame->size.x, y / (float)frame->size.y};
-    worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * z * tanHalfFov;
+    worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * (orthographic ? 1 : z) * tanHalfFov;
     return Vec3{worldPos.x, worldPos.y, z};
 }
 
@@ -55,7 +55,7 @@ Vec3 Camera::screenSpaceToWorldSpace(int x, int y, float z) {
 }
 
 void Camera::makePerspectiveProjectionMatrix() {
-    float S = 1 / (tanHalfFov = tan(fov * M_PI / 360));
+    float S = 1 / (tanHalfFov = orthographic ? fov : tan(fov * M_PI / 360));
     float f = -farClip / (farClip - nearClip);
     matMul(transposeMatrix(obj->transformRotation).data(), (float[]){
         S, 0, 0, 0,

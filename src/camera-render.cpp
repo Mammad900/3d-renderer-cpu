@@ -207,16 +207,7 @@ void deferredPass(uint n, uint i0, Camera *camera) {
             FragmentNode &node = frame->transparencyFragments[next];
             Fragment &f = node.f;
 
-            shared_ptr<Volume> volume = f.isBackFace ? f.face->material->volumeFront : f.face->material->volumeBack;
-            if(!volume) volume = scene->volume;
-            if(volume && f.face->material->flags.transparent) { // Fog behind the fragment
-                if(z == INFINITY)
-                    z = camera->farClip;
-                if(z != INFINITY || (scene->volume && scene->volume->godRays)) {
-                    Vec3 previousPixelPos = camera->screenSpaceToWorldSpace(f.screenPos.x, f.screenPos.y, z);
-                    frame->framebuffer[i] = sampleFog(previousPixelPos, f.worldPos, frame->framebuffer[i], *scene, volume);
-                }
-            }
+            fogTransparency(f, frame->framebuffer[i], z);
 
             frame->framebuffer[i] = f.face->material->shade(f, frame->framebuffer[i], *scene);
 
@@ -247,9 +238,13 @@ void fogPass(uint n, uint i0, Camera *camera) {
                 return;
         }
 
+        Vec3 cameraSpace = camera->screenSpaceToCameraSpace(x, y, z);
+
         camera->frame->framebuffer[i] = sampleFog(
-            camera->screenSpaceToWorldSpace(x, y, z), 
-            camera->obj->globalPosition,
+            cameraSpace * camera->obj->transform, 
+            camera->orthographic ? 
+                camera->obj->globalPosition + Vec3{cameraSpace.x, cameraSpace.y, 0} * camera->obj->transformRotation :
+                camera->obj->globalPosition,
             camera->frame->framebuffer[i],
             *scene,
             scene->volume

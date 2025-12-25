@@ -59,7 +59,9 @@ Color PBRMaterial::shade(Fragment &f, Color previous, Scene &scene) {
     float ao = this->ambientOcclusion->sample(f);
 
     Vec3 N = f.normal;
-    Vec3 V = (f.worldPos - camera->obj->globalPosition).normalized();
+    Vec3 V = camera->orthographic ?
+        Vec3{0, 0, 1} * camera->obj->transformRotation :
+        (f.worldPos - camera->obj->globalPosition).normalized();
 
     Color Lo{0, 0, 0, 0};
     for (size_t i = 0; i < scene.lights.size(); i++) {

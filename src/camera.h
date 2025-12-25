@@ -12,6 +12,7 @@ class Camera : public Component, public std::enable_shared_from_this<Camera> {
     float whitePoint = 0;
     float maximumColor = 0;
     bool shadowMap = false;
+    bool orthographic = false;
     RenderTarget *frame;
     void render();
     std::string name() { return "Camera"; }

@@ -1,4 +1,5 @@
 #include "data.h"
+#include "object.h"
 #include "fog.h"
 
 Color getVisibility(Color in, float sampleLength) {
@@ -7,6 +8,21 @@ Color getVisibility(Color in, float sampleLength) {
         std::expf(-sampleLength * in.g),
         std::expf(-sampleLength * in.b),
     };
+}
+
+void fogTransparency(Fragment &f, Color &pixel, float &z) {
+    auto camera = currentWindow->camera;
+    auto scene = currentWindow->scene;
+    shared_ptr<Volume> volume = f.isBackFace ? f.face->material->volumeFront : f.face->material->volumeBack;
+    if(!volume) volume = scene->volume;
+    if(volume && f.face->material->flags.transparent) { // Fog behind the fragment
+        if(z == INFINITY)
+            z = camera->farClip;
+        if(volume) {
+            Vec3 previousPixelPos = camera->screenSpaceToWorldSpace(f.screenPos.x, f.screenPos.y, z);
+            pixel = sampleFog(previousPixelPos, f.worldPos, pixel, *scene, volume);
+        }
+    }
 }
 
 Color sampleFog(Vec3 start, Vec3 end, Color background, Scene &scene, shared_ptr<Volume> volume) {
