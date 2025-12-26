@@ -121,6 +121,9 @@ Fields and methods:
 - **`components`** (vector\<Component>): List of components. Components add behavior to the object. Can be passed as lua array to the constructor.
 - **`add_child(object)`**: Adds an object to the children. If the object is already part of a scene tree, it will be removed from where it was.
 - **`add_component(component)`**: Adds a component to the object.
+- **`transform(vec)`**: Takes a position vector in local coordinates and transforms it to global coordinates.
+- **`transform_rotation(vec)`**: Same but with a direction vector. The difference is that object position isn't applied.
+- **`transform_normal(vec)`**: Same but with a surface normal vector. Takes scale into account so it stays perpendicular to the surface.
 
 ## `Component`
 
@@ -136,6 +139,10 @@ Instances a Mesh to be rendered at the object's transform.
 ```lua
 my_component = MeshComponent(my_mesh):as_component()
 ```
+
+Fields:
+
+- **`mesh`**: The mesh to be rendered. You can swap the mesh with a different one by assigning it.
 
 ### `Camera`
 
@@ -529,12 +536,12 @@ The constructor takes two arguments:
 2. Optional: A value to be multiplied with every texel
 
 ```lua
-texture_1 = SolidColorTexture.new("./wood.png"):as_texture()
-texture_1 = SolidColorTexture.new("./wood.png", {0.1, 0.2, 0.3, 0.4}):as_texture()
-texture_2 = SolidVectorTexture.new("./wood-normalmap.png"):as_texture()
-texture_2 = SolidVectorTexture.new("./wood-normalmap.png", {1, 2, 3}):as_texture()
-texture_3 = SolidFloatTexture.new("./wood-heightmap.png"):as_texture()
-texture_3 = SolidFloatTexture.new("./wood-heightmap.png", 0.2):as_texture()
+texture_1 = ImageColorTexture.new("./wood.png"):as_texture()
+texture_2 = ImageColorTexture.new("./wood.png", {0.1, 0.2, 0.3, 0.4}):as_texture()
+texture_3 = ImageVectorTexture.new("./wood-normalmap.png"):as_texture()
+texture_4 = ImageVectorTexture.new("./wood-normalmap.png", {1, 2, 3}):as_texture()
+texture_5 = ImageFloatTexture.new("./wood-heightmap.png"):as_texture()
+texture_6 = ImageFloatTexture.new("./wood-heightmap.png", 0.2):as_texture()
 ```
 
 Image pixels are interpreted differently depending on texture data type:
@@ -542,6 +549,15 @@ Image pixels are interpreted differently depending on texture data type:
 - `ImageColorTexture`: Pixels are used as is, only normalized to 0-1.
 - `ImageVectorTexture`: R is X, G is Y, B is Z. A is unused.
 - `ImageFloatTexture`: A is used as value. Other components are unused.
+
+#### `save_to_file()`
+
+Saves the image to a file.
+
+```lua
+local texture = ImageColorTexture.new("./wood.png")
+texture:save_to_file("./wood.tga")
+```
 
 ### `TinyImageTexture` (color only)
 
@@ -551,6 +567,15 @@ This texture behaves the same as `ImageColorTexture` but with the following diff
 - No mipmaps are generated
 
 This reduces memory consumption by about 16x and reduces loading times, which can be very useful for high resolution textures. It is also slightly faster, but the lack of mipmaps causes aliasing at higher densities.
+
+#### `save_to_file()`
+
+Saves the image to a file.
+
+```lua
+local texture = TinyImageTexture.new("./wood.png")
+texture:save_to_file("./wood.tga")
+```
 
 ### `SineWaveTexture` (float only)
 
@@ -741,6 +766,8 @@ Constructor arguments:
 - **`has_gui`** (boolean): Whether the window will render a GUI. Defaults to false.
 - **`tool_window_for`** (Window): If set, a tools GUI will be rendered on this window, with the set window as the subject. `has_gui` must be true if this is set. Default is nil.
 - **`sync_frame_size`** (boolean): If true, resizing the window will resize the render resolution to match it and vice versa. Default is true.
+- **`on_gui`** (function): A callback to draw GUI using Dear ImGui. Requires `has_gui` to be true. Does not take any arguments or return anything.
+- **`on_event`** (function): A callback to handle any window events. Takes the event as an argument. See below for details on the event object.
 
 Methods and fields (descriptions from constructor arguments apply here):
 
@@ -768,3 +795,63 @@ Methods and fields (descriptions from constructor arguments apply here):
 - Supports order independent transparency, keeping results correct when transparent surfaces are very close together. This is the only difference that affects the final image output.
 - Does not support full-bright (no lighting) and wireframe debug modes.
 - Overall faster in more complex scenes but slower in simpler scenes.
+
+### Events
+
+Refer to window `on_event` for how to receive events.
+
+Even type can be determined by its `type`.
+
+```lua
+local window = Window.new{
+    ...
+    on_event= function (ev)
+        if ev.type == "key_pressed" then
+            if ev.key == key.tab then
+                show_controls = not show_controls
+            end
+        end
+    end,
+}
+```
+
+#### `resized`
+
+Window was resized.
+
+- **`x`** (number): New window width in pixels
+- **`y`** (number): New window height in pixels
+
+#### `key_pressed`
+
+A keyboard key was just pressed. Depending on OS settings, holding down the key can repeat this event.
+
+- **`key`** (number): Code of the key that was pressed. The global `keys` enum provides a list of key codes.
+- **`alt`, `ctrl`, `super`, `shift`** (boolean): Whether the respective keys were being held at the time.
+
+#### `key_released`
+
+A keyboard key was just released. Same fields as `key_pressed`.
+
+#### `mouse_moved`
+
+The mouse cursor was moved.
+
+- **`position_x`, `position_y`** (number): New mouse cursor position relative to window top left corner.
+
+#### `mouse_moved_raw`
+
+The mouse was moved. In contrast to `mouse_moved`, the mouse movement isn't processed by the OS, so it's more suitable for things like controlling a camera.
+
+- **`delta_x`, `delta_y`** (number): Movement of the mouse since the last event.
+
+#### `mouse_button_pressed`
+
+A mouse button was pressed.
+
+- **`position_x`, `position_y`** (number): Mouse cursor position
+- **`button`** (number): Code of the button that was pressed. 1= left, 2=right, 3=middle, 4,5=extra
+
+#### `mouse_button_released`
+
+A mouse button was released. Same fields as `mouse_button_pressed`.
