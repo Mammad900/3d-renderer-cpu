@@ -167,6 +167,8 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
         if(!(defer && tri.mat->flags.transparent))
             frame->zBuffer[index] = f.z;
 
+        if(camera->shadowMap) return;
+
         if (defer) {
             if (tri.mat->flags.transparent) {
                 uint32_t &currentHead = frame->transparencyHeads[index];
@@ -226,7 +228,7 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
         }
     }
 
-    if (scene->wireFrame) {
+    if (scene->wireFrame && !camera->shadowMap) {
         drawLine(a, b, frame);
         drawLine(c, b, frame);
         drawLine(a, c, frame);

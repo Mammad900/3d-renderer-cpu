@@ -40,6 +40,7 @@ void luaDestroy() {
 template float valueFromObject<float>(sol::object obj, float def);
 template Vec3 valueFromObject<Vec3>(sol::object obj, Vec3 def);
 template Color valueFromObject<Color>(sol::object obj, Color def);
+template Vector2u valueFromObject<Vector2u>(sol::object obj, Vector2u def);
 
 template<typename T>
 T valueFromObject(sol::object obj, T def) {
@@ -80,6 +81,22 @@ T valueFromObject(sol::object obj, T def) {
                 t.get_or(1, 0.0f),
                 t.get_or(2, 0.0f),
                 t.get_or(3, 0.0f)
+            };
+        }
+        return v;
+    }
+    else if constexpr (std::is_same_v<T, Vector2u>) {
+        Vector2u v = def;
+        if (obj.get_type() == sol::type::userdata)
+            v = obj.as<Vector2u>();
+        else if (obj.get_type() == sol::type::number) {
+            uint val = obj.as<uint>();
+            v = Vector2u{val, val};
+        } else if (obj.get_type() == sol::type::table) {
+            sol::table t = obj;
+            v = Vector2u{
+                t.get_or(1, 0u),
+                t.get_or(2, 0u),
             };
         }
         return v;

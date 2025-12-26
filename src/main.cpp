@@ -72,8 +72,12 @@ int main(int argc, char** argv) {
             if(scene->alwaysUpdate || scene->shouldUpdate) {
                 for (auto &&obj : scene->objects)
                     obj->update();
-                scene->shouldUpdate = false;
             }
+            if(scene->shouldUpdate) { // ignore alwaysUpdate cuz unlike object states, shadow map is only relevant for one frame
+                for (auto &&light : scene->lights)
+                    light->updateShadowMap();
+            }
+            scene->shouldUpdate = false;
         }
         luaOnFrame();
         timing.updateTime.push(timing.clock);

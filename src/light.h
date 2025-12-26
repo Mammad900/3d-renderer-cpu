@@ -2,6 +2,7 @@
 #define __LIGHT_H__
 
 #include "color.h"
+#include "data.h"
 #include "object.h"
 #include "camera.h"
 
@@ -13,6 +14,7 @@ class Light : public Component {
     virtual ~Light();
     virtual std::pair<Color, Vec3> sample(Vec3 pos, Scene &scene) = 0;
     virtual void update();
+    virtual void updateShadowMap() {};
 
     void GUI();
   private:
@@ -55,7 +57,8 @@ class SpotLight : public Light {
   public:
     float spreadInner, spreadOuter;
     float spreadInnerCos, spreadOuterCos;
-    Camera *shadowMap = nullptr;
+    shared_ptr<Camera> shadowMapCam = nullptr;
+    shared_ptr<RenderTarget> shadowMap = nullptr;
 
     SpotLight(Color color, float spreadInner, float spreadOuter) 
     : Light(color), spreadInner(spreadInner), spreadOuter(spreadOuter) {}
@@ -64,19 +67,9 @@ class SpotLight : public Light {
 
     std::pair<Color, Vec3> sample(Vec3 pos, Scene &scene);
 
-    void update() {
-        Light::update();
-        spreadInnerCos = std::cos(spreadInner);
-        spreadOuterCos = std::cos(spreadOuter);
-        if(spreadInnerCos < spreadOuterCos)
-            std::swap(spreadInnerCos, spreadOuterCos);
-        direction = Vec3{0, 0, 1} * obj->transformRotation;
-        
-        if(shadowMap) {
-            shadowMap->fov = std::max(spreadOuter, spreadInner) * (360.0f / M_PIf);
-            shadowMap->render();
-        }
-    }
+    void update();
+    void updateShadowMap();
+    void init(Object *obj);
 
     void setupShadowMap(Vector2u size);
     void GUI();

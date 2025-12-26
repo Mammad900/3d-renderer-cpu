@@ -16,6 +16,7 @@
 #include <vector>
 
 using sf::Vector2u, std::shared_ptr;
+class Light;
 
 struct FragmentNode {
     Fragment f;

@@ -1,7 +1,9 @@
 #include "light.h"
 #include "data.h"
+#include "object.h"
 #include "textureFiltering.h"
 #include <imgui.h>
+#include <memory>
 
 using std::floor, std::ceil;
 
@@ -10,6 +12,38 @@ float smoothstep(float edge0, float edge1, float x) {
     x = std::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
     // Evaluate polynomial
     return x * x * (3 - 2 * x);
+}
+
+float shadowSample(RenderTarget *frame, Vec3 projected) {
+    float bias = currentWindow->scene->shadowBias;
+    float dist = projected.z;
+    Vector2f pos = Vector2f{projected.x + 1, projected.y + 1}
+        .componentWiseMul(Vector2f{frame->size.x / 2.0f, frame->size.y / 2.0f});
+
+    if(currentWindow->scene->bilinearShadowFiltering) {
+        float decimalsX = pos.x - floor(pos.x);
+        float decimalsY = pos.y - floor(pos.y);
+
+        vector<float> &zBuffer = frame->zBuffer;
+        uint sizeX = frame->size.x;
+
+        float z1 = zBuffer[(uint)floor(pos.x) + sizeX * (uint)floor(pos.y)];
+        float z2 = zBuffer[(uint)floor(pos.x) + sizeX * (uint)ceil(pos.y)];
+        float z3 = zBuffer[(uint)ceil(pos.x) + sizeX * (uint)floor(pos.y)];
+        float z4 = zBuffer[(uint)ceil(pos.x) + sizeX * (uint)ceil(pos.y)];
+
+        return lerp2d(
+            (float)(dist < z1 + bias), 
+            (float)(dist < z2 + bias), 
+            (float)(dist < z3 + bias), 
+            (float)(dist < z4 + bias),
+            decimalsY, decimalsX
+        );
+    }
+    else {
+        float z = frame->zBuffer[(uint)round(pos.x) + frame->size.x * (uint)round(pos.y)];
+        return dist < z + bias ? 1.f : 0.f;
+    }
 }
 
 void Light::update() { // Try every frame to add this light to the scene. Can't be done in constructor because its not in scene tree yet.
@@ -30,9 +64,30 @@ Light::~Light() {
     }
 }
 
+void SpotLight::init(Object *obj) {
+    Component::init(obj);
+    if(shadowMapCam)
+        shadowMapCam->init(obj);
+}
+
+void SpotLight::update() {
+    Light::update();
+    spreadInnerCos = std::cos(spreadInner);
+    spreadOuterCos = std::cos(spreadOuter);
+    if(spreadInnerCos < spreadOuterCos)
+        std::swap(spreadInnerCos, spreadOuterCos);
+    direction = Vec3{0, 0, 1} * obj->transformRotation;
+}
+
+void SpotLight::updateShadowMap() {
+    if(shadowMapCam) {
+        shadowMapCam->fov = std::max(spreadOuter, spreadInner) * (360.0f / M_PIf);
+        shadowMapCam->render();
+    }
+}
+
 std::pair<Color, Vec3> SpotLight::sample(Vec3 pos, Scene &scene) {
 
-    float bias = scene.shadowBias;
     Vec3 diff = pos - obj->globalPosition;
     float distSq = diff.lengthSquared();
     float dist = std::sqrt(distSq);
@@ -43,40 +98,12 @@ std::pair<Color, Vec3> SpotLight::sample(Vec3 pos, Scene &scene) {
     float strength = smoothstep(spreadOuterCos, spreadInnerCos, cos);
 
 
-    if(shadowMap) {
-        Vec3 projected = shadowMap->perspectiveProject(pos).screenPos;
+    if(shadowMapCam) {
+        Vec3 projected = shadowMapCam->perspectiveProject(pos).screenPos;
         if(projected.z < 0 || projected.x < -1 || projected.x > 1 || projected.y < -1 || projected.y > 1 )
             strength = 0;
         else {
-            dist = projected.z;
-            Vector2f pos = Vector2f{projected.x + 1, projected.y + 1}
-                .componentWiseMul(Vector2f{shadowMap->frame->size.x / 2.0f, shadowMap->frame->size.y / 2.0f});
-
-            if(scene.bilinearShadowFiltering) {
-                float decimalsX = pos.x - floor(pos.x);
-                float decimalsY = pos.y - floor(pos.y);
-
-                vector<float> &zBuffer = shadowMap->frame->zBuffer;
-                uint sizeX = shadowMap->frame->size.x;
-
-                float z1 = zBuffer[(uint)floor(pos.x) + sizeX * (uint)floor(pos.y)];
-                float z2 = zBuffer[(uint)floor(pos.x) + sizeX * (uint)ceil(pos.y)];
-                float z3 = zBuffer[(uint)ceil(pos.x) + sizeX * (uint)floor(pos.y)];
-                float z4 = zBuffer[(uint)ceil(pos.x) + sizeX * (uint)ceil(pos.y)];
-
-                strength *= lerp2d(
-                    (float)(dist < z1 + bias), 
-                    (float)(dist < z2 + bias), 
-                    (float)(dist < z3 + bias), 
-                    (float)(dist < z4 + bias),
-                    decimalsY, decimalsX
-                );
-            }
-            else {
-                float z = shadowMap->frame->zBuffer[(uint)round(pos.x) + shadowMap->frame->size.x * (uint)round(pos.y)];
-                if (dist > z + bias)
-                    strength = 0;
-            }
+            strength *= shadowSample(shadowMapCam->frame, projected);
         }
     }
     return {color * (color.a * strength / distSq), distNormalized};
@@ -87,19 +114,20 @@ void Light::GUI() {
 }
 
 void SpotLight::setupShadowMap(Vector2u size) {
-    shadowMap = new Camera();
-    shadowMap->init(obj);
-    shadowMap->shadowMap = true;
-    shadowMap->frame = new RenderTarget(size, true);
+    shadowMapCam = std::make_shared<Camera>();
+    shadowMapCam->init(obj);
+    shadowMapCam->shadowMap = true;
+    shadowMap = std::make_shared<RenderTarget>(size, true, true);
+    shadowMapCam->frame = shadowMap.get();
 }
 
 void SpotLight::GUI() {
     Light::GUI();
     ImGui::SliderFloat("Spread inner", &spreadInner, 0, M_PI_2);
     ImGui::SliderFloat("Spread outer", &spreadOuter, 0, M_PI_2);
-    if (shadowMap && ImGui::TreeNode("Shadow map")) {
-        if(ImGui::DragScalarN("Resolution", ImGuiDataType_U32, &shadowMap->frame->size.x, 2))
-            shadowMap->frame->changeSize(shadowMap->frame->size, true);
+    if (shadowMapCam && ImGui::TreeNode("Shadow map")) {
+        if(ImGui::DragScalarN("Resolution", ImGuiDataType_U32, &shadowMapCam->frame->size.x, 2))
+            shadowMapCam->frame->changeSize(shadowMapCam->frame->size, true);
         ImGui::TreePop();
     }
 }
