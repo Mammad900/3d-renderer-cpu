@@ -64,6 +64,61 @@ Light::~Light() {
     }
 }
 
+
+
+
+
+
+void DirectionalLight::init(Object *obj) {
+    Component::init(obj);
+    if(shadowMapCam)
+        shadowMapCam->init(obj);
+}
+
+std::pair<Color, Vec3> DirectionalLight::sample(Vec3 pos, Scene &scene) {
+    float strength = color.a;
+    if(shadowMapCam) {
+        Vec3 projected = shadowMapCam->perspectiveProject(pos).screenPos;
+        if(projected.z < 0 || projected.x < -1 || projected.x > 1 || projected.y < -1 || projected.y > 1 )
+            strength = litOutsideShadowMap;
+        else {
+            strength *= shadowSample(shadowMapCam->frame, projected);
+        }
+    }
+    return {color * strength, direction};
+}
+
+void DirectionalLight::setupShadowMap(Vector2u size, float fov) {
+    shadowMapCam = std::make_shared<Camera>();
+    shadowMapCam->init(obj);
+    shadowMapCam->shadowMap = true;
+    shadowMapCam->orthographic = true;
+    shadowMapCam->fov = fov;
+    shadowMap = std::make_shared<RenderTarget>(size, true, true);
+    shadowMapCam->frame = shadowMap.get();
+}
+
+void DirectionalLight::updateShadowMap() {
+    if(shadowMapCam) {
+        shadowMapCam->render();
+    }
+}
+
+void DirectionalLight::GUI() {
+    Light::GUI();
+    if (shadowMapCam && ImGui::TreeNode("Shadow map")) {
+        ImGui::DragFloat("FOV", &shadowMapCam->fov, 1, 0.1, 100, "%.3f", ImGuiSliderFlags_Logarithmic);
+        if(ImGui::DragScalarN("Resolution", ImGuiDataType_U32, &shadowMapCam->frame->size.x, 2))
+            shadowMapCam->frame->changeSize(shadowMapCam->frame->size, true);
+        ImGui::TreePop();
+    }
+}
+
+
+
+
+
+
 void SpotLight::init(Object *obj) {
     Component::init(obj);
     if(shadowMapCam)

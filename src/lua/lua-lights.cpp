@@ -26,9 +26,23 @@ void luaLights() {
     );
 
     Lua.new_usertype<DirectionalLight>("DirectionalLight",
-        sol::meta_function::construct, [](Color color) {
-            return std::make_shared<DirectionalLight>(color);
-        },
+        sol::meta_function::construct, sol::overload(
+            [](Color color) {
+                return std::make_shared<DirectionalLight>(color);
+            },
+            [](sol::table props) {
+                shared_ptr<DirectionalLight> light = std::make_shared<DirectionalLight>(
+                    valueFromObject<Color>(props["color"])
+                );
+                if(props["shadow_map"].valid()) {
+                    sol::table shadowProps = props["shadow_map"];
+                    float fov = shadowProps.get_or("fov", 5.f);
+                    light->setupShadowMap(valueFromObject<Vector2u>(shadowProps["size"]), fov);
+                    light->litOutsideShadowMap = shadowProps.get_or("lit_outside", true);
+                }
+                return light;
+            }
+        ),
         "color", &DirectionalLight::color,
         "as_component", [](std::shared_ptr<DirectionalLight>& l) -> std::shared_ptr<Component> { return l; }
     );

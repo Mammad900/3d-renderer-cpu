@@ -37,18 +37,24 @@ class PointLight : public Light {
 
 class DirectionalLight : public Light {
   public:
+    shared_ptr<Camera> shadowMapCam = nullptr;
+    shared_ptr<RenderTarget> shadowMap = nullptr;
+    bool litOutsideShadowMap = true;
     DirectionalLight(Color color)
         : Light(color) {}
 
     std::string name() { return "Directional Light"; }
 
-    std::pair<Color, Vec3> sample(Vec3 pos, Scene &scene) {
-        return {color * color.a, direction};
-    }
+    void updateShadowMap();
+    void init(Object *obj);
+    
+    std::pair<Color, Vec3> sample(Vec3 pos, Scene &scene);
     void update() {
         Light::update();
         direction = Vec3{0, 0, 1} * obj->transformRotation;
     }
+    void setupShadowMap(Vector2u size, float fov);
+    void GUI();
   private:
     Vec3 direction;
 };
