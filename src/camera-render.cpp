@@ -197,7 +197,7 @@ void deferredPass(uint n, uint i0, Camera *camera) {
                 skyBoxPixel(camera, frame, i, x, y);
             }
         } else { // Opaque fragment here
-            if (frame->deferred && !f.face->material->flags.alphaCutout)
+            if (!f.face->material->flags.alphaCutout)
                 f.baseColor = f.face->material->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
             frame->framebuffer[i] = f.face->material->shade(f, frame->framebuffer[i], *scene);
         }
@@ -209,6 +209,8 @@ void deferredPass(uint n, uint i0, Camera *camera) {
 
             fogTransparency(f, frame->framebuffer[i], z);
 
+            if (!f.face->material->flags.alphaCutout)
+                f.baseColor = f.face->material->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
             frame->framebuffer[i] = f.face->material->shade(f, frame->framebuffer[i], *scene);
 
             z = f.z;
