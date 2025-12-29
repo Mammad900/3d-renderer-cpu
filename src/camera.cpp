@@ -8,7 +8,7 @@ void Camera::update() {
 
 }
 
-Projection Camera::perspectiveProject(Vec3 a) {
+Projection Camera::project(Vec3 a) {
     Vec3 b = a - obj->globalPosition;
     float vM[4] = {b.x, b.y, b.z, 1};
     matMul(vM, projectionMatrix.data(), vM, 1, 4, 4);
@@ -54,7 +54,7 @@ Vec3 Camera::screenSpaceToWorldSpace(int x, int y, float z) {
     return screenSpaceToCameraSpace(x, y, z) * obj->transform;
 }
 
-void Camera::makePerspectiveProjectionMatrix() {
+void Camera::makeProjectionMatrix() {
     float S = 1 / (tanHalfFov = orthographic ? fov : tan(fov * M_PI / 360));
     float f = -farClip / (farClip - nearClip);
     matMul(transposeMatrix(obj->transformRotation).data(), (float[]){

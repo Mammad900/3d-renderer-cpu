@@ -101,7 +101,8 @@ void luaObject() {
         },
         "transform_rotation", [](Object &obj, Vec3 vec) {
             return vec * obj.transformRotation;
-        }
+        },
+        "update_transform", &Object::updateTransform
     );
 
     Lua.new_usertype<RotatorComponent>("RotatorComponent",

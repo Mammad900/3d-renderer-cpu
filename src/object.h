@@ -41,6 +41,7 @@ struct Object {
     Vec3 globalPosition;
 
     void update();
+    void updateTransform();
     void GUI();
     void setScene(std::weak_ptr<Scene> scene) {
         this->scene = scene;

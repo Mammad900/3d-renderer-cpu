@@ -18,15 +18,15 @@ class Camera : public Component, public std::enable_shared_from_this<Camera> {
     std::string name() { return "Camera"; }
     void GUI();
     void update();
-    Projection perspectiveProject(Vec3 a);
+    Projection project(Vec3 a);
     sf::Image getRenderedFrame(int renderMode);
     Vec3 screenSpaceToCameraSpace(int x, int y);
     Vec3 screenSpaceToCameraSpace(int x, int y, float z);
     Vec3 screenSpaceToWorldSpace(int x, int y);
     Vec3 screenSpaceToWorldSpace(int x, int y, float z);
+    void makeProjectionMatrix();
 
   private:
-    void makePerspectiveProjectionMatrix();
     void drawSkyBox();
     void buildTriangles(std::vector<TransparentTriangle> &transparents, std::vector<Triangle> &triangles);
     TransformMatrix projectionMatrix;

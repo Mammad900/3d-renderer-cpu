@@ -3,10 +3,7 @@
 #include <memory>
 #include "data.h"
 
-void Object::update() {
-    for (auto &&c : components)
-        c->preUpdate();
-
+void Object::updateTransform() {
     TransformMatrix scaleT{
         scale.x, 0, 0, 0,
         0, scale.y, 0, 0,
@@ -34,6 +31,13 @@ void Object::update() {
         transformNormals = transposeMatrix(transformNormals);
     else // not invertible
         transformNormals = transformRotation; // Fallback to rotation matrix
+}
+
+void Object::update() {
+    for (auto &&c : components)
+        c->preUpdate();
+
+    updateTransform();
 
     for (auto &&c : components)
         c->update();

@@ -15,6 +15,8 @@ class Light : public Component {
     virtual std::pair<Color, Vec3> sample(Vec3 pos, Scene &scene) = 0;
     virtual void update();
     virtual void updateShadowMap() {};
+    float shadowSubsample(RenderTarget *frame, Vector2u pos, float dist);
+    float shadowSample(RenderTarget *frame, Vec3 projected);
 
     void GUI();
   private:
@@ -23,16 +25,19 @@ class Light : public Component {
 
 class PointLight : public Light {
   public:
+    shared_ptr<Camera> shadowMapCam = nullptr;
+    std::array<shared_ptr<RenderTarget>, 6> shadowMaps;
     PointLight(Color color)
         : Light(color) {}
 
     std::string name() { return "Point Light"; }
 
-    std::pair<Color, Vec3> sample(Vec3 pos, Scene &scene) {
-        Vec3 dist = pos - obj->globalPosition;
-        float distSq = dist.lengthSquared();
-        return {color * (color.a / distSq), dist / std::sqrt(distSq)};
-    }
+    void updateShadowMap();
+    void init(Object *obj);
+
+    std::pair<Color, Vec3> sample(Vec3 pos, Scene &scene);
+    void setupShadowMap(Vector2u size);
+    void GUI();
 };
 
 class DirectionalLight : public Light {

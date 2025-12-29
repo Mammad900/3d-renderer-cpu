@@ -22,7 +22,7 @@ void Camera::render() {
     maximumColor = 0;
 
     if(shadowMap) {
-        makePerspectiveProjectionMatrix();
+        makeProjectionMatrix();
 
         std::fill(frame->zBuffer.begin(), frame->zBuffer.end(), INFINITY);
 
@@ -37,7 +37,7 @@ void Camera::render() {
     else {
         timing.clock.restart();
 
-        makePerspectiveProjectionMatrix();
+        makeProjectionMatrix();
         std::fill(frame->zBuffer.begin(), frame->zBuffer.end(), INFINITY);
         if(frame->deferred) {
             for (Fragment &f : frame->gBuffer)
@@ -104,7 +104,7 @@ void Camera::buildTriangles(
                 for (size_t j = 0; j < mesh->vertices.size(); j++) {
                     Vertex vV = mesh->vertices[j];
 
-                    projectedVertices[j] = perspectiveProject(vV.position * obj->transform);
+                    projectedVertices[j] = project(vV.position * obj->transform);
                     auto normal = (vV.normal * obj->transformNormals).normalized();
                     projectedVertices[j].normal = normal;
                 }

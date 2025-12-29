@@ -18,9 +18,21 @@ void luaLights() {
     );
 
     Lua.new_usertype<PointLight>("PointLight",
-        sol::meta_function::construct, [](Color color) {
-            return std::make_shared<PointLight>( color);
-        },
+        sol::meta_function::construct, sol::overload(
+            [](Color color) {
+                return std::make_shared<PointLight>( color);
+            },
+            [](sol::table props) {
+                shared_ptr<PointLight> light = std::make_shared<PointLight>(
+                    valueFromObject<Color>(props["color"])
+                );
+                if(props["shadow_map"].valid()) {
+                    sol::table shadowProps = props["shadow_map"];
+                    light->setupShadowMap(valueFromObject<Vector2u>(shadowProps["size"]));
+                }
+                return light;
+            }
+        ),
         "color", &PointLight::color,
         "as_component", [](std::shared_ptr<PointLight>& l) -> std::shared_ptr<Component> { return l; }
     );
