@@ -415,7 +415,7 @@ Materials define how the surface of meshes look. There are multiple types of mat
 
 Materials have several flags, which affect how the material is rendered, beyond their shading formula:
 
-- `transparent`: Causes the faces with this flag to be rendered after those without, so the content behind them is available to the material. Has a small performance impact with forward mode, and big impact with deferred mode. Not needed for alpha cutout.
+- `transparent`: Causes the faces with this flag to be rendered after those without, so the content behind them is available to the material. Has some performance impact. Not needed for alpha cutout.
 - `double_sided`: Used for flat meshes without a volume inside, like paper, glass, foliage, etc. Disables back-face culling.
 - `alpha_cutout`: Enables alpha cutout or alpha testing, which means fragments with a base color alpha < 0.5 are not rendered. Useful in conjunction with `double_sided` and for foliage, fences, grates, etc.
 
