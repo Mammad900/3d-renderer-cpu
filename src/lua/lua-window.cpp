@@ -127,7 +127,15 @@ void luaWindow() {
         ),
         "tool_window_for", sol::property(
             [](Window& self) { return self.toolWindowFor; },
-            [](Window& self, shared_ptr<Window> value) {
+            [](Window& self, sol::object val) {
+                shared_ptr<Window> value = nullptr;
+                if(val.get_type() == sol::type::nil)
+                    value = nullptr;
+                else if(val.get_type() == sol::type::userdata)
+                    value = val.as<shared_ptr<Window>>();
+                else
+                    throw std::runtime_error("Invalid value for tool_window_for");
+
                 if(value != nullptr && !self.hasGui)
                     throw std::runtime_error("Tried to set tool_window_for without setting has_gui to true");
                 self.toolWindowFor = value;
