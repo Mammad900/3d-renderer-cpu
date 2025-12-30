@@ -218,6 +218,11 @@ The simplest one. Shines a fixed amount of light everywhere in a constant direct
 
 ```lua
 my_light = DirectionalLight.new(Color.new(1,1,1,10)):as_component()
+-- OR
+my_light = DirectionalLight.new{
+    color= {1, 1, 1, 10},
+    shadow_map = {...} -- Optional
+}:as_component()
 ```
 
 #### `PointLight`
@@ -226,6 +231,11 @@ Shines light from the object position to everywhere, with intensity proportional
 
 ```lua
 my_light = PointLight.new(Color.new(1,1,1,10)):as_component()
+-- OR
+my_light = PointLight.new{
+    color= {1, 1, 1, 10},
+    shadow_map = {...} -- Optional
+}:as_component()
 ```
 
 #### `SpotLight`
@@ -234,6 +244,13 @@ Like `PointLight` but it only shines at one direction with a fixed angle. Object
 
 ```lua
 my_light = SpotLight.new(Color.new(1,1,1,10), 0.1, 0.2):as_component()
+-- OR
+my_light = DirectionalLight.new{
+    color= {1, 1, 1, 10},
+    spread_inner= 0.1,
+    spread_outer= 0.2,
+    shadow_map = {...} -- Optional
+}:as_component()
 ```
 
 Parameters:
@@ -241,6 +258,18 @@ Parameters:
 1. Color
 2. Inner spread, in radians.
 3. Outer spread, in radians.
+
+#### Shadow maps
+
+When using the table constructors, you can specify a shadow map.
+
+Parameters:
+
+- **`size`** (array of x,y): Shadow map resolution in pixels. Higher resolution makes sharper shadows but takes more time to render.
+- **`fov`** (number): For directional light only. Controls the physical size of the shadow mapped area. The area is centered around the light object.
+- **`lit_outside`** (boolean): For directional light only. Whether to assume area outside the shadow map is considered lit or unlit. Defaults to true.
+- **`near`** (number): Near clip distance of the shadow map camera. Objects closer to the light than this value don't cast shadows.
+- **`far`** (number): Far clip distance of the shadow map camera. Objects farther from the light than this value don't cast shadows.
 
 ## `Mesh`
 
