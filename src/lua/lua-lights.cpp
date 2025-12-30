@@ -29,6 +29,8 @@ void luaLights() {
                 if(props["shadow_map"].valid()) {
                     sol::table shadowProps = props["shadow_map"];
                     light->setupShadowMap(valueFromObject<Vector2u>(shadowProps["size"]));
+                    light->shadowMapCam->nearClip = shadowProps.get_or("near", 0.1f);
+                    light->shadowMapCam->farClip = shadowProps.get_or("far", 100.f);
                 }
                 return light;
             }
@@ -51,6 +53,8 @@ void luaLights() {
                     float fov = shadowProps.get_or("fov", 5.f);
                     light->setupShadowMap(valueFromObject<Vector2u>(shadowProps["size"]), fov);
                     light->litOutsideShadowMap = shadowProps.get_or("lit_outside", true);
+                    light->shadowMapCam->nearClip = shadowProps.get_or("near", 0.1f);
+                    light->shadowMapCam->farClip = shadowProps.get_or("far", 100.f);
                 }
                 return light;
             }
@@ -73,6 +77,8 @@ void luaLights() {
                 if(props["shadow_map"].valid()) {
                     sol::table shadowProps = props["shadow_map"];
                     light->setupShadowMap(valueFromObject<Vector2u>(shadowProps["size"]));
+                    light->shadowMapCam->nearClip = shadowProps.get_or("near", 0.1f);
+                    light->shadowMapCam->farClip = shadowProps.get_or("far", 100.f);
                 }
                 return light;
             }
