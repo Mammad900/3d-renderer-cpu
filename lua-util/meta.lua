@@ -233,6 +233,7 @@ function Window.new(props) end
 ---@field transform_normal fun(self: ObjectT, vec: Vec3T)
 ---@field transform_rotation fun(self: ObjectT, vec: Vec3T)
 ---@field update_transform fun(self: ObjectT)
+---@field global_position Vec3T
 ---@field z__DO_NOT_CONSTRUCT_YOURSELF "DO_NOT_CONSTRUCT_YOURSELF"
 
 ---@class ObjectC
