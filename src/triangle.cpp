@@ -202,10 +202,10 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
         }
     };
 
-    float minY = min({a.y, b.y, c.y});
-    float maxY = max({a.y, b.y, c.y});
-    float minX = min({a.x, b.x, c.x});
-    float maxX = max({a.x, b.x, c.x});
+    float minY = max(min({a.y, b.y, c.y}), 0.f);
+    float maxY = min(max({a.y, b.y, c.y}), (float)frame->size.y);
+    float minX = max(min({a.x, b.x, c.x}), 0.f);
+    float maxX = min(max({a.x, b.x, c.x}), (float)frame->size.x);
 
     for (int y = minY; y < maxY; y+=2) {
         for (int x = minX; x < maxX; x+=2) {
