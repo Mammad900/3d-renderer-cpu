@@ -34,6 +34,12 @@ void luaSimples() {
         "x", &Vec3::x,
         "y", &Vec3::y,
         "z", &Vec3::z,
+        "normalized", &Vec3::normalized,
+        "length", &Vec3::length,
+        sol::meta_function::addition, [](Vec3 &a, Vec3 &b) { return a+b; },
+        sol::meta_function::subtraction, [](Vec3 &a, Vec3 &b) { return a-b; },
+        sol::meta_function::multiplication, [](Vec3 &a, float b) { return a*b; },
+        sol::meta_function::division, [](Vec3 &a, float b) { return a/b; },
         sol::meta_function::construct, sol::overload(
             []() { return Vec3(); },
             [](float x, float y, float z) { return Vec3(x, y, z); },

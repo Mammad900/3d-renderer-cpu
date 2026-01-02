@@ -44,6 +44,12 @@ function Color.new() end
 ---@field x number
 ---@field y number
 ---@field z number
+---@field normalized fun(self: Vec3T): Vec3T
+---@field length fun(self: Vec3T): number
+---@operator add(Vec3T): Vec3T
+---@operator sub(Vec3T): Vec3T
+---@operator mul(number): Vec3T
+---@operator div(number): Vec3T
 ---@field z__DO_NOT_CONSTRUCT_YOURSELF "DO_NOT_CONSTRUCT_YOURSELF"
 
 ---@class Vec3C
@@ -229,9 +235,9 @@ function Window.new(props) end
 ---@field scale Vec3T
 ---@field add_child fun(self: ObjectT, child: ObjectT)
 ---@field add_component fun(self: ObjectT, component: Component)
----@field transform fun(self: ObjectT, vec: Vec3T)
----@field transform_normal fun(self: ObjectT, vec: Vec3T)
----@field transform_rotation fun(self: ObjectT, vec: Vec3T)
+---@field transform fun(self: ObjectT, vec: Vec3T): Vec3T
+---@field transform_normal fun(self: ObjectT, vec: Vec3T): Vec3T
+---@field transform_rotation fun(self: ObjectT, vec: Vec3T): Vec3T
 ---@field update_transform fun(self: ObjectT)
 ---@field global_position Vec3T
 ---@field z__DO_NOT_CONSTRUCT_YOURSELF "DO_NOT_CONSTRUCT_YOURSELF"
