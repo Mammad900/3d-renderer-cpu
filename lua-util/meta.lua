@@ -418,6 +418,8 @@ function Face.new(props) end
 ---@class MeshT
 ---@field label string
 ---@field flatShading boolean
+---@field vertex_count integer
+---@field face_count integer
 ---@field vertex_at fun(self: MeshT, i: integer): VertexT
 ---@field face_at fun(self: MeshT, i: integer): FaceT
 ---@field z__DO_NOT_CONSTRUCT_YOURSELF "DO_NOT_CONSTRUCT_YOURSELF"

@@ -168,6 +168,8 @@ void luaMesh() {
         // "vertices", &Mesh::vertices, // vector<Vertex> (sol can handle vectors if Vertex usertype exists) // no it cant
         // "faces", &Mesh::faces,       // vector<Face>
         "flatShading", &Mesh::flatShading,
+        "vertex_count", sol::readonly_property([](Mesh &mesh) { return mesh.vertices.size();}),
+        "face_count", sol::readonly_property([](Mesh &mesh) { return mesh.faces.size();}),
         "vertex_at", [](shared_ptr<Mesh> &mesh, size_t i) {return &mesh->vertices[i-1];},
         "face_at", [](shared_ptr<Mesh> &mesh, size_t i) {return &mesh->faces[i-1];}
     );
