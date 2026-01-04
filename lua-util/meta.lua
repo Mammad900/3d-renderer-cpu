@@ -65,6 +65,16 @@ Vec3 = {}
 ---@overload fun(x: number, y: number, z: number): Vec3T
 function Vec3.new() end
 
+---@param a Vec3T
+---@param b Vec3T
+---@return number
+function Vec3.dot(a, b) end
+
+---@param a Vec3T
+---@param b Vec3T
+---@return Vec3T
+function Vec3.cross(a, b) end
+
 ---@param deg Vec3CC
 ---@return Vec3T
 function deg_to_rad(deg) end

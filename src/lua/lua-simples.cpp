@@ -55,6 +55,12 @@ void luaSimples() {
             return "Vec3{x=" + std::to_string(self.x) + ", y=" + std::to_string(self.y) + ", z=" + std::to_string(self.z) + "}";
         }
     );
+    Lua["Vec3"]["dot"].set_function([](Vec3 &a, Vec3 b) {
+        return a.dot(b);
+    });
+    Lua["Vec3"]["cross"].set_function([](Vec3 &a, Vec3 b) {
+        return a.cross(b);
+    });
     Lua.set_function("deg_to_rad", [](sol::object deg) {
         return valueFromObject<Vec3>(deg) * (M_PI/180.0f);
     });
