@@ -89,15 +89,15 @@ int main(int argc, char** argv) {
             if(window->frame) {
                 if(window->scene->shouldUpdate) // Oh no didn't update
                     continue;
-                if(timing.render)
+                if(timing.render) {
                     window->camera->render();
+                    sf::Texture tex(window->camera->getRenderedFrame(window->scene->renderMode));
+                    tex.setSmooth(true);
+                    sf::Sprite spr(tex);
+                    window->window.draw(spr);
+                }
 
                 timing.clock.restart();
-
-                sf::Texture tex(window->camera->getRenderedFrame(window->scene->renderMode));
-                tex.setSmooth(true);
-                sf::Sprite spr(tex);
-                window->window.draw(spr);
             }
             if(window->hasGui) {
                 ImGui::SFML::Update(window->window, deltaClock.getElapsedTime());
