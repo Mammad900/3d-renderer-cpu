@@ -50,7 +50,10 @@ void luaSimples() {
                 v.z = t.get_or("z", 0.0f);
                 return v;
             }
-        )
+        ),
+        sol::meta_function::to_string, [](Vec3 &self) {
+            return "Vec3{x=" + std::to_string(self.x) + ", y=" + std::to_string(self.y) + ", z=" + std::to_string(self.z) + "}";
+        }
     );
     Lua.set_function("deg_to_rad", [](sol::object deg) {
         return valueFromObject<Vec3>(deg) * (M_PI/180.0f);
