@@ -92,7 +92,9 @@ int main(int argc, char** argv) {
                     continue;
                 if(timing.render) {
                     window->camera->render();
-                    sf::Texture tex(window->camera->getRenderedFrame(window->scene->renderMode));
+                    sf::Image img = window->camera->getRenderedFrame(window->scene->renderMode);
+                    timing.postProcessTime.push(timing.clock);
+                    sf::Texture tex(img);
                     tex.setSmooth(true);
                     sf::Sprite spr(tex);
                     window->window.draw(spr);
@@ -109,7 +111,7 @@ int main(int argc, char** argv) {
                 ImGui::SFML::Render(window->window);
             }
             window->window.display();
-            timing.postProcessTime.push(timing.clock);
+            timing.windowTime.push(timing.clock);
         }
 
     }

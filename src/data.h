@@ -39,13 +39,19 @@ struct RenderTarget {
 
 template<typename T>
 struct Metric {
+    // History is rotating, n is the newest index.
     std::vector<T> history = std::vector<T>(100, 0);
-    T last, total, maximum;
+    T last, current, total, maximum;
     int n = 0;
     T average() { return total / 100; }
     void push(T value) {
+        current += value;
+    }
+    void pushDone() {
         total -= history[n];
-        total += last = history[n] = value;
+        history[n] = last = current;
+        total += history[n];
+        current = 0;
         n = (n + 1) % 100;
         maximum = 0;
         for (auto &&v : history)
@@ -61,8 +67,8 @@ struct FrameTimings {
     sf::Clock clock;
     float deltaTime;
     float totalTime = 0;
-    Metric<float> windowTime, updateTime, skyBoxTime, renderPrepareTime,
-        geometryTime, lightingTime, forwardTime, postProcessTime, overallTime;
+    Metric<float> updateTime, skyBoxTime, renderPrepareTime, geometryTime, lightingTime,
+        forwardTime, fogTime, postProcessTime, windowTime, overallTime, unaccountedTime;
     bool render = true;
 };
 

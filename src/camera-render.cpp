@@ -44,6 +44,9 @@ void Camera::render() {
                 f.z = INFINITY;
             std::fill(frame->transparencyHeads.begin(), frame->transparencyHeads.end(), (uint32_t)-1);
             frame->transparencyFragments.clear();
+            // Frame buffer is actually not cleared. 
+            // Why? Because its entirely overwritten in deferred pass anyway, why spend time clearing it?
+            // Plus, when SSR is later added, it would need the previous rendered frame.
         }
         else
             drawSkyBox();
@@ -82,11 +85,12 @@ void Camera::render() {
         }
         
         timing.forwardTime.push(timing.clock);
-        timing.clock.stop();
-
 
         if(scene->volume)
             startThreads(this, true); // Even if deferred rendering is disabled, this can be multithreaded
+
+        timing.fogTime.push(timing.clock);
+        timing.clock.stop();
     }
 }
 

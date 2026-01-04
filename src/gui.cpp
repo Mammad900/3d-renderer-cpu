@@ -23,6 +23,7 @@ GuiMaterialAssignMode guiMaterialAssignMode;
 std::string luaReplInput;
 
 void Timing(Metric<float> &m, const char *name) {
+    m.pushDone();
     ImGui::Text("%s: Last %04.1f / Mean %04.1f / Max %04.1f", name, m.last, m.average(), m.maximum);
 }
 
@@ -73,15 +74,27 @@ void guiUpdate(shared_ptr<Window> window) {
         stbi_write_hdr("render.hdr", camera->frame->size.x, camera->frame->size.y, 4, &camera->frame->framebuffer[0].r);
     }
     ImGui::Text("FPS: %.1f", 1000.f / timing.overallTime.average());
-    Timing(timing.overallTime, "Total");
-    Timing(timing.windowTime, "Window");
-    Timing(timing.updateTime, "Update");
-    Timing(timing.skyBoxTime, "SkyBox");
-    Timing(timing.renderPrepareTime, "Render prepare");
-    Timing(timing.geometryTime, "Geometry");
-    Timing(timing.lightingTime, "Lighting");
-    Timing(timing.forwardTime, "Forward pass");
-    Timing(timing.postProcessTime, "Post processing");
+    timing.unaccountedTime.push(timing.overallTime.last 
+                                - timing.updateTime.last 
+                                - timing.skyBoxTime.last 
+                                - timing.renderPrepareTime.last 
+                                - timing.geometryTime.last 
+                                - timing.lightingTime.last 
+                                - timing.forwardTime.last 
+                                - timing.fogTime.last 
+                                - timing.postProcessTime.last 
+                                - timing.windowTime.last);
+    Timing(timing.overallTime       , "Total            ");
+    Timing(timing.unaccountedTime   , "Unaccounted      ");
+    Timing(timing.updateTime        , "Update           ");
+    Timing(timing.skyBoxTime        , "SkyBox           ");
+    Timing(timing.renderPrepareTime , "Render prepare   ");
+    Timing(timing.geometryTime      , "Geometry         ");
+    Timing(timing.lightingTime      , "Lighting         ");
+    Timing(timing.forwardTime       , "Forward pass     ");
+    Timing(timing.fogTime           , "Fog              ");
+    Timing(timing.postProcessTime   , "Post processing  ");
+    Timing(timing.windowTime        , "Window           ");
     ImGui::Checkbox("Sync frame size to window size", &window->syncFrameSize);
     if(ImGui::DragScalarN("Frame size", ImGuiDataType_U32, &window->frame->size, 2)) {
         if(window->syncFrameSize)
