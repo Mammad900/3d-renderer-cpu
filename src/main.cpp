@@ -69,6 +69,7 @@ int main(int argc, char** argv) {
 
         for (auto &&s : scenes) {
             auto scene = s.lock();
+            if(!scene) continue;
             if(scene->alwaysUpdate || scene->shouldUpdate) {
                 for (auto &&obj : scene->objects)
                     obj->update();
