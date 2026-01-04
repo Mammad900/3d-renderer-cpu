@@ -7,9 +7,12 @@
 #include "phongMaterial.h"
 #include "lua/lua.h"
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Image.hpp>
 #include <iostream>
 #include <memory>
 #include <string>
+// #define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "lib/stb_image_write.h"
 
 char objFilePath[500];
 shared_ptr<Material> guiSelectedMaterial;
@@ -63,6 +66,11 @@ void guiUpdate(shared_ptr<Window> window) {
         sf::Image res = camera->getRenderedFrame(0);
         if(!res.saveToFile("render.png"))
             std::cerr << "Failed to save to render.png" << std::endl;
+    }
+    if(ImGui::Button("Render one frame now and save HDR")) {
+        currentWindow = window;
+        camera->render();
+        stbi_write_hdr("render.hdr", camera->frame->size.x, camera->frame->size.y, 4, &camera->frame->framebuffer[0].r);
     }
     ImGui::Text("FPS: %.1f", 1000.f / timing.overallTime.average());
     Timing(timing.overallTime, "Total");
