@@ -95,6 +95,9 @@ void luaWindow() {
         "close", [](shared_ptr<Window> self) {
             self->window.close();
         },
+        "is_focused", sol::readonly_property([](Window &self) {
+            return self.window.hasFocus();
+        }),
         "size", sol::property(
             [](Window& self) { 
                 sol::table res = Lua.create_table();
