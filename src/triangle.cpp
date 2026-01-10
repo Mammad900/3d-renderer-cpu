@@ -82,8 +82,10 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
     float areaOfTriangle = abs((b - a).cross(c - a)); // Two times the area of the triangle
 
     Vec3 triangleNormal = tri.mesh->flatShading ?
-         (tri.s3.worldPos - tri.s1.worldPos).cross(tri.s2.worldPos - tri.s1.worldPos).normalized()
+         (tri.s3.worldPos - tri.s1.worldPos).cross(tri.s2.worldPos - tri.s1.worldPos).normalizedSafe()
          : Vec3{0,0,0};
+
+    if (tri.mesh->flatShading && triangleNormal.lengthSquared() == 0) return; // Degenerate triangle
 
     Vec3 tangent{}, bitangent{};
     if (tri.mat->needsTBN) {
