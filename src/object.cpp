@@ -1,7 +1,9 @@
 #include "object.h"
 #include <imgui.h>
+#include "gui.h"
 #include <memory>
 #include "data.h"
+#include "matrix.h"
 
 void Object::updateTransform() {
     TransformMatrix scaleT{
@@ -15,7 +17,7 @@ void Object::updateTransform() {
         0, 0, 1, 0,
         position.x, position.y, position.z, 1,
     };
-    myTransformRotation = scaleT * makeRotationMatrix(rotation);
+    myTransformRotation = scaleT * makeRotationMatrix(rotation, rotationOrder);
     myTransform = myTransformRotation * translate;
     if (parent) {
         transform = myTransform * parent->transform;
@@ -50,6 +52,12 @@ void Object::GUI() {
         ImGui::SliderFloat3("Rotation", (float *)&rotation, -M_PI, M_PI);
         ImGui::DragFloat3("Position", (float *)&position, 0.2f);
         ImGui::DragFloat3("Scale", (float *)&scale, 0.1f);
+
+        ImGui::Text("Rotation order: ");
+        ImGui::SameLine();
+        ImGui::RadioButton("XYZ", &rotationOrder, RotationOrder::XYZ);
+        ImGui::SameLine();
+        ImGui::RadioButton("ZYX", &rotationOrder, RotationOrder::ZYX);
 
         ImGui::Text("Components:");
         for (size_t i = 0; i < components.size(); i++) {

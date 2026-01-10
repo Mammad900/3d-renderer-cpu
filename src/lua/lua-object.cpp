@@ -52,6 +52,12 @@ void luaObject() {
                 obj->rotation = valueFromObject<Vec3>(properties["rotation"]);
                 obj->scale = valueFromObject<Vec3>(properties["scale"], {1,1,1});
 
+                if(properties["rotation_order"].valid()) {
+                    std::string rotationOrder = properties["rotation_order"];
+                    if      (rotationOrder == "xyz") obj->rotationOrder = RotationOrder::XYZ;
+                    else if (rotationOrder == "zyx") obj->rotationOrder = RotationOrder::ZYX;
+                }
+
                 if (sol::object children = properties["children"]; children.valid() && children.get_type() == sol::type::table) {
                     for (auto& kv : children.as<sol::table>()) {
                         auto child = kv.second.as<std::shared_ptr<Object>>();

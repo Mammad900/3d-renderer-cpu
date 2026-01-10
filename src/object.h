@@ -27,6 +27,7 @@ struct Object {
     Vec3 position;
     Vec3 rotation;
     Vec3 scale = {1,1,1};
+    RotationOrder rotationOrder = RotationOrder::XYZ;
 
     std::vector<std::shared_ptr<Component>> components;
     std::vector<std::shared_ptr<Object>> children;

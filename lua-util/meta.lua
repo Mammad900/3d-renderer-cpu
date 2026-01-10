@@ -256,6 +256,7 @@ function Window.new(props) end
 ---@field name? string
 ---@field position? Vec3CC
 ---@field rotation? Vec3CC
+---@field rotation_order? "xyz"|"zyx"
 ---@field scale? Vec3CC
 ---@field children? ObjectT[]
 ---@field components? Component[]

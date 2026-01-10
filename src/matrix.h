@@ -5,6 +5,10 @@
 #include <vector>
 #include "vector3.h"
 
+enum class RotationOrder {
+    XYZ,
+    ZYX,
+};
 
 using TransformMatrix = std::array<float, 16>;
 
@@ -25,7 +29,7 @@ void makeIdentityMatrix(float *out, int size);
 
 TransformMatrix operator*(const TransformMatrix &a, const TransformMatrix &b);
 Vec3 operator* (const Vec3 &a, const TransformMatrix &b);
-TransformMatrix makeRotationMatrix(Vec3 R);
+TransformMatrix makeRotationMatrix(Vec3 R, RotationOrder order = RotationOrder::XYZ);
 TransformMatrix transposeMatrix(TransformMatrix &mat);
 bool inverseMatrix(TransformMatrix &mat, TransformMatrix &out);
 

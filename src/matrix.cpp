@@ -80,27 +80,36 @@ Vec3 operator* (const Vec3 &a, const TransformMatrix &m) {
     };
 }
 
-TransformMatrix makeRotationMatrix(Vec3 R) {
+TransformMatrix makeRotationMatrix(Vec3 R, RotationOrder order) {
     Vec3 s = {sin(R.x), sin(R.y), sin(R.z)};
     Vec3 c = {cos(R.x), cos(R.y), cos(R.z)};
 
     //x
-    return TransformMatrix{
+    TransformMatrix x{
         1, 0  , 0  , 0,
         0, c.x, s.x, 0,
         0,-s.x, c.x, 0,
         0, 0  , 0  , 1,
-    } * TransformMatrix{
+    };
+    TransformMatrix y{
         c.y,0 ,-s.y, 0,
         0  ,1 , 0   ,0,
         s.y,0 , c.y ,0,
         0  ,0 ,0    ,1,
-    } * TransformMatrix{
+    };
+    TransformMatrix z{
         c.z, s.z, 0, 0,
         -s.z, c.z, 0,0,
         0,0,1,0,
         0,0,0,1,
     };
+    
+    switch (order) {
+    case RotationOrder::XYZ:
+        return x * y * z;
+    case RotationOrder::ZYX:
+        return z * y * x;
+    }
 }
 
 TransformMatrix transposeMatrix(TransformMatrix &mat) {
