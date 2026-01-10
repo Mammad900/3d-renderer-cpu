@@ -207,6 +207,26 @@ void luaMesh() {
                 hasEndCap ? t.get_or("end_cap_material", mat) : nullptr,
                 hasStartCap ? t.get_or("start_cap_material", mat) : nullptr
             );
+        } else if(type == "extrude") {
+            shared_ptr<Material> mat = t["material"];
+            bool hasEndCap = t.get_or("end_cap", true);
+            bool hasStartCap = t.get_or("start_cap", true);
+
+            vector<Vector2f> vertices{};
+
+            sol::table vt = t["vertices"];
+            for (auto &[_, v] : vt) {
+                sol::table vertex = v;
+                vertices.push_back(sf::Vector2f{vertex.get<float>(1), vertex.get<float>(2)});
+            }
+
+            mesh = makeExtrudedMesh(
+                mat,  
+                t.get_or<std::string>("name", "Extrude"), 
+                hasEndCap ? t.get_or("end_cap_material", mat) : nullptr,
+                hasStartCap ? t.get_or("start_cap_material", mat) : nullptr,
+                vertices
+            );
         } else if(type == "plane") {
             mesh = createPlane(
                 t["material"], 

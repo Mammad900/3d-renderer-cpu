@@ -16,6 +16,9 @@ void bakeMeshNormals(Mesh &mesh);
 shared_ptr<Mesh> makeSphere(shared_ptr<Material> material, std::string name, uint16_t stacks, uint16_t sectors, bool invertU, bool invertV);
 shared_ptr<Mesh> makeCylinder(shared_ptr<Material> material, std::string name, uint16_t sectors, shared_ptr<Material> endCap, shared_ptr<Material> startCap);
 shared_ptr<Mesh> createPlane(shared_ptr<Material> material, std::string name, uint16_t subdivisionsX, uint16_t subdivisionsY);
+shared_ptr<Mesh> makeExtrudedMesh(shared_ptr<Material> mat, std::string name, shared_ptr<Material> endCap, shared_ptr<Material> startCap, vector<sf::Vector2f> &vertices);
+
+
 shared_ptr<Mesh> loadOBJ(const std::filesystem::path &filename, shared_ptr<Material> mat, std::string name);
 shared_ptr<Mesh> loadSTL(const std::filesystem::path &filename, shared_ptr<Material> mat, std::string name);
 

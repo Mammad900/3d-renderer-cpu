@@ -479,6 +479,16 @@ function Mesh.new(props) end
 ---@field subdivisions_y? integer
 ---@field flat_shading? boolean
 
+---@class generate_mesh_extrude
+---@field type "extrude"
+---@field material Material
+---@field name? string
+---@field vertices [number, number][]
+---@field end_cap? boolean
+---@field end_cap_material? Material
+---@field start_cap? boolean
+---@field start_cap_material? Material
+
 ---@class generate_mesh_obj
 ---@field type "obj"
 ---@field material Material
@@ -530,7 +540,7 @@ function Mesh.new(props) end
 ---@field subdivisions? integer
 ---@field flat_shading? boolean
 
----@alias generate_mesh_all generate_mesh_sphere | generate_mesh_cylinder | generate_mesh_plane | generate_mesh_obj | generate_mesh_stl | generate_mesh_regular_icosahedron | generate_mesh_ico_sphere | generate_mesh_dodecahedron | generate_mesh_ball | generate_mesh_cube
+---@alias generate_mesh_all generate_mesh_sphere | generate_mesh_cylinder | generate_mesh_plane | generate_mesh_extrude | generate_mesh_obj | generate_mesh_stl | generate_mesh_regular_icosahedron | generate_mesh_ico_sphere | generate_mesh_dodecahedron | generate_mesh_ball | generate_mesh_cube
 
 -- -@generic T: generate_mesh_all
 ---@param props generate_mesh_all
