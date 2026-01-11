@@ -161,7 +161,7 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
                 ? Color{0, 0, 0, 1}
                 : tri.mat->getBaseColor(f.uv, f.dUVdx, f.dUVdy);
 
-        if (baseColor.a < 0.5f)
+        if (baseColor.a < 0.5f && tri.mat->flags.alphaCutout)
             return;
         if ((frame->zBuffer[index] < f.z) || f.z<0)
             return;
