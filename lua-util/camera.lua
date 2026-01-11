@@ -142,6 +142,7 @@ return function(props2)
                 camera_orbit.position = Vec3.new(0,0,0)
                 camera_orbit.rotation = props.rotation
                 camera.position.z = -props.distance
+                camera_comp.fov = props.fov
                 is_orbit = true
             end
         end
