@@ -61,10 +61,7 @@ void luaMaterial() {
         "specular", &PhongMaterial::specular,
         "tint", &PhongMaterial::tint,
         "emissive", &PhongMaterial::emissive,
-        "normal_map", sol::property(
-            [](PhongMaterial &self) { return self.normalMap; },
-            [](PhongMaterial &self, shared_ptr<Texture<Vec3>> value) { self.normalMap = value; self.needsTBN = value != nullptr; }
-        ),
+        "normal_map", &PhongMaterial::normalMap,
         "volume_front", &PhongMaterial::volumeFront,
         "volume_back", &PhongMaterial::volumeBack,
         "environment_reflection", &PhongMaterial::environmentReflection,
@@ -83,6 +80,7 @@ void luaMaterial() {
             mat->terrainMat->diffuse   = properties.get_or("terrain_diffuse", mat->terrainMat->diffuse);
             mat->terrainMat->emissive  = properties.get_or("city_lights"    , mat->terrainMat->emissive);
             mat->terrainMat->normalMap = properties.get_or("normal_map"     , mat->terrainMat->normalMap);
+            mat->normalMap = mat->terrainMat->normalMap;
             
             // Ocean textures
             mat->oceanMat->diffuse     = properties.get_or("ocean_diffuse"  , mat->oceanMat->diffuse);

@@ -50,14 +50,14 @@ struct Fragment {
     float z;
     Vec3 worldPos;
     Vec3 normal;
-    Vec3 tangent;
-    Vec3 bitangent;
+    Vec3 tangent; // or Original Normal
+    Vec3 bitangent; // or SSR result (Color without alpha)
     Vector2f uv;
     Vector2f dUVdx;
     Vector2f dUVdy;
     Color baseColor;
-    bool isBackFace, inside;
     Face *face;
+    bool isBackFace, inside;
 };
 
 struct Triangle {

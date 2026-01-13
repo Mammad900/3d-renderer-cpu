@@ -18,11 +18,9 @@ public:
     shared_ptr<Texture<float>> oceanMask = std::make_shared<SolidTexture<float>>(0);
     shared_ptr<Texture<float>> cloudTexture = std::make_shared<SolidTexture<float>>(0);
 
-    EarthMaterial(std::string name) : Material(name, MaterialFlags{}, true) {
+    EarthMaterial(std::string name) : Material(name, MaterialFlags{}, nullptr) {
         terrainMat = std::make_shared<PhongMaterial>(name+" Terrain", MaterialFlags{});
-
         oceanMat = std::make_shared<PhongMaterial>(name+" Terrain", MaterialFlags{});
-
         cloudMat = std::make_shared<PhongMaterial>(name+" Terrain", MaterialFlags{});
     }
 

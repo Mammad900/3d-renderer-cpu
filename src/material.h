@@ -42,10 +42,10 @@ class Material {
 public:
     std::string name;
     MaterialFlags flags;
-    bool needsTBN = false;
+    shared_ptr<Texture<Vec3>> normalMap;
     shared_ptr<Volume> volumeBack = nullptr, volumeFront = nullptr;
-    Material(std::string name, MaterialFlags flags, bool needsTBN, shared_ptr<Volume> front = nullptr, shared_ptr<Volume> back = nullptr) 
-        : name(name), flags(flags), needsTBN(needsTBN), volumeBack(back), volumeFront(front) {}
+    Material(std::string name, MaterialFlags flags, shared_ptr<Texture<Vec3>> normalMap = nullptr, shared_ptr<Volume> front = nullptr, shared_ptr<Volume> back = nullptr) 
+        : name(name), flags(flags), normalMap(normalMap), volumeBack(back), volumeFront(front) {}
     virtual Color shade(Fragment &f, Color previous, Scene &scene) = 0;
     virtual Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) = 0;
     virtual void GUI();

@@ -88,7 +88,7 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
     if (tri.mesh->flatShading && triangleNormal.lengthSquared() == 0) return; // Degenerate triangle
 
     Vec3 tangent{}, bitangent{};
-    if (tri.mat->needsTBN) {
+    if (tri.mat->normalMap) {
         Vec3 edge1 = tri.s2.worldPos - tri.s1.worldPos;
         Vec3 edge2 = tri.s3.worldPos - tri.s1.worldPos; 
         Vector2f deltaUV1 = tri.uv2 - tri.uv1;

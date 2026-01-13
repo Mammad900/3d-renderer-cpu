@@ -15,7 +15,7 @@ class PBRMaterial : public Material {
         shared_ptr<Texture<Color>> albedo, shared_ptr<Texture<float>>metallic, 
         shared_ptr<Texture<float>>roughness, shared_ptr<Texture<float>>ambientOcclusion
     )
-        : Material(name, flags, false), albedo(albedo), metallic(metallic),
+        : Material(name, flags, nullptr), albedo(albedo), metallic(metallic),
           roughness(roughness), ambientOcclusion(ambientOcclusion) {}
 
     Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) {

@@ -13,7 +13,6 @@ public:
     shared_ptr<Texture<Color>> tint;
     shared_ptr<Texture<Color>> emissive;
     shared_ptr<Texture<Color>> environmentReflection;
-    shared_ptr<Texture<Vec3>>  normalMap;
 
     PhongMaterial(
         shared_ptr<Texture<Color>> diffuse, 
@@ -26,22 +25,21 @@ public:
         shared_ptr<Volume> front = nullptr, 
         shared_ptr<Volume> back = nullptr
     ) : 
-        Material(name, flags, normalMap != nullptr, front, back), 
+        Material(name, flags, normalMap, front, back), 
         diffuse(diffuse), specular(specular), tint(tint), emissive(emissive), 
-        environmentReflection(environmentReflection), normalMap(normalMap) { }
+        environmentReflection(environmentReflection) { }
     
     PhongMaterial(
         std::string name, MaterialFlags flags, 
         shared_ptr<Volume> front = nullptr, 
         shared_ptr<Volume> back = nullptr
     ) : 
-        Material(name, flags, false, front, back), 
+        Material(name, flags, nullptr, front, back), 
         diffuse(std::make_shared<SolidTexture<Color>>(Color{})), 
         specular(std::make_shared<SolidTexture<Color>>(Color{})), 
         tint(std::make_shared<SolidTexture<Color>>(Color{})), 
         emissive(std::make_shared<SolidTexture<Color>>(Color{})), 
-        environmentReflection(std::make_shared<SolidTexture<Color>>(Color{})), 
-        normalMap(nullptr) { }
+        environmentReflection(std::make_shared<SolidTexture<Color>>(Color{})) { }
 
     Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) {
         return diffuse->sample(uv, dUVdx, dUVdy);
