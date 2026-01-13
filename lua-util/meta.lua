@@ -563,10 +563,10 @@ function generate_mesh(props) end
 ---@field specular ColorTexture
 ---@field tint ColorTexture
 ---@field emissive ColorTexture
+---@field environment_reflection ColorTexture
 ---@field normal_map VectorTexture
 ---@field volume_front VolumeT
 ---@field volume_back VolumeT
----@field environment_reflection ColorT
 ---@field as_material fun(self: PhongMaterialT): Material
 ---@field z__DO_NOT_CONSTRUCT_YOURSELF "DO_NOT_CONSTRUCT_YOURSELF_PHONG"
 

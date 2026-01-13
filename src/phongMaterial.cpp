@@ -12,14 +12,14 @@ Vec3 v2reflect(Vec3 in, Vec3 normal) {
 }
 
 void PhongMaterial::GUI() {
-    mat.diffuse->Gui("Diffuse");
-    mat.specular->Gui("Specular");
-    mat.tint->Gui("Tint");
-    mat.emissive->Gui("Emissive");
-    ImGui::ColorEdit4("Environment reflection", (float*)&mat.environmentReflection, ImGuiColorEditFlags_Float|ImGuiColorEditFlags_HDR);
+    diffuse->Gui("Diffuse");
+    specular->Gui("Specular");
+    tint->Gui("Tint");
+    emissive->Gui("Emissive");
+    environmentReflection->Gui("Environment reflection");
 
-    if(mat.normalMap)
-        mat.normalMap->Gui("Normal map");
+    if(normalMap)
+        normalMap->Gui("Normal map");
     Material::GUI();
 }
 
@@ -30,17 +30,17 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene &scene) {
         (camera->obj->globalPosition - f.worldPos).normalized();
     if(!flags.transparent && flags.doubleSided && f.isBackFace)
         f.normal *= -1.0f;
-    Color matSpecular = mat.specular->sample(f);
+    Color matSpecular = specular->sample(f);
     float shininess = pow(2.0f, matSpecular.a * 25.5f);
-    Color matEmissive = mat.emissive->sample(f);
+    Color matEmissive = emissive->sample(f);
 
     Color diffuse = scene.ambientLight * scene.ambientLight.a;
     Color sss = {0, 0, 0, 1};
     Color specular = {0, 0, 0, 1};
 
     Vec3 normal = f.normal;
-    if (mat.normalMap) {
-        normal = mat.normalMap->sample(f);
+    if (normalMap) {
+        normal = normalMap->sample(f);
         normal = f.tangent * normal.x
                 + f.bitangent*normal.y
                 + f.normal*normal.z;
@@ -80,7 +80,7 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene &scene) {
 
     Color matTint{0,0,0,0};
     if (!flags.transparent && flags.doubleSided)
-        matTint = mat.tint->sample(f);
+        matTint = tint->sample(f);
     
     Color lighting = 
         diffuse * f.baseColor +
@@ -88,14 +88,15 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene &scene) {
         specular * matSpecular +
         matEmissive;
 
-    if (mat.environmentReflection.a > 0) {
+    Color matReflect = environmentReflection->sample(f);
+    if (matReflect.a > 0) {
         Vec3 R = -v2reflect(viewDir, normal);
-        lighting += mat.environmentReflection * scene.skyBox->sample(R);
+        lighting += matReflect * scene.skyBox->sample(R);
     }
 
     if(flags.transparent) {
         if(matTint.a == 0)
-            matTint = mat.tint->sample(f);
+            matTint = tint->sample(f);
         lighting = previous * matTint + lighting;
     }
 

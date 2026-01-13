@@ -19,20 +19,17 @@ public:
     shared_ptr<Texture<float>> cloudTexture = std::make_shared<SolidTexture<float>>(0);
 
     EarthMaterial(std::string name) : Material(name, MaterialFlags{}, true) {
-        PhongMaterialProps terrainProps{};
-        terrainMat = std::make_shared<PhongMaterial>(terrainProps, name+" Terrain", MaterialFlags{});
+        terrainMat = std::make_shared<PhongMaterial>(name+" Terrain", MaterialFlags{});
 
-        PhongMaterialProps oceanProps{};
-        oceanMat = std::make_shared<PhongMaterial>(oceanProps, name+" Terrain", MaterialFlags{});
+        oceanMat = std::make_shared<PhongMaterial>(name+" Terrain", MaterialFlags{});
 
-        PhongMaterialProps cloudProps{};
-        cloudMat = std::make_shared<PhongMaterial>(cloudProps, name+" Terrain", MaterialFlags{});
+        cloudMat = std::make_shared<PhongMaterial>(name+" Terrain", MaterialFlags{});
     }
 
     Color shade(Fragment &f, Color previous, Scene &scene) {
         bool isOcean = oceanMask->sample(f) > 0.5f;
         Color groundLighting = isOcean ? oceanMat->shade(f, previous, scene) : terrainMat->shade(f, previous, scene);
-        f.baseColor = std::dynamic_pointer_cast<SolidTexture<Color>>(cloudMat->mat.diffuse)->value; // Because it contains terrain diffuse and we want white
+        f.baseColor = std::dynamic_pointer_cast<SolidTexture<Color>>(cloudMat->diffuse)->value; // Because it contains terrain diffuse and we want white
         Color cloudLighting = cloudMat->shade(f, previous, scene);
         float cloudIntensity = cloudTexture->sample(f);
         return groundLighting * (1 - cloudIntensity) +
@@ -40,15 +37,15 @@ public:
     }
 
     Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) {
-        return terrainMat->mat.diffuse->sample(uv, dUVdx, dUVdy);
+        return terrainMat->diffuse->sample(uv, dUVdx, dUVdy);
     }
 
     void GUI() {
-        terrainMat->mat.diffuse->Gui("Terrain base");
-        terrainMat->mat.emissive->Gui("City lights");
-        oceanMat->mat.diffuse->Gui("Ocean diffuse");
-        oceanMat->mat.specular->Gui("Ocean specular");
-        cloudMat->mat.diffuse->Gui("Cloud diffuse");
+        terrainMat->diffuse->Gui("Terrain base");
+        terrainMat->emissive->Gui("City lights");
+        oceanMat->diffuse->Gui("Ocean diffuse");
+        oceanMat->specular->Gui("Ocean specular");
+        cloudMat->diffuse->Gui("Cloud diffuse");
         oceanMask->Gui("Ocean mask");
         cloudTexture->Gui("Cloud mask");
 

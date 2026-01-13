@@ -31,17 +31,20 @@ void luaMaterial() {
     Lua.new_usertype<PhongMaterial>("PhongMaterial",
         sol::base_classes, sol::bases<Material>(),
         sol::meta_function::construct, [](sol::table properties) {
-            PhongMaterialProps props;
-            props.diffuse = properties.get_or("diffuse", props.diffuse);
-            props.specular = properties.get_or("specular", props.specular);
-            props.tint = properties.get_or("tint", props.tint);
-            props.emissive = properties.get_or("emissive", props.emissive);
-            props.normalMap = properties.get_or("normal_map", props.normalMap);
-            if(properties["environment_reflection"].valid())
-                props.environmentReflection = valueFromObject<Color>(properties["environment_reflection"]);
+            shared_ptr<Texture<Color>> diffuse               = properties.get_or<shared_ptr<Texture<Color>>>("diffuse"               , nullptr);
+            shared_ptr<Texture<Color>> specular              = properties.get_or<shared_ptr<Texture<Color>>>("specular"              , nullptr);
+            shared_ptr<Texture<Color>> tint                  = properties.get_or<shared_ptr<Texture<Color>>>("tint"                  , nullptr);
+            shared_ptr<Texture<Color>> emissive              = properties.get_or<shared_ptr<Texture<Color>>>("emissive"              , nullptr);
+            shared_ptr<Texture<Color>> environmentReflection = properties.get_or<shared_ptr<Texture<Color>>>("environment_reflection", nullptr);
+            shared_ptr<Texture<Vec3 >> normalMap             = properties.get_or<shared_ptr<Texture<Vec3 >>>("normal_map"            , nullptr);
 
             auto mat = std::make_shared<PhongMaterial>(
-                props,
+                diffuse               ? diffuse               : std::make_shared<SolidTexture<Color>>(Color{1,1,1,1}),
+                specular              ? specular              : std::make_shared<SolidTexture<Color>>(Color{0,0,0,0}),
+                tint                  ? tint                  : std::make_shared<SolidTexture<Color>>(Color{0,0,0,0}),
+                emissive              ? emissive              : std::make_shared<SolidTexture<Color>>(Color{0,0,0,0}),
+                environmentReflection ? environmentReflection : std::make_shared<SolidTexture<Color>>(Color{0,0,0,0}),
+                normalMap,
                 properties.get_or<std::string>("name", "Phong"),
                 MaterialFlags{
                     .transparent = properties.get_or("transparent", false),
@@ -54,32 +57,17 @@ void luaMaterial() {
             materials.emplace_back(mat);
             return mat;
         },
-        "diffuse", sol::property(
-            [](PhongMaterial &self) { return self.mat.diffuse; },
-            [](PhongMaterial &self, shared_ptr<Texture<Color>> value) { self.mat.diffuse = value; }
-        ),
-        "specular", sol::property(
-            [](PhongMaterial &self) { return self.mat.specular; },
-            [](PhongMaterial &self, shared_ptr<Texture<Color>> value) { self.mat.specular = value; }
-        ),
-        "tint", sol::property(
-            [](PhongMaterial &self) { return self.mat.tint; },
-            [](PhongMaterial &self, shared_ptr<Texture<Color>> value) { self.mat.tint = value; }
-        ),
-        "emissive", sol::property(
-            [](PhongMaterial &self) { return self.mat.emissive; },
-            [](PhongMaterial &self, shared_ptr<Texture<Color>> value) { self.mat.emissive = value; }
-        ),
+        "diffuse", &PhongMaterial::diffuse,
+        "specular", &PhongMaterial::specular,
+        "tint", &PhongMaterial::tint,
+        "emissive", &PhongMaterial::emissive,
         "normal_map", sol::property(
-            [](PhongMaterial &self) { return self.mat.normalMap; },
-            [](PhongMaterial &self, shared_ptr<Texture<Vec3>> value) { self.mat.normalMap = value; self.needsTBN = value != nullptr; }
+            [](PhongMaterial &self) { return self.normalMap; },
+            [](PhongMaterial &self, shared_ptr<Texture<Vec3>> value) { self.normalMap = value; self.needsTBN = value != nullptr; }
         ),
         "volume_front", &PhongMaterial::volumeFront,
         "volume_back", &PhongMaterial::volumeBack,
-        "environment_reflection", sol::property(
-            [](PhongMaterial &self) { return self.mat.environmentReflection; },
-            [](PhongMaterial &self, Color value) { self.mat.environmentReflection = value; }
-        ),
+        "environment_reflection", &PhongMaterial::environmentReflection,
         "as_material", [](shared_ptr<PhongMaterial> &c)-> shared_ptr<Material> { return c; }
     );
 
@@ -92,18 +80,18 @@ void luaMaterial() {
             materials.emplace_back(mat);
 
             // Terrain textures
-            mat->terrainMat->mat.diffuse   = properties.get_or("terrain_diffuse", mat->terrainMat->mat.diffuse);
-            mat->terrainMat->mat.emissive  = properties.get_or("city_lights", mat->terrainMat->mat.emissive);
-            mat->terrainMat->mat.normalMap = properties.get_or("normal_map", mat->terrainMat->mat.normalMap);
+            mat->terrainMat->diffuse   = properties.get_or("terrain_diffuse", mat->terrainMat->diffuse);
+            mat->terrainMat->emissive  = properties.get_or("city_lights"    , mat->terrainMat->emissive);
+            mat->terrainMat->normalMap = properties.get_or("normal_map"     , mat->terrainMat->normalMap);
             
             // Ocean textures
-            mat->oceanMat->mat.diffuse     = properties.get_or("ocean_diffuse", mat->oceanMat->mat.diffuse);
-            mat->oceanMat->mat.specular    = properties.get_or("ocean_specular", mat->oceanMat->mat.specular);
-            mat->oceanMask                 = properties.get_or("ocean_mask", mat->oceanMask);
+            mat->oceanMat->diffuse     = properties.get_or("ocean_diffuse"  , mat->oceanMat->diffuse);
+            mat->oceanMat->specular    = properties.get_or("ocean_specular" , mat->oceanMat->specular);
+            mat->oceanMask             = properties.get_or("ocean_mask"     , mat->oceanMask);
 
             // Cloud textures
-            mat->cloudMat->mat.diffuse     = properties.get_or("cloud_diffuse", mat->cloudMat->mat.diffuse);
-            mat->cloudTexture              = properties.get_or("cloud_texture", mat->cloudTexture);
+            mat->cloudMat->diffuse     = properties.get_or("cloud_diffuse"  , mat->cloudMat->diffuse);
+            mat->cloudTexture          = properties.get_or("cloud_texture"  , mat->cloudTexture);
 
             return mat;
         },
@@ -111,24 +99,24 @@ void luaMaterial() {
 
         // Expose texture handles for Lua access
         "terrain_diffuse", sol::property(
-            [](EarthMaterial &self) { return self.terrainMat->mat.diffuse; },
-            [](EarthMaterial &self, std::shared_ptr<Texture<Color>> tex) { self.terrainMat->mat.diffuse = tex; }
+            [](EarthMaterial &self) { return self.terrainMat->diffuse; },
+            [](EarthMaterial &self, std::shared_ptr<Texture<Color>> tex) { self.terrainMat->diffuse = tex; }
         ),
         "city_lights", sol::property(
-            [](EarthMaterial &self) { return self.terrainMat->mat.emissive; },
-            [](EarthMaterial &self, std::shared_ptr<Texture<Color>> tex) { self.terrainMat->mat.emissive = tex; }
+            [](EarthMaterial &self) { return self.terrainMat->emissive; },
+            [](EarthMaterial &self, std::shared_ptr<Texture<Color>> tex) { self.terrainMat->emissive = tex; }
         ),
         "ocean_diffuse", sol::property(
-            [](EarthMaterial &self) { return self.oceanMat->mat.diffuse; },
-            [](EarthMaterial &self, std::shared_ptr<Texture<Color>> tex) { self.oceanMat->mat.diffuse = tex; }
+            [](EarthMaterial &self) { return self.oceanMat->diffuse; },
+            [](EarthMaterial &self, std::shared_ptr<Texture<Color>> tex) { self.oceanMat->diffuse = tex; }
         ),
         "ocean_specular", sol::property(
-            [](EarthMaterial &self) { return self.oceanMat->mat.specular; },
-            [](EarthMaterial &self, std::shared_ptr<Texture<Color>> tex) { self.oceanMat->mat.specular = tex; }
+            [](EarthMaterial &self) { return self.oceanMat->specular; },
+            [](EarthMaterial &self, std::shared_ptr<Texture<Color>> tex) { self.oceanMat->specular = tex; }
         ),
         "cloud_diffuse", sol::property(
-            [](EarthMaterial &self) { return self.cloudMat->mat.diffuse; },
-            [](EarthMaterial &self, std::shared_ptr<Texture<Color>> tex) { self.cloudMat->mat.diffuse = tex; }
+            [](EarthMaterial &self) { return self.cloudMat->diffuse; },
+            [](EarthMaterial &self, std::shared_ptr<Texture<Color>> tex) { self.cloudMat->diffuse = tex; }
         ),
         "ocean_mask", sol::property(
             [](EarthMaterial &self) { return self.oceanMask; },

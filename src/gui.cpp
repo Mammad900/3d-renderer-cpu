@@ -235,9 +235,9 @@ void guiUpdate(shared_ptr<Window> window) {
                     if(ImGui::TreeNode("Faces")) {
                         static Face *highlightedFace = nullptr;
                         static shared_ptr<Material> highlightedMaterial = nullptr;
-                        static shared_ptr<Material> highlightMat = std::make_shared<PhongMaterial>(PhongMaterialProps{
-                            .emissive = std::make_shared<SolidTexture<Color>>(Color{1,1,0,1})
-                        }, (std::string)"Highlight", MaterialFlags{.doubleSided = true});
+                        static shared_ptr<PhongMaterial> highlightMat = 
+                            std::make_shared<PhongMaterial>((std::string)"Highlight", MaterialFlags{.doubleSided = true});
+                        highlightMat->emissive = std::make_shared<SolidTexture<Color>>(Color{1,1,0,1});
 
                         for (uint16_t j = 0; j < mesh->faces.size(); j++) {
                             ImGui::PushID(j);

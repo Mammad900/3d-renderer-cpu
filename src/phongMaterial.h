@@ -1,35 +1,50 @@
 #ifndef __PHONGMATERIAL_H__
 #define __PHONGMATERIAL_H__
 
+#include "color.h"
 #include "object.h"
-
-struct PhongMaterialProps {
-    shared_ptr<Texture<Color>> diffuse = std::make_shared<SolidTexture<Color>>(Color{1,1,1,1});
-
-    shared_ptr<Texture<Color>> specular = std::make_shared<SolidTexture<Color>>(Color{0,0,0,0});
-
-    shared_ptr<Texture<Color>> tint = std::make_shared<SolidTexture<Color>>(Color{0,0,0,0});
-
-    shared_ptr<Texture<Color>> emissive = std::make_shared<SolidTexture<Color>>(Color{0,0,0,0});
-
-    Color environmentReflection{0,0,0,0};
-
-    shared_ptr<Texture<Vec3>>  normalMap;
-
-    shared_ptr<Texture<float>> displacementMap;
-
-    uint8_t POM;
-};
+#include "texture.h"
+#include <memory>
 
 class PhongMaterial : public Material {
 public:
-    PhongMaterialProps mat;
+    shared_ptr<Texture<Color>> diffuse;
+    shared_ptr<Texture<Color>> specular;
+    shared_ptr<Texture<Color>> tint;
+    shared_ptr<Texture<Color>> emissive;
+    shared_ptr<Texture<Color>> environmentReflection;
+    shared_ptr<Texture<Vec3>>  normalMap;
 
-    PhongMaterial(const PhongMaterialProps &mat, std::string name, MaterialFlags flags, shared_ptr<Volume> front = nullptr, shared_ptr<Volume> back = nullptr) 
-        : Material(name, flags, mat.normalMap != nullptr, front, back), mat(mat) { }
+    PhongMaterial(
+        shared_ptr<Texture<Color>> diffuse, 
+        shared_ptr<Texture<Color>> specular, 
+        shared_ptr<Texture<Color>> tint, 
+        shared_ptr<Texture<Color>> emissive, 
+        shared_ptr<Texture<Color>> environmentReflection,
+        shared_ptr<Texture<Vec3>>  normalMap,
+        std::string name, MaterialFlags flags, 
+        shared_ptr<Volume> front = nullptr, 
+        shared_ptr<Volume> back = nullptr
+    ) : 
+        Material(name, flags, normalMap != nullptr, front, back), 
+        diffuse(diffuse), specular(specular), tint(tint), emissive(emissive), 
+        environmentReflection(environmentReflection), normalMap(normalMap) { }
+    
+    PhongMaterial(
+        std::string name, MaterialFlags flags, 
+        shared_ptr<Volume> front = nullptr, 
+        shared_ptr<Volume> back = nullptr
+    ) : 
+        Material(name, flags, false, front, back), 
+        diffuse(std::make_shared<SolidTexture<Color>>(Color{})), 
+        specular(std::make_shared<SolidTexture<Color>>(Color{})), 
+        tint(std::make_shared<SolidTexture<Color>>(Color{})), 
+        emissive(std::make_shared<SolidTexture<Color>>(Color{})), 
+        environmentReflection(std::make_shared<SolidTexture<Color>>(Color{})), 
+        normalMap(nullptr) { }
 
     Color getBaseColor(Vector2f uv, Vector2f dUVdx, Vector2f dUVdy) {
-        return mat.diffuse->sample(uv, dUVdx, dUVdy);
+        return diffuse->sample(uv, dUVdx, dUVdy);
     }
 
     void GUI();
