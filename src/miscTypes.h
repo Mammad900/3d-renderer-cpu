@@ -56,8 +56,8 @@ struct Fragment {
     Vector2f dUVdx;
     Vector2f dUVdy;
     Color baseColor;
-    Face *face;
     bool isBackFace, inside;
+    Face *face;
 };
 
 struct Triangle {
