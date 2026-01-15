@@ -34,6 +34,9 @@ public:
     constexpr explicit operator sf::Vector3<U>() const {
         return {(U)x, (U)y, (U)z};
     }
+    constexpr operator sf::Vector3f() const {
+        return {x, y, z};
+    }
 
     ////////////////////////////////////////////////////////////
     /// \brief Length of the vector <i><b>(floating-point)</b></i>.

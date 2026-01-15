@@ -1050,3 +1050,45 @@ key = {
 }
 
 --#endregion
+--#region Audio
+
+---@class SoundT
+---@field z__DO_NOT_CONSTRUCT_YOURSELF "DO_NOT_CONSTRUCT_YOURSELF_SOUND"
+
+Sound = {}
+
+---@param file string
+---@return SoundT
+function Sound.new(file) end
+
+
+---@class AudioComponentT
+---@field velocity Vec3T
+---@field sound SoundT
+---@field pitch number
+---@field volume number
+---@field loop boolean
+---@field play fun(self: AudioComponentT)
+---@field pause fun(self: AudioComponentT)
+---@field stop fun(self: AudioComponentT)
+---@field is_playing fun(self: AudioComponentT): boolean
+---@field as_component fun(self: AudioComponentT): Component
+---@field z__DO_NOT_CONSTRUCT_YOURSELF "DO_NOT_CONSTRUCT_YOURSELF_AUDIO"
+
+AudioComponent = {}
+
+---@param sound SoundT | string
+---@param loop? boolean
+---@return AudioComponentT
+function AudioComponent.new(sound, loop) end
+
+---@class AudioListenerComponentT
+---@field as_component fun(self: AudioListenerComponentT): Component
+---@field z__DO_NOT_CONSTRUCT_YOURSELF "DO_NOT_CONSTRUCT_YOURSELF_AUDIO"
+
+AudioListenerComponent = {}
+
+---@return AudioListenerComponentT
+function AudioListenerComponent.new() end
+
+--#endregion

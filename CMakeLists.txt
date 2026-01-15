@@ -58,7 +58,7 @@ add_dependencies(main lua_project) # Ensure Lua is built before your project
 target_include_directories(main PRIVATE ${LUA_INCLUDE_DIR})
 target_link_libraries(main PRIVATE ${LUA_LIBRARIES})
 target_compile_features(main PRIVATE cxx_std_20)
-target_link_libraries(main PRIVATE SFML::Graphics ImGui-SFML::ImGui-SFML)
+target_link_libraries(main PRIVATE SFML::Graphics SFML::Audio ImGui-SFML::ImGui-SFML)
 target_include_directories(main PRIVATE 
     ${imgui_SOURCE_DIR}
     ${imgui-sfml_SOURCE_DIR}
