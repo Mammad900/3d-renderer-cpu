@@ -20,8 +20,13 @@ class AudioComponent : public Component {
     sf::Sound sound;
     std::shared_ptr<sf::SoundBuffer> buffer;
 
-    AudioComponent(std::shared_ptr<sf::SoundBuffer> buffer): sound(*buffer), buffer(buffer) {}
+    AudioComponent(std::shared_ptr<sf::SoundBuffer> buffer): sound(*buffer), buffer(buffer) {sound.setSpatializationEnabled(false);}
     AudioComponent(std::string file): AudioComponent(std::make_shared<sf::SoundBuffer>(file)) {}
+
+    void init(Object *obj) override {
+        Component::init(obj);
+        sound.setSpatializationEnabled(true);
+    }
 
     void update() override {
         sound.setPosition(obj->globalPosition);
