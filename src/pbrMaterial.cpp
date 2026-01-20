@@ -66,6 +66,7 @@ Color PBRMaterial::shade(Fragment &f, Color previous, Scene &scene) {
     Color Lo{0, 0, 0, 0};
     for (size_t i = 0; i < scene.lights.size(); i++) {
         auto [radiance, L] = scene.lights[i]->sample(f.worldPos, scene);
+        if(radiance.a == 0) continue; // No light received, don't bother calculating
         Vec3 H = (L + V).normalized();
         Color F0{0.04f, 0.04f, 0.04f, 1.0f};
         F0 = Color::mix(F0, albedo, metallic);
