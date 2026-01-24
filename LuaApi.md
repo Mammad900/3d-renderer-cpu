@@ -884,3 +884,71 @@ A mouse button was pressed.
 #### `mouse_button_released`
 
 A mouse button was released. Same fields as `mouse_button_pressed`.
+
+## Audio
+
+### `Sound`
+
+Stores sound contents. Used in `AudioComponent`.
+
+### `AudioComponent`
+
+Plays a `Sound`.
+
+Constructor parameters:
+
+1. Sound: A `Sound` object, or a path. If a path is used, the constructor makes a `Sound` itself.
+2. Loop: Sets the `loop` property. Defaults to false.
+
+```lua
+local ui_click_sound = AudioComponent.new(Sound.new("./sounds/ui_click.wav"))
+-- Alternatively:
+local ui_click_sound = AudioComponent.new("./sounds/ui_click.wav")
+
+local function clicked()
+    ui_click_sound:play()
+end
+```
+
+> [!Note] Spatial sounds
+> `AudioComponent` can be used as is, or as a component.
+>
+> If added to an object as a component, it is spatial and simulates attenuation based on distance to the audio listener.
+>
+> If used as is without being added as a component, it is not spatial.
+
+<!---->
+
+> [!Note] Playing sounds immediately
+> It is not recommended to call `play()` for spatial sounds at the top level. This will cause them to play in non-spatial mode until the first frame update.
+>
+> Instead, use `on_frame` or `ScriptComponent` `update` in combination with `is_playing()` to play on the first frame update.
+
+Properties and methods:
+
+- `velocity` (Vec3): Velocity of the object relative to its parent, used to simulate doppler effect.
+- `pitch` (number): Controls the pitch and playing speed of the sound. Default is 1.
+- `volume` (number): Controls the sound amplitude. Default is 100. Can exceed 100.
+- `loop` (boolean): Whether the sound loops.
+- `play()`: Starts/resumes playing the sound. If the sound was already playing, starts it over.
+- `pause()`: Pauses the sound.
+- `stop()`: Pauses the sound and resets its play position.
+- `is_playing()`: Returns true if the sound is currently playing.
+
+### `AudioListenerComponent`
+
+Use this to control the position of the audio listener for correct spatialization. Recommended to be added to the same object as the camera.
+
+If none is ever made, the listener is assumed to be at the world center.
+
+```lua
+scene:add_object(Object.new{
+    ...
+    components= {
+        Camera.new{
+            ...
+        }:as_component(),
+        AudioListenerComponent.new():as_component()
+    }
+})
+```
