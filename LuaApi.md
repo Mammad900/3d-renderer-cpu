@@ -12,7 +12,18 @@ my_vector = Vec3.new{x= 1, z= 3} -- y defaults to 0
 print(my_vector.x) -- 3
 ```
 
-> [!NOTE]
+> [!Note] Coordinate convention in this engine
+> This engine uses a reverse right handed system.
+>
+> From the perspective of a default camera:
+>
+> - Positive X is left
+> - Positive Y is up
+> - Positive Z is forward (into the screen)
+
+<!---->
+
+> [!Note] Shorthands
 > Most places that accept Vec3 can also accept the following shorthands. One notable exception is assignment.
 
 ```lua
@@ -39,7 +50,7 @@ my_color = Color.new(0.1, 0.2, 0.3, 1)
 my_color = Color.new{r= 1} -- r,g,b default to 0, a defaults to 1
 ```
 
-> [!NOTE]
+> [!NOTE] Shorthands
 > Most places that accept Color can also accept the following shorthands. One notable exception is assignment.
 
 ```lua
@@ -129,7 +140,7 @@ Fields and methods:
 
 Components add behavior to objects, like mesh instances, light sources or cameras. It has multiple types, shown below.
 
-> [!Warning]
+> [!Warning] Component types
 > Do not pass components directly to objects. You have to use the method `as_component()` to convert it to the base type.
 
 ### `MeshComponent`
@@ -287,11 +298,18 @@ Vertex.new{
 }
 ```
 
-> [!Note]
->
-> 1. `Vertex.new` can be omitted while using the Mesh constructor, and the table can be directly passed.
-> 2. Apparently all normals in this engine are reversed.
-> 3. Normals are optional (and overridden) if you enable `auto_normals` or `flat_shading`. See `Mesh.new` below.
+> [!Note] Vertex shorthand
+> `Vertex.new` can be omitted while using the Mesh constructor, and the table can be directly passed.
+
+<!---->
+
+> [!Warning] Normal directions
+> Apparently all normals in this engine are reversed and point towards the inside of the mesh, rather than the outside.
+
+<!---->
+
+> [!Note] Optional normals
+> Normals are optional (and overridden) if you enable `auto_normals` or `flat_shading`. See `Mesh.new` below.
 
 ### `Face`
 
@@ -304,7 +322,7 @@ Face.new(0, 1, 2, my_material)
 {0, 1, 2, my_material}
 ```
 
-> [!Note]
+> [!Note] Vertex indices
 > Notice how the vertices are set to numbers. To reduce memory usage and allow vertices to be shared between faces, faces only store the indices of the vertices. Indices start with 0, unlike in Lua arrays.
 
 ### `Mesh.new`
@@ -437,7 +455,7 @@ Like `cube_sphere`, but not projected to a sphere, so it remains a cube. Subdivi
 
 Materials define how the surface of meshes look. There are multiple types of material, and you can create instances of a type and use them in meshes.
 
-> [!Warning]
+> [!Warning] Material types
 > Do not pass materials directly to meshes. You have to use the method `as_material()` to convert it to the base type.
 
 ### Flags
@@ -529,14 +547,14 @@ my_mat = EarthMaterial.new{
 - **`cloud_diffuse`** (color texture): Diffuse map for the cloud material. Use a solid white.
 - **`cloud_texture`** (float texture): Controls cloud opacity. 1 for full cloud and 0 for no cloud. Can be obtained from NASA.
 
-> [!Note]
+> [!Note] Flags
 > Earth material does not support flags.
 
 ## Textures
 
 Textures convert UV coordinates to a value, be it a color, a vector or a float.
 
-> [!Warning]
+> [!Warning] Texture types
 > Do not pass textures directly to materials. You have to use the method `as_texture()` to convert it to the base type.
 
 ### `SolidColorTexture`, `SolidVectorTexture`, `SolidFloatTexture`
@@ -674,7 +692,7 @@ textures = slice_color_texture(source, {2, 2}) -- same result as previous one
 
 Maps a 3D direction (vector) to a color. Used to render sky-boxes, baked reflections, etc.
 
-> [!Warning]
+> [!Warning] Environment map types
 > Do not pass environment maps directly. You have to use the method `as_environment_map()` to convert it to the base type.
 
 ### `SolidEnvironmentMap`
@@ -689,7 +707,7 @@ scene.sky_box = SolidEnvironmentMap.new{1,1,1}:as_environment_map()
 
 Maps directions to latitudes and longitudes on a texture with equirectangular / panorama projection. The simplest but slowest. Tip to tell if a texture is panorama: most have width twice their height.
 
-> [!Note]
+> [!Note] Memory saving
 > `TinyImageTexture` is recommended over `ImageColorTexture` as panorama maps do not support mipmaps, and the reduced memory usage is much needed for high resolution sky-boxes.
 
 ```lua
@@ -700,7 +718,7 @@ scene.sky_box = PanoramaMap.new(TinyImageTexture.new("./my-sky-box.png"):as_text
 
 Maps directions to faces of a cube. Way faster than `PanoramaMap` and more uniform resolution. Constructor takes an array of six textures in the order: +x, +y, +z, -x, -y, -z.
 
-> [!Note]
+> [!Note] Memory saving
 > `TinyImageTexture` is recommended over `ImageColorTexture` as cube-maps do not support mipmaps, and the reduced memory usage is much needed for high resolution sky-boxes.
 
 ```lua
@@ -718,7 +736,7 @@ scene.sky_box = CubeMap.new{
 
 Like `CubeMap`, but uses a single texture containing the six faces.
 
-> [!Note]
+> [!Note] Memory saving
 > In addition to the previously mentioned advantages, `TinyImageTexture` has another advantage that it does not require texture resolution to be a power of 2, which is especially useful in this case.
 
 ```lua
@@ -813,7 +831,7 @@ Methods and fields (descriptions from constructor arguments apply here):
 - **`sync_frame_size`** (boolean, read/write): Can still be set if there's no camera but has no effect.
 - **`close()`**: Closes the window.
 
-> [!Note]
+> [!Note] Window order
 > If you have a render window and a GUI window, the GUI window might jitter when resized. This is due to it not responding to the resize until the render is done. To fix this, create the tool window first, then set its `tool_window_for` once the render window is created. This way, the tool window is updated first, massively reducing jitter.
 
 ### Deferred rendering advantages and disadvantages
