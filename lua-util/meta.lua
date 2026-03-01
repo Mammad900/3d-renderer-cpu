@@ -934,6 +934,34 @@ CubeMap = {}
 ---@return CubeMapT
 function CubeMap.new(textures) end
 
+
+---@class InfiniteFloorT
+---@field fallback EnvironmentMapT
+---@field texture ColorTexture
+---@field as_environment_map fun(self: InfiniteFloorT): EnvironmentMapT
+
+InfiniteFloor = {}
+
+---@param texture ColorTexture
+---@param fallback EnvironmentMapT
+---@param scale number
+---@return InfiniteFloorT
+function InfiniteFloor.new(texture, fallback, scale) end
+
+
+---@class ShadedInfiniteFloorT
+---@field fallback EnvironmentMapT
+---@field material Material
+---@field as_environment_map fun(self: ShadedInfiniteFloorT): EnvironmentMapT
+
+ShadedInfiniteFloor = {}
+
+---@param material Material
+---@param fallback EnvironmentMapT
+---@param scale number
+---@return ShadedInfiniteFloorT
+function ShadedInfiniteFloor.new(material, fallback, scale) end
+
 --#endregion
 --#region Scripting
 

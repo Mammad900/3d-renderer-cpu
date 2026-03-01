@@ -25,9 +25,6 @@ void PhongMaterial::GUI() {
 
 Color PhongMaterial::shade(Fragment &f, Color previous, Scene &scene) {
     shared_ptr<Camera> camera = currentWindow->camera;
-    Vec3 viewDir = camera->orthographic ?
-        Vec3{0, 0, -1} * camera->obj->transformRotation :
-        (camera->obj->globalPosition - f.worldPos).normalized();
     if(!flags.transparent && flags.doubleSided && f.isBackFace)
         f.normal *= -1.0f;
     Color matSpecular = specular->sample(f);
@@ -71,7 +68,7 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene &scene) {
 
         // Specular highlights
         if(matSpecular.a > 0) {
-            float specularIntensity = pow(max(viewDir.dot(v2reflect(direction, normal)), 0.0f), shininess);
+            float specularIntensity = pow(max(f.viewDir.dot(v2reflect(direction, normal)), 0.0f), shininess);
             if(receivedLight <= 0)
                 specularIntensity = 0;
             specular += light * specularIntensity;
@@ -90,8 +87,8 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene &scene) {
 
     Color matReflect = environmentReflection->sample(f);
     if (matReflect.a > 0) {
-        Vec3 R = -v2reflect(viewDir, normal);
-        lighting += matReflect * scene.skyBox->sample(R);
+        Vec3 R = -v2reflect(f.viewDir, normal);
+        lighting += matReflect * scene.skyBox->sample(R, f.worldPos);
     }
 
     if(flags.transparent) {

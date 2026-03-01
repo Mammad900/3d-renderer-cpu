@@ -132,14 +132,17 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
         #undef INTERPOLATE_TRI
 
         Fragment f{
-            .screenPos = p,
-            .z = z,
             .worldPos = worldPos,
             .normal = normal,
             .tangent = tangent,
             .bitangent = bitangent,
+            .viewDir = camera->orthographic ?
+                        Vec3{0, 0, -1} * camera->obj->transformRotation :
+                        (camera->obj->globalPosition - f.worldPos).normalized(),
             .uv = uv,
             .face = tri.face,
+            .screenPos = p,
+            .z = z,
             .isBackFace = tri.cull,
             .inside = inside
         };

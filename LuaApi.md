@@ -743,6 +743,31 @@ Like `CubeMap`, but uses a single texture containing the six faces.
 scene.sky_box = AtlasCubeMap.new(TinyImageTexture.new("./my-cube-map.png"):as_texture()):as_environment_map()
 ```
 
+### `InfiniteFloor`
+
+This is a special environment map, since it involves geometry.
+
+Simulates an infinite textured horizontal plane at Y=0, inside another environment map.
+
+Parameters:
+
+1. `texture` (color texture): The infinite floor texture, gets tiled every `scale` units.
+2. `fallback` (environment map): The regular environment map for everywhere else
+3. `scale` (number): The size of each texture tile
+
+#### `ShadedInfiniteFloor`
+
+This is a variant that performs material shading. Slower.
+
+> [!Warning] Experimental
+>
+> There are known limitations with both types:
+>
+> - Fog can be used through volumes, but god-rays will cause severe performance problems and likely even a freeze, because they sample to near infinity near the horizon
+> - Transparency doesn't interact with global fog correctly, fog behind transparency will have the same attenuation as fog with no transparency between camera and the floor
+> - Behaves incorrectly with orthographic cameras
+> - Geometry should not cross the floor. There is no Z-rejection against the floor, so the floor will appear behind all geometry and not occlude anything.
+
 ## Scripting
 
 ### `on_frame`

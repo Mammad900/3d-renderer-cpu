@@ -46,17 +46,18 @@ struct Mesh {
 };
 
 struct Fragment {
-    Vector2i screenPos;
-    float z;
     Vec3 worldPos;
     Vec3 normal;
     Vec3 tangent; // or Original Normal
     Vec3 bitangent; // or SSR result (Color without alpha)
+    Vec3 viewDir;
     Vector2f uv;
     Vector2f dUVdx;
     Vector2f dUVdy;
     Color baseColor;
     Face *face;
+    Vector2i screenPos;
+    float z;
     bool isBackFace, inside;
 };
 

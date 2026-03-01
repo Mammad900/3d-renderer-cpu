@@ -153,7 +153,7 @@ void skyBoxPixel(Camera *camera, RenderTarget *frame, uint i, uint x, uint y) {
     shared_ptr<Scene> scene = camera->obj->scene.lock();
     Vec3 lookVector = camera->screenSpaceToCameraSpace(x, y, 1) * camera->obj->transformRotation;
     lookVector = lookVector.normalized();
-    frame->framebuffer[i] = scene->skyBox->sample(lookVector);
+    frame->framebuffer[i] = scene->skyBox->sample(lookVector, camera->obj->globalPosition, true);
 }
 
 SolidEnvironmentMap *checkSolidSkyBox(shared_ptr<EnvironmentMap> skyBox) {

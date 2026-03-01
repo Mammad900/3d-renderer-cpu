@@ -2,6 +2,7 @@
 #include "../texture.h"
 #include "../textureFiltering.h"
 #include "../tinyTexture.h"
+#include <memory>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Warray-bounds"
@@ -203,5 +204,21 @@ void luaTextures() {
         },
         // "textures", &AtlasCubeMap::textures,
         "as_environment_map", [](std::shared_ptr<CubeMap>& l) -> std::shared_ptr<EnvironmentMap> { return l; }
+    );
+    Lua.new_usertype<InfiniteFloor>("InfiniteFloor",
+        sol::meta_function::construct, [](shared_ptr<Texture<Color>> texture, shared_ptr<EnvironmentMap> fallback, float scale) {
+            return std::make_shared<InfiniteFloor>(texture, fallback, scale);
+        },
+        "texture", &InfiniteFloor::texture,
+        "fallback", &InfiniteFloor::fallback,
+        "as_environment_map", [](std::shared_ptr<InfiniteFloor>& l) -> std::shared_ptr<EnvironmentMap> { return l; }
+    );
+    Lua.new_usertype<ShadedInfiniteFloor>("ShadedInfiniteFloor",
+        sol::meta_function::construct, [](shared_ptr<Material> material, shared_ptr<EnvironmentMap> fallback, float scale) {
+            return std::make_shared<ShadedInfiniteFloor>(material, fallback, scale);
+        },
+        "material", &ShadedInfiniteFloor::material,
+        "fallback", &ShadedInfiniteFloor::fallback,
+        "as_environment_map", [](std::shared_ptr<ShadedInfiniteFloor>& l) -> std::shared_ptr<EnvironmentMap> { return l; }
     );
 }

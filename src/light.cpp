@@ -24,7 +24,7 @@ float Light::shadowSubsample(RenderTarget *frame, Vector2u pos, float dist) {
 float Light::shadowSample(RenderTarget *frame, Vec3 projected) {
     float dist = projected.z;
     Vector2f pos = Vector2f{projected.x + 1, projected.y + 1}
-        .componentWiseMul(Vector2f{frame->size.x / 2.0f, frame->size.y / 2.0f});
+        .componentWiseMul(Vector2f{(frame->size.x-1) / 2.0f, (frame->size.y-1) / 2.0f});
 
     if(currentWindow->scene->bilinearShadowFiltering) {
         float decimalsX = pos.x - floor(pos.x);
