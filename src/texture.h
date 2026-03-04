@@ -103,9 +103,9 @@ class BlendTexture : public Texture<T> {
 template<typename T>
 class SliceTexture : public Texture<T> {
   public:
-    Vector2f scale = {0, 0};
-    Vector2f offset = {0, 0};
     shared_ptr<Texture<T>> texture;
+    Vector2f offset = {0, 0};
+    Vector2f scale = {0, 0};
     SliceTexture(shared_ptr<Texture<T>> texture, Vector2f scale, Vector2f offset) : texture(texture), offset(offset), scale(scale) {}
 
     T sample(Vector2f uv, Vector2f dUVdX, Vector2f dUVdY) {
