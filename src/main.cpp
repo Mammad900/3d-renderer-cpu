@@ -110,7 +110,8 @@ int main(int argc, char** argv) {
                     window->gui();
                 ImGui::SFML::Render(window->window);
             }
-            window->window.display();
+            if((window->frame && timing.render) || window->hasGui)
+                window->window.display();
             timing.windowTime.push(timing.clock);
         }
 
