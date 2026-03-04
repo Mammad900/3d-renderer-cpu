@@ -22,5 +22,6 @@ void luaMesh();
 void luaLights();
 void luaTextures();
 void luaAudio();
+void luaPostProcessing();
 
 #endif /* __LUA_STATE_H__ */

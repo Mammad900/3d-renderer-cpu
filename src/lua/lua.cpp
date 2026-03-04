@@ -138,6 +138,7 @@ void lua(std::string path) {
     luaLights();
     luaTextures();
     luaAudio();
+    luaPostProcessing();
 
     Lua["on_frame"] = sol::table(Lua, sol::create);
     Lua.set_function("is_key_pressed", [](int key) {

@@ -1,6 +1,7 @@
 #include "lua-state.h"
 #include "../data.h"
 #include "../main.h"
+#include "../postProcessing.h"
 
 #ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Warray-bounds"
@@ -205,6 +206,12 @@ void luaWindow() {
                     throw std::runtime_error("Cannot set deferred for a camera-less window, use set_camera first.");
                 self.frame->changeSize(self.frame->size, value);
             }
-        )
+        ),
+        "render", [](shared_ptr<Window> &self) {
+            shared_ptr<Window> w = currentWindow;
+            currentWindow = self;
+            self->camera->render();
+            return RenderedImage(self->frame);
+        }
     );
 }

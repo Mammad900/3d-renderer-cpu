@@ -89,7 +89,7 @@ struct Color {
         return is;
     }
 
-    float luminance() { return 0.2126f * r + 0.7152f * g + 0.0722f * b; }
+    float luminance() const { return 0.2126f * r + 0.7152f * g + 0.0722f * b; }
     Color changeLuminance(float lOut) { return (*this) * (lOut / luminance()); }
     Color reinhardtTonemap(float maximumColor) {
         float lOld = luminance();

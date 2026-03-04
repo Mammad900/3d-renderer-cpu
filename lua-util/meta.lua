@@ -156,6 +156,7 @@ function Scene.new() end
 ---@field set_camera fun(self: WindowT, scene: SceneT, camera: CameraT)
 ---@field remove_camera fun(self: WindowT)
 ---@field deferred boolean
+---@field render fun(self: WindowT): RenderedImageT
 ---@field z__DO_NOT_CONSTRUCT_YOURSELF "DO_NOT_CONSTRUCT_YOURSELF"
 
 ---@class WindowC
@@ -455,6 +456,7 @@ function Mesh.new(props) end
 ---@field type "sphere"
 ---@field material Material
 ---@field name? string
+---@field stacks? integer
 ---@field sectors? integer
 ---@field invert_u? boolean
 ---@field invert_v? boolean
@@ -1120,3 +1122,15 @@ AudioListenerComponent = {}
 function AudioListenerComponent.new() end
 
 --#endregion
+--#region Post Processing
+
+---@class RenderedImageT
+---@field clip fun(self: RenderedImageT, min: ColorCC, max?: ColorCC): RenderedImageT
+---@field bloom fun(self: RenderedImageT, downscaleFactor: integer, kernelSize: integer, opacity: number): RenderedImageT
+---@field tonemap fun(self: RenderedImageT, whitePoint: number): TinyImageTextureT
+---@field save fun(self: RenderedImageT, path: string)
+
+RenderedImage=  {}
+
+---@param path string
+function RenderedImage.load(path) end
