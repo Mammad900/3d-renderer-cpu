@@ -2,6 +2,7 @@
 #include "../texture.h"
 #include "../textureFiltering.h"
 #include "../tinyTexture.h"
+#include "../postProcessing.h"
 #include <memory>
 
 #ifdef __GNUC__
@@ -168,6 +169,9 @@ void luaTextures() {
         "save_to_file", [](sol::this_state s, std::shared_ptr<TinyImageTexture>& tex, std::string path) {
             sol::state_view lua(s);
             return tex->image.saveToFile(get_calling_script_path(lua) / path);
+        },
+        "downscale", [](TinyImageTexture &self, uint factor) {
+            return std::make_shared<TinyImageTexture>(RenderedImage::downscale(self, factor));
         }
     );
 

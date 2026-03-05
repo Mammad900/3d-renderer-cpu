@@ -855,6 +855,7 @@ Methods and fields (descriptions from constructor arguments apply here):
 - **`tool_window_for`** (Window, read/write): Cannot be set if `has_gui` is false.
 - **`sync_frame_size`** (boolean, read/write): Can still be set if there's no camera but has no effect.
 - **`close()`**: Closes the window.
+- **`render()`**: Renders a single frame from the camera and returns the resulting image. See [offline rendering](#offline-rendering).
 
 > [!Note] Window order
 > If you have a render window and a GUI window, the GUI window might jitter when resized. This is due to it not responding to the resize until the render is done. To fix this, create the tool window first, then set its `tool_window_for` once the render window is created. This way, the tool window is updated first, massively reducing jitter.
@@ -995,3 +996,115 @@ scene:add_object(Object.new{
     }
 })
 ```
+
+## Offline rendering
+
+This engine can also be used for offline rendering, in addition to realtime rendering. Offline rendering is the opposite to realtime rendering: cranking the graphics configuration way up for good results when the time to render is not a concern.
+
+To perform an offline render, increase the graphics settings, use the `render()` method of a `Window`, then revert the settings back:
+
+```lua
+local function render()
+    -- Increase graphics settings
+    scene.volume.god_rays_sample_size = 0.005 -- God-rays is very expensive yet requires fine samples
+    window.frame_size= {5000, 5000} -- Increase resolution for SSAA
+
+    -- Perform the render
+    print('rendering')
+    local result = window:render()
+
+    -- Post-process and save the render
+    print("processing")
+    result:save("render.hdr") -- You can save the HDR result directly
+    result:tonemap(1):save_to_file("render.png") -- Or tone-map to SDR and save to more common formats
+    result:bloom(5, 15, 0.05):tonemap(5):save_to_file("render-bloom.png") -- Apply post processing filters
+
+    -- Revert graphics settings back to those suitable for real-time
+    print("done")
+    scene.volume.god_rays_sample_size = 0.1
+    window.frame_size= {500, 500}
+end
+```
+
+The `render()` method returns an HDR render result, of type `RenderedImage`.
+
+### `RenderedImage`
+
+Represents an HDR image.
+
+Methods:
+
+- `clip(min, max)`, `clip(max)`: Clips the color values to a specific range. Returns result as `RenderedImage`
+- `bloom(downscaleFactor, kernelSize, opacity)`: Applies a physically based bloom filter to the image. Returns result as `RenderedImage`
+- `blur(kernelSize)`: Applies a gaussian blur filter. Returns result as `RenderedImage`
+- `downscale(factor)`: Scales down by `factor` times. Returns result as `RenderedImage`
+- `tonemap(whitePoint)`: Applies Reinhard tone-mapping, converting to SDR. A white-point of 0 uses the luminance of the brightest pixel. Returns result as `TinyImageTexture`.
+- `save(path)`: Saves the HDR image as `.hdr` file. To save as more usual formats like PNG, tone-map it then call `save_to_file()` on the resulting SDR image.
+
+### Post Processing
+
+Render results can be post processed before being saved. Post processing is not available for realtime rendering.
+
+#### Bloom
+
+The most important effect. Bloom allows the user to perceive bright colors on a monitor that cannot display them, by mimicking an effect created by the imperfect human eye lens: bright light sources create a glow around them.
+
+This is done by blurring the image, then overlaying it on the original image with low opacity.
+
+| Without bloom | With bloom |
+|---------------|------------|
+|![Without bloom](renders/post-processing-demo/render-wp5.png)|![With bloom](renders/post-processing-demo/render-bloom.png)|
+
+Parameters:
+
+1. Downscale factor: To improve performance, the image is downscaled and the smaller image is blurred. In the above example, a value of 5 was used on a 500x500 image. This means the image is first downscaled to 100x100 then blurred, and the speedup is 25x.
+2. Kernel size: Affects the quality and size (sigma) of the blur. In the above example, a value of 15 was used, but values as low as 3 can still provide a good result, provided the image is downscaled further to compensate for the lower sigma.
+3. Opacity: How bright the effect is. In the above example, a value of 0.05 was used.
+
+> [!Note] Downscale and kernel size
+> The blur size is directly proportional to both the downscale factor and kernel size.  
+> Speed is directly proportional to downscale factor, and inversely proportional to kernel size.
+>
+> This means that to speed up the calculation, you have to increase downscale factor and decrease kernel size. Keep in mind not to go too far, or the quality will suffer.
+
+#### Clip
+
+In the bloom example, there's a potential problem that was not shown: the center pixel of the render result is extremely bright due to being very near the point light.
+
+This causes the bloom effect to create a bright square at the center. To fix this, you can clip the brightness to a reasonable value with this filter. In the example, color value was clipped to 50 (for context, SDR range is 0-1)
+
+| Bloom without clipping | Bloom with clipping |
+|---------------|------------|
+|![Bloom without clipping](renders/post-processing-demo/render-bloom-noclip.png)|![Bloom with clipping](renders/post-processing-demo/render-bloom.png)|
+
+#### Blur
+
+This is probably not useful on its own, but it exists because it's used in Bloom.
+
+| Source image | Blurred |
+|---------------|------------|
+|![Source image](renders/post-processing-demo/render-wp5.png)|![Blurred](renders/post-processing-demo/render-blur.png)|
+
+#### Tone-mapping
+
+This is an essential step if you want to save the result in more common formats. Tone-mapping converts the HDR image to an SDR image, using the Reinhard algorithm.
+
+This variation of Reinhard tone-mapping has a white-point parameter that controls the brightness of the result. It is the luminance that is mapped to an SDR result of 100%.
+
+A white-point of 0 uses the luminance of the brightest pixel.
+
+| White point = 1 | White point = 5 | Automatic White Point|
+|---------------|------------|--|
+|![White point = 1](renders/post-processing-demo/render-wp1.png)|![White point = 5](renders/post-processing-demo/render-wp5.png)|![Automatic White Point](renders/post-processing-demo/render-wp0.png)|
+
+#### Downscaling
+
+This engine has no anti-aliasing, and as a result has to rely on super-sampling to achieve smooth results. The image has to be rendered at a higher resolution and then downscaled. All of the official renders are rendered at 5000x5000 and downscaled to 1000x1000, except for the post processing examples which are 500x500 with no downscaling.
+
+You can downscale before or after tone-mapping, but it's recommended to do it after:
+
+| Downscale then tone-map | Tone-map then downscale |
+|---------------|------------|
+|![Source image](renders/post-processing-demo/render-st5.png)|![Blurred](renders/post-processing-demo/render-ts5.png)|
+
+You can see in this intentionally low resolution example that downscaling before tone-mapping causes some aliasing on the brighter central area.

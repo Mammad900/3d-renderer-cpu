@@ -10,14 +10,6 @@
 #include <memory>
 #include <vector>
 
-// Gaussian weights for a 3x3 kernel (σ ≈ 0.8)
-static constexpr float gaussian[3][3] = {
-    {0.0751136f, 0.1238414f, 0.0751136f},
-    {0.1238414f, 0.2041799f, 0.1238414f},
-    {0.0751136f, 0.1238414f, 0.0751136f}
-};
-
-
 struct RenderedImage {
     std::vector<Color> data;
     sf::Vector2u size;
@@ -95,15 +87,12 @@ struct RenderedImage {
         return res;
     }
 
-    RenderedImage bloom(uint downscaleFactor, int kernelSize, float opacity) {
-        RenderedImage downscaled = downscale(downscaleFactor);
+    RenderedImage blur(int kernelSize) {
+        RenderedImage blurred(size);
+        const float sigma = kernelSize * 0.5f;
 
-        // 2. Blur the downscaled image – dynamic Gaussian kernel
-        RenderedImage blurred(downscaled.size);
-        const float sigma = kernelSize * 0.5f;          // simple heuristic
-
-        for (int y = 0; y < static_cast<int>(downscaled.size.y); ++y) {
-            for (int x = 0; x < static_cast<int>(downscaled.size.x); ++x) {
+        for (int y = 0; y < static_cast<int>(size.y); ++y) {
+            for (int x = 0; x < static_cast<int>(size.x); ++x) {
 
                 Color sum{};
                 float weightSum = 0.0f;
@@ -115,14 +104,14 @@ struct RenderedImage {
                         int ny = y + ky;
 
                         if (nx >= 0 && ny >= 0 &&
-                            nx < static_cast<int>(downscaled.size.x) &&
-                            ny < static_cast<int>(downscaled.size.y)) {
+                            nx < static_cast<int>(size.x) &&
+                            ny < static_cast<int>(size.y)) {
 
                             // Gaussian weight for the current offset
                             float w = std::exp(-((kx * kx + ky * ky) /
                                                 (2.0f * sigma * sigma)));
 
-                            sum += downscaled.data[nx + downscaled.size.x * ny] * w;
+                            sum += data[nx + size.x * ny] * w;
                             weightSum += w;
                         }
                     }
@@ -131,6 +120,37 @@ struct RenderedImage {
                 blurred.data[x + blurred.size.x * y] = sum / weightSum;
             }
         }
+        return blurred;
+    }
+
+    Color sample(sf::Vector2f uv) {
+        float fx = uv.x * (size.x - 1);
+        float fy = uv.y * (size.y - 1);
+
+        // Integer part (floor) and fractional part for each axis
+        int ix0 = static_cast<int>(std::floor(fx));
+        int iy0 = static_cast<int>(std::floor(fy));
+        float tx = fx - ix0;          // 0 ≤ tx < 1
+        float ty = fy - iy0;          // 0 ≤ ty < 1
+
+        int w = size.x, h = size.y;
+
+        ix0 = std::clamp(ix0, 0, w - 2);   // - 2 because we need a+1
+        iy0 = std::clamp(iy0, 0, h - 2);
+
+        // Fetch the four neighboring pixels
+        Color c00 = data[ix0 +     w * iy0];
+        Color c10 = data[(ix0+1) + w * iy0];
+        Color c01 = data[ix0 +     w * (iy0+1)];
+        Color c11 = data[(ix0+1) + w * (iy0+1)];
+
+        // Bilinear interpolation
+        return lerp2d(c00, c10, c01, c11, tx, ty);
+    }
+
+    RenderedImage bloom(uint downscaleFactor, int kernelSize, float opacity) {
+        RenderedImage downscaled = downscale(downscaleFactor);
+        RenderedImage blurred = downscaled.blur(kernelSize);
 
         // 3. Blend blurred with source
         RenderedImage result(size);
@@ -140,33 +160,10 @@ struct RenderedImage {
                 Color srcPixel = data[x + size.x * y];
                 
                 // Convert coordinates to the resolution of `blurred`
-                float fx = ((float)(x) + 0.5f) * (blurred.size.x-1) / size.x;
-                float fy = ((float)(y) + 0.5f) * (blurred.size.y-1) / size.y;
-
-                // Integer part (floor) and fractional part for each axis
-                int ix0 = static_cast<int>(std::floor(fx));
-                int iy0 = static_cast<int>(std::floor(fy));
-                float tx = fx - ix0;          // 0 ≤ tx < 1
-                float ty = fy - iy0;          // 0 ≤ ty < 1
-
-                // Clamp to image bounds (ensure we never read outside the buffer)
-                int w = blurred.size.x;
-                int h = blurred.size.y;
-
-                ix0 = std::clamp(ix0, 0, w - 2);   // - 2 because we need a+1
-                iy0 = std::clamp(iy0, 0, h - 2);
-
-                // Fetch the four neighboring pixels
-                Color c00 = blurred.data[ix0 +     w * iy0];
-                Color c10 = blurred.data[(ix0+1) + w * iy0];
-                Color c01 = blurred.data[ix0 +     w * (iy0+1)];
-                Color c11 = blurred.data[(ix0+1) + w * (iy0+1)];
-
-                // Bilinear interpolation
-                Color bloomPixel = lerp2d(c00, c10, c01, c11, tx, ty);
-
+                float u = ((float)(x) + 0.5f) / size.x;
+                float v = ((float)(y) + 0.5f) / size.y;
                 // blend using opacity (simple alpha blending)
-                Color c = srcPixel + bloomPixel * opacity;
+                Color c = srcPixel + blurred.sample({u,v}) * opacity;
 
                 result.data[x + result.size.x * y] = c;
             }

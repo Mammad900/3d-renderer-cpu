@@ -796,6 +796,7 @@ function slice_float_texture(texture, n) end
 ---@field scale ColorT
 ---@field as_texture fun(self: TinyImageTextureT): ColorTexture
 ---@field save_to_file fun(self: TinyImageTextureT, path: string): boolean
+---@field downscale fun(self: TinyImageTextureT, factor: integer): TinyImageTextureT
 
 TinyImageTexture = {}
 
@@ -1127,6 +1128,8 @@ function AudioListenerComponent.new() end
 ---@class RenderedImageT
 ---@field clip fun(self: RenderedImageT, min: ColorCC, max?: ColorCC): RenderedImageT
 ---@field bloom fun(self: RenderedImageT, downscaleFactor: integer, kernelSize: integer, opacity: number): RenderedImageT
+---@field blur fun(self: RenderedImageT, kernelSize: integer): RenderedImageT
+---@field downscale fun(self: RenderedImageT, factor: integer): RenderedImageT
 ---@field tonemap fun(self: RenderedImageT, whitePoint: number): TinyImageTextureT
 ---@field save fun(self: RenderedImageT, path: string)
 

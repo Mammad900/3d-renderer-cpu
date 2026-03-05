@@ -24,6 +24,8 @@ void luaPostProcessing() {
             }
         ),
         "bloom", &RenderedImage::bloom,
+        "blur", &RenderedImage::blur,
+        "downscale", static_cast<RenderedImage (RenderedImage::*)(uint)>(&RenderedImage::downscale), // there's two overloads, have to select one
         "tonemap", &RenderedImage::tonemap,
         "save", [](sol::this_state s, RenderedImage &self, std::string path) {
             sol::state_view lua(s);
