@@ -3,9 +3,13 @@
 
 #include "color.h"
 #include "data.h"
+#include "texture.h"
 #include "tinyTexture.h"
+#include "vector3.h"
 #include <SFML/System/Vector2.hpp>
 #include <algorithm>
+#include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -15,7 +19,23 @@ struct RenderedImage {
     sf::Vector2u size;
     RenderedImage(sf::Vector2u size, std::vector<Color> data) : data(data), size(size) {}
     RenderedImage(sf::Vector2u size) : data(size.x * size.y), size(size) {}
-    RenderedImage(std::shared_ptr<RenderTarget> frame) : data(frame->framebuffer), size(frame->size) {}
+    RenderedImage(std::shared_ptr<RenderTarget> frame) : RenderedImage(frame->size, frame->framebuffer, frame->zBuffer) {}
+    RenderedImage(sf::Vector2u size, std::vector<Color> colors, std::vector<float> depths) : data(size.x * size.y), size(size) {
+        for (size_t i = 0; i < data.size(); i++) {
+            Color color = colors[i];
+            float depth = depths[i];
+            data[i] = Color{color.r, color.g, color.b, depth};
+        }
+    }
+
+    vector<Color> stripAlpha() {
+        vector<Color> res(data.size());
+        for (size_t i = 0; i < data.size(); i++) {
+            Color c = data[i];
+            res[i] = Color{c.r, c.g, c.b, 1};
+        }
+        return res;
+    }
 
     RenderedImage clip(Color min, Color max) {
         RenderedImage img(size);
@@ -49,7 +69,9 @@ struct RenderedImage {
         for (unsigned int y = 0; y < size.y; y++) {
             for (unsigned int x = 0; x < size.x; x++) {
                 Color pixel = data[y * size.x + x];
-                img.setPixel({x, y}, pixel.reinhardtTonemap(whitePoint));
+                Color res = pixel.reinhardtTonemap(whitePoint);
+                res.a = 1;
+                img.setPixel({x, y}, res);
             }
         }
         return std::make_shared<TinyImageTexture>(img, Color{1,1,1,1});
@@ -170,6 +192,31 @@ struct RenderedImage {
         }
 
         return result;
+    }
+
+    RenderedImage refract(shared_ptr<Texture<Vec3>> normalMap, Vector2f scale) {
+        RenderedImage res(size);
+
+        for (uint y = 0; y < size.y; ++y) {
+            for (uint x = 0; x < size.x; ++x) {
+
+                float u = ((float)(x) + 0.5f) / size.x;
+                float v = ((float)(y) + 0.5f) / size.y;
+                Vec3 normal = normalMap->sample({u,v}, {1.f/size.x, 0}, {0, 1.f/size.y});
+
+                normal /= normal.z; // Normalize to Z=1 (NOT length=1)
+                float depth = data[x + size.x * y].a;
+                if(depth == INFINITY) depth = 10;
+                int dx = normal.x * scale.x * depth;
+                int dy = normal.y * scale.y * depth;
+                uint newX = clamp<int>(x+dx, 0, size.x-1);
+                uint newY = clamp<int>(y+dy, 0, size.y-1);
+
+                res.data[x + size.x * y] = data[newX + size.x * newY];
+            }
+        }
+
+        return res;
     }
 
     static TinyImageTexture downscale(TinyImageTexture src, uint factor) {

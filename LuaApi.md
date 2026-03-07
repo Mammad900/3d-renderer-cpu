@@ -1037,6 +1037,7 @@ Methods:
 - `clip(min, max)`, `clip(max)`: Clips the color values to a specific range. Returns result as `RenderedImage`
 - `bloom(downscaleFactor, kernelSize, opacity)`: Applies a physically based bloom filter to the image. Returns result as `RenderedImage`
 - `blur(kernelSize)`: Applies a gaussian blur filter. Returns result as `RenderedImage`
+- `refract(normalMap, scale)`: Simulates refraction on the camera lens using the provided vector texture as a normal map.
 - `downscale(factor)`: Scales down by `factor` times. Returns result as `RenderedImage`
 - `tonemap(whitePoint)`: Applies Reinhard tone-mapping, converting to SDR. A white-point of 0 uses the luminance of the brightest pixel. Returns result as `TinyImageTexture`.
 - `save(path)`: Saves the HDR image as `.hdr` file. To save as more usual formats like PNG, tone-map it then call `save_to_file()` on the resulting SDR image.
@@ -1084,6 +1085,14 @@ This is probably not useful on its own, but it exists because it's used in Bloom
 | Source image | Blurred |
 |---------------|------------|
 |![Source image](renders/post-processing-demo/render-wp5.png)|![Blurred](renders/post-processing-demo/render-blur.png)|
+
+#### Refraction
+
+This filter can simulate refraction on a camera lens using a normal map.
+
+| Source Image | Normal Map | Result |
+|-|-|-|
+|![Source Image](renders/post-processing-demo/render-refract-original.png)|![Normal Map](renders/post-processing-demo/11823-normal.jpg)|![Result](renders/post-processing-demo/render-refract.png)|
 
 #### Tone-mapping
 

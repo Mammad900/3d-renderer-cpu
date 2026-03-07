@@ -105,10 +105,11 @@ TransformMatrix makeRotationMatrix(Vec3 R, RotationOrder order) {
     };
     
     switch (order) {
-    case RotationOrder::XYZ:
-        return x * y * z;
     case RotationOrder::ZYX:
         return z * y * x;
+    case RotationOrder::XYZ:
+    default:
+        return x * y * z;
     }
 }
 

@@ -5,7 +5,9 @@
 #include "sol/sol.hpp"
 #include <SFML/System/Vector2.hpp>
 #include <filesystem>
+#include <memory>
 #include <string>
+#include <vector>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Warray-bounds"
@@ -27,10 +29,14 @@ void luaPostProcessing() {
         "blur", &RenderedImage::blur,
         "downscale", static_cast<RenderedImage (RenderedImage::*)(uint)>(&RenderedImage::downscale), // there's two overloads, have to select one
         "tonemap", &RenderedImage::tonemap,
+        "refract", [](RenderedImage &self, shared_ptr<Texture<Vec3>> normalMap, sol::object scale) {
+            return self.refract(normalMap, valueFromObject<sf::Vector2f>(scale));
+        },
         "save", [](sol::this_state s, RenderedImage &self, std::string path) {
             sol::state_view lua(s);
             std::filesystem::path fullPath = get_calling_script_path(lua) / path;
-            stbi_write_hdr(fullPath.c_str(), self.size.x, self.size.y, 4, &self.data[0].r);
+            vector<Color> image = self.stripAlpha();
+            stbi_write_hdr(fullPath.c_str(), self.size.x, self.size.y, 4, &image[0].r);
         }
     );
     Lua["RenderedImage"]["load"] = [](sol::this_state s, std::string path) {

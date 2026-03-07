@@ -1130,6 +1130,7 @@ function AudioListenerComponent.new() end
 ---@field bloom fun(self: RenderedImageT, downscaleFactor: integer, kernelSize: integer, opacity: number): RenderedImageT
 ---@field blur fun(self: RenderedImageT, kernelSize: integer): RenderedImageT
 ---@field downscale fun(self: RenderedImageT, factor: integer): RenderedImageT
+---@field refract fun(self: RenderedImageT, normalMap: VectorTexture, scale: Vec2CC): RenderedImageT
 ---@field tonemap fun(self: RenderedImageT, whitePoint: number): TinyImageTextureT
 ---@field save fun(self: RenderedImageT, path: string)
 
