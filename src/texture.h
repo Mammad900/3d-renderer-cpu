@@ -2,6 +2,7 @@
 #define __TEXTURE_H__
 #include "color.h"
 #include <SFML/System/Vector2.hpp>
+#include <cmath>
 #include <imgui.h>
 #include <memory>
 
@@ -106,20 +107,22 @@ class SliceTexture : public Texture<T> {
     shared_ptr<Texture<T>> texture;
     Vector2f offset = {0, 0};
     Vector2f scale = {0, 0};
-    SliceTexture(shared_ptr<Texture<T>> texture, Vector2f scale, Vector2f offset) : texture(texture), offset(offset), scale(scale) {}
+    bool repeat;
+    SliceTexture(shared_ptr<Texture<T>> texture, Vector2f scale, Vector2f offset, bool repeat = false) 
+        : texture(texture), offset(offset), scale(scale), repeat(repeat) {}
 
-    T sample(Vector2f uv, Vector2f dUVdX, Vector2f dUVdY) {
-        return texture->sample(
-            uv.componentWiseMul(scale) + offset, 
-            dUVdX.componentWiseMul(scale),
-            dUVdY.componentWiseMul(scale)
-        );
-    }
+    T sample(Vector2f uv, Vector2f dUVdX, Vector2f dUVdY);
 
     void Gui(std::string label) {
         if(ImGui::TreeNode(label.c_str())) {
-            ImGui::SliderFloat2("Offset", &offset.x, 0, 1);
-            ImGui::SliderFloat2("Scale", &scale.x, 0, 1);
+            ImGui::Checkbox("Repeat", &repeat);
+            if(repeat) {
+                ImGui::DragFloat2("Offset", &offset.x, 0.1);
+                ImGui::DragFloat2("Scale", &scale.x, 0.1);
+            } else {
+                ImGui::SliderFloat2("Offset", &offset.x, 0, 1);
+                ImGui::SliderFloat2("Scale", &scale.x, 0, 1);
+            }
             texture->Gui("Source");
             ImGui::TreePop();
         }

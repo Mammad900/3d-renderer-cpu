@@ -28,3 +28,26 @@ void SineWaveTexture::Gui(std::string label) {
         ImGui::TreePop();
     }
 }
+
+
+Vector2f v2mod(Vector2f v) {
+    float _;
+    return {
+        modff(v.x, &_),
+        modff(v.y, &_)
+    };
+}
+
+template<typename T>
+T SliceTexture<T>::sample(Vector2f uv, Vector2f dUVdX, Vector2f dUVdY) {
+    return texture->sample(
+        repeat ? 
+            v2mod(uv.componentWiseMul(scale) + offset) :
+            uv.componentWiseMul(scale) + offset, 
+        dUVdX.componentWiseMul(scale),
+        dUVdY.componentWiseMul(scale)
+    );
+}
+template class SliceTexture<Color>;
+template class SliceTexture<float>;
+template class SliceTexture<Vec3>;

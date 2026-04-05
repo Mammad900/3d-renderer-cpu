@@ -57,13 +57,25 @@ void makeTextureUsertypes(std::string name) {
     );
 
     Lua.new_usertype<SliceTexture<T>>("Slice"+name+"Texture",
-        sol::meta_function::construct, [](shared_ptr<Texture<T>> texture, sol::table scale, sol::table offset) {
+        sol::meta_function::construct, sol::overload(
+            [](shared_ptr<Texture<T>> texture, sol::table scale, sol::table offset) {
             return std::make_shared<SliceTexture<T>>(
                 texture,
                 Vector2f(scale.get<float>(1), scale.get<float>(2)),
                 Vector2f(offset.get<float>(1), offset.get<float>(2))
             );
-        },
+        }, [](sol::table t) {
+            shared_ptr<Texture<T>> texture = t["texture"];
+            sol::table scale = t["scale"], offset = t["offset"];
+            bool repeat = t.get_or("repeat", false);
+            
+            return std::make_shared<SliceTexture<T>>(
+                texture,
+                Vector2f(scale.get<float>(1), scale.get<float>(2)),
+                Vector2f(offset.get<float>(1), offset.get<float>(2)),
+                repeat
+            );
+        }),
         "scale", &SliceTexture<T>::scale,
         "offset", &SliceTexture<T>::offset,
         "texture", &SliceTexture<T>::texture,

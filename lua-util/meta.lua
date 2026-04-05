@@ -742,9 +742,16 @@ function ImageFloatTexture.new(path, scale) end
 
 SliceColorTexture = {}
 
+---@class SliceColorTextureC
+---@field texture ColorTexture
+---@field scale [number, number]
+---@field offset [number, number]
+---@field repeat? boolean
+
 ---@param texture ColorTexture
 ---@param scale [number, number]
 ---@param offset [number, number]
+---@overload fun(props: SliceColorTextureC): SliceColorTextureT
 ---@return SliceColorTextureT
 function SliceColorTexture.new(texture, scale, offset) end
 
@@ -761,9 +768,16 @@ function slice_color_texture(texture, n) end
 
 SliceVectorTexture = {}
 
+---@class SliceVectorTextureC
+---@field texture VectorTexture
+---@field scale [number, number]
+---@field offset [number, number]
+---@field repeat? boolean
+
 ---@param texture VectorTexture
 ---@param scale [number, number]
 ---@param offset [number, number]
+---@overload fun(props: SliceVectorTextureC): SliceVectorTextureT
 ---@return SliceVectorTextureT
 function SliceVectorTexture.new(texture, scale, offset) end
 
@@ -780,9 +794,16 @@ function slice_vector_texture(texture, n) end
 
 SliceFloatTexture = {}
 
+---@class SliceFloatTextureC
+---@field texture VectorTexture
+---@field scale [number, number]
+---@field offset [number, number]
+---@field repeat? boolean
+
 ---@param texture FloatTexture
 ---@param scale [number, number]
 ---@param offset [number, number]
+---@overload fun(props: SliceFloatTextureC): SliceFloatTextureT
 ---@return SliceFloatTextureT
 function SliceFloatTexture.new(texture, scale, offset) end
 
