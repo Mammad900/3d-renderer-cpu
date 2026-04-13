@@ -26,7 +26,8 @@ void luaPostProcessing() {
             }
         ),
         "bloom", &RenderedImage::bloom,
-        "blur", &RenderedImage::blur,
+        "blur", [](RenderedImage &self, float sigma){return self.blur(sigma);},
+        "depthBasedBlur", [](RenderedImage &self, float sigma){return self.blur(sigma, true);},
         "downscale", static_cast<RenderedImage (RenderedImage::*)(uint)>(&RenderedImage::downscale), // there's two overloads, have to select one
         "tonemap", &RenderedImage::tonemap,
         "refract", [](RenderedImage &self, shared_ptr<Texture<Vec3>> normalMap, sol::object scale) {

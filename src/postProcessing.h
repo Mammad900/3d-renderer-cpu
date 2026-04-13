@@ -109,15 +109,16 @@ struct RenderedImage {
         return res;
     }
 
-    RenderedImage blur(int kernelSize) {
+    RenderedImage blur(int kernelSize, bool depthBased = false) {
         RenderedImage blurred(size);
-        const float sigma = kernelSize * 0.5f;
+        float sigma = kernelSize * 0.5f;
 
         for (int y = 0; y < static_cast<int>(size.y); ++y) {
             for (int x = 0; x < static_cast<int>(size.x); ++x) {
 
                 Color sum{};
                 float weightSum = 0.0f;
+                float sigmaNow = depthBased ? data[x + size.x * y].a * sigma : sigma;
 
                 // radius == kernelSize
                 for (int ky = -kernelSize; ky <= kernelSize; ++ky) {
@@ -131,7 +132,7 @@ struct RenderedImage {
 
                             // Gaussian weight for the current offset
                             float w = std::exp(-((kx * kx + ky * ky) /
-                                                (2.0f * sigma * sigma)));
+                                                (2.0f * sigmaNow * sigmaNow)));
 
                             sum += data[nx + size.x * ny] * w;
                             weightSum += w;
