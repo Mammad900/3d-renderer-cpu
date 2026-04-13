@@ -112,3 +112,77 @@ Color ShadedInfiniteFloor::sample (Vec3 L, Vec3 O, bool canWriteDepth) {
         res = sampleFog(pos, O, res, *currentWindow->scene, currentWindow->scene->volume);
     return res;
 }
+
+Color CubicRoom::sample(Vec3 L_, Vec3 O_, bool canWriteDepth) {
+    float L[3] = {L_.x, L_.y, L_.z};
+    float O[3] = {O_.x, O_.y, O_.z};
+    float boxMin[3] = {boundingBox.min.x, boundingBox.min.y, boundingBox.min.z};
+    float boxMax[3] = {boundingBox.max.x, boundingBox.max.y, boundingBox.max.z};
+
+    int hitAxis = -1;
+    bool hitSide = 0;
+
+    float tmin = -INFINITY;
+    float tmax =  INFINITY;
+
+    for (int i=0; i<3; ++i) {
+        float o = O[i];
+        float l = L[i];
+        float minB = boxMin[i];
+        float maxB = boxMax[i];
+
+        if (fabs(l) < 1e-6f) {
+            if (o < minB || o > maxB)
+                return fallback->sample(L_,O_,canWriteDepth);
+            continue;
+        }
+
+        float t1 = (minB - o) / l;
+        float t2 = (maxB - o) / l;
+        if (t1 > t2) std::swap(t1, t2);
+
+        if (t1 > tmin) tmin   = t1;
+        if (t2 < tmax) {
+            tmax = t2;
+            hitAxis = i;
+            hitSide = l < 0;
+        }
+    }
+
+    if (tmin > tmax || tmax <= 0)
+        return fallback->sample(L_,O_,canWriteDepth);
+
+    Vec3 pos   = O_ + L_ * tmax;
+    float pos_[3] = {pos.x, pos.y, pos.z};
+    // Vec3 normal(0,0,0);
+    // normal[axis] = side;
+
+    /* ---------- UVs ----------
+       Determine the two in‑plane indices:
+         axis 0 (X) → uIdx=1(Y), vIdx=2(Z)
+         axis 1 (Y) → uIdx=0(X), vIdx=2(Z)
+         axis 2 (Z) → uIdx=0(X), vIdx=1(Y)
+    */
+
+    // if(pos.x == 1) {hitAxis = 0; hitSide= true;}
+    // if(pos.x == -1) {hitAxis = 0; hitSide= true;}
+
+    int uIdx, vIdx;
+    if      (hitAxis == 0) { uIdx = 1; vIdx = 2; }
+    else if (hitAxis == 1) { uIdx = 0; vIdx = 2; }
+    else                   { uIdx = 0; vIdx = 1; }
+
+    float u = (pos_[uIdx] - boxMin[uIdx]) / (boxMax[uIdx] - boxMin[uIdx]);
+    float v = (pos_[vIdx] - boxMin[vIdx]) / (boxMax[vIdx] - boxMin[vIdx]);
+
+    int texId = 0;
+    Color i{1,1,1};
+    if(hitAxis == 0 && !hitSide) {texId = 0;std::swap(u,v);v = 1-v;u = 1-u;}
+    else if(hitAxis == 1 && !hitSide) {texId = 1;i={0,1,0};}
+    else if(hitAxis == 2 && !hitSide) {texId = 2;v = 1-v;}
+    else if(hitAxis == 0 && hitSide) {texId = 3;std::swap(u,v);v = 1-v;}
+    else if(hitAxis == 1 && hitSide) {texId = 4;i={1,0,1};}
+    else if(hitAxis == 2 && hitSide) {texId = 5;v = 1-v;u = 1-u;}
+
+    return textures[texId]->sample({u,v}, {0,0}, {0,0});
+}

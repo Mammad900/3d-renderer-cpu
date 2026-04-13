@@ -237,4 +237,17 @@ void luaTextures() {
         "fallback", &ShadedInfiniteFloor::fallback,
         "as_environment_map", [](std::shared_ptr<ShadedInfiniteFloor>& l) -> std::shared_ptr<EnvironmentMap> { return l; }
     );
+    Lua.new_usertype<CubicRoom>("CubicRoom",
+        sol::meta_function::construct, [](sol::table aabbTable, shared_ptr<EnvironmentMap> fallback, sol::table texturesTable) {
+            std::array<shared_ptr<Texture<Color>>, 6> textures{
+                texturesTable[1], texturesTable[2], texturesTable[3],
+                texturesTable[4], texturesTable[5], texturesTable[6],
+            };
+            AABB aabb(aabbTable[1], aabbTable[2], aabbTable[3], aabbTable[4], aabbTable[5], aabbTable[6]);
+            return std::make_shared<CubicRoom>(aabb, fallback, textures);
+        },
+        "boundingBox", &CubicRoom::boundingBox,
+        "fallback", &CubicRoom::fallback,
+        "as_environment_map", [](std::shared_ptr<CubicRoom>& l) -> std::shared_ptr<EnvironmentMap> { return l; }
+    );
 }

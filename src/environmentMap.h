@@ -5,10 +5,9 @@
 #include "material.h"
 #include "texture.h"
 #include "vector3.h"
+#include "aabb.h"
 #include <SFML/System/Vector2.hpp>
-#include <cstdlib>
 #include <array>
-#include <memory>
 
 extern std::array<std::tuple<float,float,float,float>, 6> cubeMapFaces;
 
@@ -69,6 +68,18 @@ class ShadedInfiniteFloor : public EnvironmentMap {
     float scale;
     ShadedInfiniteFloor(shared_ptr<Material> material, shared_ptr<EnvironmentMap> fallback, float scale)
         : material(material), fallback(fallback), scale(scale) {}
+
+    Color sample(Vec3 L, Vec3 origin={0,0,0}, bool canWriteDepth = false);
+};
+
+class CubicRoom : public EnvironmentMap {
+  public:
+    AABB boundingBox;
+    shared_ptr<EnvironmentMap> fallback;
+    std::array<shared_ptr<Texture<Color>>, 6> textures;
+    
+    CubicRoom(AABB boundingBox, shared_ptr<EnvironmentMap> fallback, std::array<shared_ptr<Texture<Color>>, 6> textures)
+        : boundingBox(boundingBox), fallback(fallback), textures(textures) {}
 
     Color sample(Vec3 L, Vec3 origin={0,0,0}, bool canWriteDepth = false);
 };

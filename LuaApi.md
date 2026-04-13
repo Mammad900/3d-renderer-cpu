@@ -768,6 +768,16 @@ This is a variant that performs material shading. Slower.
 > - Behaves incorrectly with orthographic cameras
 > - Geometry should not cross the floor. There is no Z-rejection against the floor, so the floor will appear behind all geometry and not occlude anything.
 
+### `CubicRoom`
+
+Like `InfiniteFloor` but it simulates an axis aligned cube instead.
+
+Parameters:
+
+1. `boundingBox`: The coordinates of the bounding box as an array of six numbers: min x, min y, min z, max x, max y, max z.
+2. `fallback`: The environment map to sample from when a hit can't be found (like when camera / object is outside the bounding box)
+3. `textures`: The textures of the bounding box, as an array of six color textures in order: -x, -y, -z, +x, +y, +z.
+
 ## Scripting
 
 ### `on_frame`

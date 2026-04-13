@@ -986,6 +986,19 @@ ShadedInfiniteFloor = {}
 ---@return ShadedInfiniteFloorT
 function ShadedInfiniteFloor.new(material, fallback, scale) end
 
+
+---@class CubicRoomT
+---@field fallback EnvironmentMapT
+---@field as_environment_map fun(self: CubicRoomT): EnvironmentMapT
+
+CubicRoom = {}
+
+---@param boundingBox [number,number,number,number,number,number]
+---@param fallback EnvironmentMapT
+---@param textures [ColorTexture, ColorTexture, ColorTexture, ColorTexture, ColorTexture, ColorTexture]
+---@return CubicRoomT
+function CubicRoom.new(boundingBox, fallback, textures) end
+
 --#endregion
 --#region Scripting
 
