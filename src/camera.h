@@ -19,7 +19,7 @@ class Camera : public Component, public std::enable_shared_from_this<Camera> {
     void GUI();
     void update();
     Projection project(Vec3 a);
-    sf::Image getRenderedFrame(int renderMode);
+    sf::Image getRenderedFrame(RenderMode renderMode);
     Vec3 screenSpaceToCameraSpace(int x, int y);
     Vec3 screenSpaceToCameraSpace(int x, int y, float z);
     Vec3 screenSpaceToWorldSpace(int x, int y);

@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "material.h"
+#include "miscTypes.h"
 #include "phongMaterial.h"
 #include "lua/lua.h"
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -45,8 +46,30 @@ void guiUpdate(shared_ptr<Window> window) {
     ImGui::InputFloat("Far", &camera->farClip);
     ImGui::SliderFloat("FOV", &camera->fov, 10, 150);
     ImGui::Checkbox("Orthographic", &camera->orthographic);
-    ImGui::RadioButton("Frame buffer", &editingScene->renderMode, 0);
-    ImGui::RadioButton("Z buffer", &editingScene->renderMode, 1);
+
+    if(ImGui::TreeNode("Render mode")) {
+        ImGui::RadioButton("Frame buffer", &renderMode, RenderMode::normal);
+        ImGui::SameLine();
+        ImGui::RadioButton("Z buffer", &renderMode, RenderMode::zBuffer);
+        ImGui::RadioButton("G Position", &renderMode, RenderMode::gBufferPosition);
+        ImGui::SameLine();
+        ImGui::RadioButton("G Normal", &renderMode, RenderMode::gBufferNormal);
+        ImGui::SameLine();
+        ImGui::RadioButton("G View dir", &renderMode, RenderMode::gBufferViewDir);
+        ImGui::RadioButton("G Tangent", &renderMode, RenderMode::gBufferTangent);
+        ImGui::SameLine();
+        ImGui::RadioButton("G Bitangent", &renderMode, RenderMode::gBufferBitangent);
+        ImGui::RadioButton("G UV", &renderMode, RenderMode::gBufferUV);
+        ImGui::SameLine();
+        ImGui::RadioButton("G dUVdx", &renderMode, RenderMode::gBufferDUVdx);
+        ImGui::SameLine();
+        ImGui::RadioButton("G dUVdy", &renderMode, RenderMode::gBufferDUVdy);
+        ImGui::RadioButton("G Base Color", &renderMode, RenderMode::gBufferBaseColor);
+        ImGui::SameLine();
+        ImGui::RadioButton("G Z", &renderMode, RenderMode::gBufferZ);
+        ImGui::TreePop();
+    }
+
     ImGui::Checkbox("Back-face culling", &editingScene->backFaceCulling);
     ImGui::Checkbox("Reverse all faces", &editingScene->reverseAllFaces);
     ImGui::Checkbox("Full-bright mode", &editingScene->fullBright);
@@ -64,7 +87,7 @@ void guiUpdate(shared_ptr<Window> window) {
     if(ImGui::Button("Render one frame now and save")) {
         currentWindow = window;
         camera->render();
-        sf::Image res = camera->getRenderedFrame(0);
+        sf::Image res = camera->getRenderedFrame(RenderMode::normal);
         if(!res.saveToFile("render.png"))
             std::cerr << "Failed to save to render.png" << std::endl;
     }

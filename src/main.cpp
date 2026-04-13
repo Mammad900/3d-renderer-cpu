@@ -9,6 +9,7 @@
 #include <string>
 
 std::vector<std::shared_ptr<Window>> windows;
+RenderMode renderMode = RenderMode::normal;
 
 int main(int argc, char** argv) {
     lua(argc > 1 ? argv[1] : "assets/scene.lua");
@@ -92,7 +93,7 @@ int main(int argc, char** argv) {
                     continue;
                 if(timing.render) {
                     window->camera->render();
-                    sf::Image img = window->camera->getRenderedFrame(window->scene->renderMode);
+                    sf::Image img = window->camera->getRenderedFrame(renderMode);
                     timing.postProcessTime.push(timing.clock);
                     sf::Texture tex(img);
                     tex.setSmooth(true);

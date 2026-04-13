@@ -86,7 +86,6 @@ struct Scene : public std::enable_shared_from_this<Scene> {
 
     std::vector<shared_ptr<Object>> objects;
 
-    int renderMode = 0;
     bool backFaceCulling = true;
     bool reverseAllFaces = false;
     bool fullBright = false;

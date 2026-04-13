@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "data.h"
 #include "triangle.h"
+#include "vector3.h"
 #include <imgui.h>
 #include <SFML/System/Clock.hpp>
 
@@ -18,19 +19,45 @@ Projection Camera::project(Vec3 a) {
     };
 }
 
-sf::Image Camera::getRenderedFrame(int renderMode) { 
+sf::Image Camera::getRenderedFrame(RenderMode renderMode) {
     sf::Image img(frame->size);
     for (unsigned int y = 0; y < frame->size.y; y++)
-        for (unsigned int x = 0; x < frame->size.x; x++)
-            if (renderMode == 0) { // Frame buffer
-                Color pixel = frame->framebuffer[y * frame->size.x + x];
-                img.setPixel({x, y}, pixel.reinhardtTonemap(whitePoint==0 ? maximumColor : whitePoint));
+        for (unsigned int x = 0; x < frame->size.x; x++) {
+            size_t i = y * frame->size.x + x;
+            sf::Color c{0,0,0};
+
+            if (renderMode == RenderMode::normal) {
+                Color pixel = frame->framebuffer[i];
+                c = pixel.reinhardtTonemap(whitePoint==0 ? maximumColor : whitePoint);
             }
-            else if (renderMode == 1) { // Z buffer
+            else if (renderMode == RenderMode::zBuffer) {
                 // Z buffer range is really display-to-end-user unfriendly
-                float z = frame->zBuffer[y * frame->size.x + x] * 20.0f;
-                img.setPixel({x, y}, sf::Color(z, z, z));
+                float z = frame->zBuffer[i] * 20.0f;
+                c = sf::Color(z, z, z);
             }
+            else if (renderMode == RenderMode::gBufferPosition) {
+                Vec3 pos = frame->gBuffer[i].worldPos * 20.0f;
+                c = sf::Color(pos.x+127, pos.y+127, pos.z+127);
+            }
+            else if (renderMode == RenderMode::gBufferNormal) {
+                Vec3 pos = frame->gBuffer[i].normal * 100.0f;
+                c = sf::Color(pos.x+127, pos.y+127, pos.z+127);
+            }
+            else if (renderMode == RenderMode::gBufferTangent) {
+                Vec3 pos = frame->gBuffer[i].tangent * 100.0f;
+                c = sf::Color(pos.x+127, pos.y+127, pos.z+127);
+            }
+            else if (renderMode == RenderMode::gBufferBitangent) {
+                Vec3 pos = frame->gBuffer[i].bitangent * 100.0f;
+                c = sf::Color(pos.x+127, pos.y+127, pos.z+127);
+            }
+            else if (renderMode == RenderMode::gBufferViewDir) {
+                Vec3 pos = frame->gBuffer[i].viewDir * 100.0f;
+                c = sf::Color(pos.x+127, pos.y+127, pos.z+127);
+            }
+
+            img.setPixel({x, y}, c);
+        }
     return img;
 }
 

@@ -61,6 +61,22 @@ struct Fragment {
     bool isBackFace, inside;
 };
 
+enum class RenderMode {
+    normal,
+    zBuffer,
+    gBufferPosition,
+    gBufferNormal,
+    gBufferTangent,
+    gBufferBitangent,
+    gBufferViewDir,
+    gBufferUV,
+    gBufferDUVdx,
+    gBufferDUVdy,
+    gBufferBaseColor,
+    gBufferZ
+};
+extern RenderMode renderMode;
+
 struct Triangle {
     Projection s1, s2, s3;
     Vector2f uv1, uv2, uv3;
