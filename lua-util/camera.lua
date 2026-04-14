@@ -4,6 +4,7 @@
 ---@field light? boolean Whether to add a white directional light of strength 0.5 shining forward.
 ---@field speed? number Speed of keyboard controls.
 ---@field rotation? Vec3T Initial rotation
+---@field move_keeps_orbit? boolean By default, attempting to move disables orbit mode. Set this to keep it on.
 
 ---Creates a ready to use Camera object orbiting the world origin, and with keyboard controls. 
 ---
@@ -30,7 +31,8 @@ return function(props2)
         active = true,
         distance = 5,
         speed = 2,
-        rotation= Vec3.new(0,0,0)
+        rotation= Vec3.new(0,0,0),
+        move_keeps_orbit = false
     }
     for k,v in pairs(props2) do props[k] = v end
 
@@ -120,16 +122,16 @@ return function(props2)
             move = camera_orbit:transform_rotation(move)
             move.y = y -- Vertical movement isn't affected by look
 
-            if(move:length() > 0) then
+            if move:length() > 0 then
                 move = move:normalized() * dt
                 if is_key_pressed(key.l_shift) then
                     move = move * 3
                 end
-                if is_orbit then
+                if is_orbit and not props.move_keeps_orbit then
                     move = move + camera.global_position - camera_orbit.global_position -- Trick to make the transition seamless
                     is_orbit = false
+                    camera.position.z = 0
                 end
-                camera.position.z = 0
                 camera_orbit.position = camera_orbit.position + move;
             end
 
