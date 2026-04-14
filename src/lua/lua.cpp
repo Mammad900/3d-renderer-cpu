@@ -12,6 +12,7 @@
 #include <cctype>
 #include <cmath>
 #include <filesystem>
+#include <optional>
 #include <string>
 
 #ifdef __GNUC__
@@ -272,6 +273,22 @@ void lua(std::string path) {
     return;
 }
 
-void luaRun(std::string code) {
-    Lua.script(code);
+std::optional<std::string> luaRun(std::string code) {
+        try {
+        auto result = Lua.safe_script(code);
+        if (result.valid()) {
+            // Print return value(s)
+            std::string res = "";
+            for (auto&& r : result) {
+                res += r.get<std::string>() + '\n';
+            }
+            return res;
+        } else {
+            sol::error err = result;
+            ImGui::TextColored(ImVec4{1,0,0,1}, "Error: %s", err.what());
+        }
+    } catch (const std::exception& e) {
+        return e.what();
+    }
+    return std::optional<std::string>();
 }

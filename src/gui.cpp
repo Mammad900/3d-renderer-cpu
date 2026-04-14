@@ -36,8 +36,10 @@ void guiUpdate(shared_ptr<Window> window) {
 
     if(ImGui::Begin("Lua REPL")) {
         ImGui::InputTextMultiline("##", &luaReplInput);
+        static std::optional<std::string> result;
         if(ImGui::Button("Run"))
-            luaRun(luaReplInput);
+            result = luaRun(luaReplInput);
+        if(result) ImGui::Text("%s", result->c_str()); 
     }
     ImGui::End();
 
