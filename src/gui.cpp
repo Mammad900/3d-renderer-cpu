@@ -53,22 +53,24 @@ void guiUpdate(shared_ptr<Window> window) {
         ImGui::RadioButton("Frame buffer", &renderMode, RenderMode::normal);
         ImGui::SameLine();
         ImGui::RadioButton("Z buffer", &renderMode, RenderMode::zBuffer);
-        ImGui::RadioButton("G Position", &renderMode, RenderMode::gBufferPosition);
-        ImGui::SameLine();
-        ImGui::RadioButton("G Normal", &renderMode, RenderMode::gBufferNormal);
-        ImGui::SameLine();
-        ImGui::RadioButton("G View dir", &renderMode, RenderMode::gBufferViewDir);
-        ImGui::RadioButton("G Tangent", &renderMode, RenderMode::gBufferTangent);
-        ImGui::SameLine();
-        ImGui::RadioButton("G Bitangent", &renderMode, RenderMode::gBufferBitangent);
-        ImGui::RadioButton("G UV", &renderMode, RenderMode::gBufferUV);
-        ImGui::SameLine();
-        ImGui::RadioButton("G dUVdx", &renderMode, RenderMode::gBufferDUVdx);
-        ImGui::SameLine();
-        ImGui::RadioButton("G dUVdy", &renderMode, RenderMode::gBufferDUVdy);
-        ImGui::RadioButton("G Base Color", &renderMode, RenderMode::gBufferBaseColor);
-        ImGui::SameLine();
-        ImGui::RadioButton("G Z", &renderMode, RenderMode::gBufferZ);
+        if(window->frame->deferred) {
+            ImGui::RadioButton("G Position", &renderMode, RenderMode::gBufferPosition);
+            ImGui::SameLine();
+            ImGui::RadioButton("G Normal", &renderMode, RenderMode::gBufferNormal);
+            ImGui::SameLine();
+            ImGui::RadioButton("G View dir", &renderMode, RenderMode::gBufferViewDir);
+            ImGui::RadioButton("G Tangent", &renderMode, RenderMode::gBufferTangent);
+            ImGui::SameLine();
+            ImGui::RadioButton("G Bitangent", &renderMode, RenderMode::gBufferBitangent);
+            ImGui::RadioButton("G UV", &renderMode, RenderMode::gBufferUV);
+            ImGui::SameLine();
+            ImGui::RadioButton("G dUVdx", &renderMode, RenderMode::gBufferDUVdx);
+            ImGui::SameLine();
+            ImGui::RadioButton("G dUVdy", &renderMode, RenderMode::gBufferDUVdy);
+            ImGui::RadioButton("G Base Color", &renderMode, RenderMode::gBufferBaseColor);
+            ImGui::SameLine();
+            ImGui::RadioButton("G Z", &renderMode, RenderMode::gBufferZ);
+        }
         ImGui::TreePop();
     }
 
