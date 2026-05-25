@@ -31,6 +31,7 @@ class Camera : public Component, public std::enable_shared_from_this<Camera> {
     void buildTriangles(std::vector<TransparentTriangle> &transparents, std::vector<Triangle> &triangles);
     TransformMatrix projectionMatrix;
     float tanHalfFov;
+    float tanHalfFovVertical;
 };
 
 void deferredPass(uint n, uint i0, Camera *camera);

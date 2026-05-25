@@ -2,6 +2,7 @@
 #include "data.h"
 #include "triangle.h"
 #include "vector3.h"
+#include <SFML/System/Vector2.hpp>
 #include <imgui.h>
 #include <SFML/System/Clock.hpp>
 
@@ -68,7 +69,7 @@ Vec3 Camera::screenSpaceToCameraSpace(int x, int y) {
 
 Vec3 Camera::screenSpaceToCameraSpace(int x, int y, float z) { 
     Vector2f worldPos{x / (float)frame->size.x, y / (float)frame->size.y};
-    worldPos = (Vector2f{0.5, 0.5} - worldPos) * 2.0f * (orthographic ? 1 : z) * tanHalfFov;
+    worldPos = (Vector2f{0.5, 0.5} - worldPos).componentWiseMul({tanHalfFov, tanHalfFovVertical}) * (2.0f * (orthographic ? 1 : z));
     return Vec3{worldPos.x, worldPos.y, z};
 }
 
@@ -81,7 +82,10 @@ Vec3 Camera::screenSpaceToWorldSpace(int x, int y, float z) {
 }
 
 void Camera::makeProjectionMatrix() {
-    float S = 1 / (tanHalfFov = orthographic ? fov : tan(fov * M_PI / 360));
+    tanHalfFov = orthographic ? fov : tan(fov * M_PI / 360);
+    tanHalfFovVertical = frame ? tanHalfFov * frame->size.y / frame->size.x : tanHalfFov;
+    float SH = 1 / tanHalfFov;
+    float SV = 1 / tanHalfFovVertical;
     float f = -farClip / (farClip - nearClip);
     TransformMatrix translate {
         1, 0, 0, 0,
@@ -89,8 +93,8 @@ void Camera::makeProjectionMatrix() {
         0, 0, 1, 0,
         -obj->globalPosition.x, -obj->globalPosition.y, -obj->globalPosition.z, 1,
     }, project {
-        S, 0, 0, 0,
-        0, S, 0, 0,
+        SH, 0, 0, 0,
+        0, SV, 0, 0,
         0, 0, f,-1,
         0, 0,-f*nearClip,0
     };
