@@ -24,6 +24,23 @@ void bakeMeshNormals(Mesh &mesh) {
                          "and cancels out another face's normal." << std::endl;
 }
 
+void bakeMeshBoundingBox(Mesh &mesh) {
+    if (mesh.vertices.empty()) {
+        mesh.boundingBox = AABB(); // empty box
+        return;
+    }
+    Vec3 minV = mesh.vertices.front().position;
+    Vec3 maxV = mesh.vertices.front().position;
+
+    for (const auto& v : mesh.vertices) {
+        const Vec3& p = v.position;
+        if (p.x < minV.x) minV.x = p.x; else if (p.x > maxV.x) maxV.x = p.x;
+        if (p.y < minV.y) minV.y = p.y; else if (p.y > maxV.y) maxV.y = p.y;
+        if (p.z < minV.z) minV.z = p.z; else if (p.z > maxV.z) maxV.z = p.z;
+    }
+    mesh.boundingBox = AABB(minV, maxV);
+}
+
 shared_ptr<Mesh> loadOBJ(const std::filesystem::path &filename, shared_ptr<Material> mat, std::string name) {
     std::ifstream file(filename); // Like std::cin, but for a file
     if (!file) {

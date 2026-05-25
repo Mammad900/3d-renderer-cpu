@@ -5,6 +5,7 @@
 #include "object.h"
 
 void bakeMeshNormals(Mesh &mesh);
+void bakeMeshBoundingBox(Mesh &mesh);
 
 // Constructs a UV sphere as a Mesh pointer.
 // Parameters:

@@ -156,6 +156,7 @@ void luaMesh() {
                 if(t.get_or("auto_normals", false)) {
                     bakeMeshNormals(mesh);
                 }
+                bakeMeshBoundingBox(mesh);
 
                 auto meshPtr = std::make_shared<Mesh>(std::move(mesh));
                 meshes.emplace_back(meshPtr);
@@ -300,6 +301,7 @@ void luaMesh() {
         }
         else mesh = std::make_shared<Mesh>();
         mesh->flatShading = t.get_or("flat_shading", mesh->flatShading);
+        bakeMeshBoundingBox(*mesh);
         meshes.emplace_back(mesh);
         return mesh;
     };

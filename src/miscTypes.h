@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <string>
+#include "aabb.h"
 #include "color.h"
 #include "texture.h"
 #include "material.h"
@@ -39,6 +40,7 @@ struct Mesh {
     std::string label;
     vector<Vertex> vertices;
     vector<Face> faces;
+    AABB boundingBox;
     bool flatShading = false;
 
     Mesh(const std::string& label = "", const vector<Vertex>& vertices = {}, const vector<Face>& faces = {}, bool flatShading = false)

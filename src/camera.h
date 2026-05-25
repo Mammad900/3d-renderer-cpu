@@ -5,6 +5,7 @@
 #include <memory>
 
 struct RenderTarget;
+extern int meshesRendering;
 
 class Camera : public Component, public std::enable_shared_from_this<Camera> {
   public:

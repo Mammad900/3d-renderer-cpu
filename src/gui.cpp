@@ -14,6 +14,7 @@
 #include <string>
 // #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "lib/stb_image_write.h"
+#include "triangle.h"
 
 char objFilePath[500];
 shared_ptr<Material> guiSelectedMaterial;
@@ -122,6 +123,9 @@ void guiUpdate(shared_ptr<Window> window) {
     Timing(timing.fogTime           , "Fog              ");
     Timing(timing.postProcessTime   , "Post processing  ");
     Timing(timing.windowTime        , "Window           ");
+    ImGui::Text("Meshes rendering: %i", meshesRendering);
+    ImGui::Text("Tris rendering: %i", trisRendering);
+    meshesRendering = trisRendering = 0;
     ImGui::Checkbox("Sync frame size to window size", &window->syncFrameSize);
     if(ImGui::DragScalarN("Frame size", ImGuiDataType_U32, &window->frame->size, 2)) {
         if(window->syncFrameSize)

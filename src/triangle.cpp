@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <iostream>
 
+int trisRendering = 0;
+
 using sf::Vector2f, sf::Vector2u, sf::Vector2i;
 using std::swap, std::min, std::max, std::abs, std::round;
 
@@ -86,6 +88,8 @@ void drawTriangle(Camera *camera, Triangle tri, bool defer) {
          : Vec3{0,0,0};
 
     if (tri.mesh->flatShading && triangleNormal.lengthSquared() == 0) return; // Degenerate triangle
+
+    trisRendering++;
 
     Vec3 tangent{}, bitangent{};
     if (tri.mat->normalMap) {

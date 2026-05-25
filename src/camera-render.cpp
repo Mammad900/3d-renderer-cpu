@@ -15,6 +15,8 @@
 #include <memory>
 #include <typeindex>
 
+int meshesRendering = 0;
+
 void Camera::render() {
     shared_ptr<Scene> scene = obj->scene.lock();
     if(!scene) return;
@@ -94,6 +96,42 @@ void Camera::render() {
     }
 }
 
+AABB transformAABB(Camera *cam, shared_ptr<Object> &obj, AABB src) {
+        Vec3 hCorners[8] = {
+            {src.min.x, src.min.y, src.min.z},
+            {src.max.x, src.min.y, src.min.z},
+            {src.min.x, src.max.y, src.min.z},
+            {src.max.x, src.max.y, src.min.z},
+            {src.min.x, src.min.y, src.max.z},
+            {src.max.x, src.min.y, src.max.z},
+            {src.min.x, src.max.y, src.max.z},
+            {src.max.x, src.max.y, src.max.z}
+        };
+
+        // Transform the first corner to initialise bounds
+        Vec3 pos0 = cam->project(hCorners[0] * obj->transform).screenPos;
+        Vec3 min = pos0, max = pos0;
+
+        // Process remaining corners
+        for (int i = 1; i < 8; ++i) {
+            Vec3 pos = cam->project(hCorners[i] * obj->transform).screenPos;
+            if(pos.z < 0) {
+                pos.x = -pos.x;
+                pos.y = -pos.y;
+            }
+
+            min.x = std::min(min.x, pos.x);
+            min.y = std::min(min.y, pos.y);
+            min.z = std::min(min.z, pos.z);
+
+            max.x = std::max(max.x, pos.x);
+            max.y = std::max(max.y, pos.y);
+            max.z = std::max(max.z, pos.z);
+        }
+
+        return AABB(min, max);
+}
+
 void Camera::buildTriangles(
     std::vector<TransparentTriangle> &transparents,
     std::vector<Triangle> &triangles
@@ -103,6 +141,18 @@ void Camera::buildTriangles(
         for (auto &&comp : obj->components) {
             if (MeshComponent *meshComp = dynamic_cast<MeshComponent *>(comp.get())) {
                 shared_ptr<Mesh> mesh = meshComp->mesh;
+
+                // Frustum culling
+                AABB boundingBox = transformAABB(this, obj, mesh->boundingBox);
+                if(
+                    boundingBox.max.z < nearClip || boundingBox.min.z > farClip ||
+                    boundingBox.max.x < -1 || boundingBox.min.x > 1 ||
+                    boundingBox.max.y < -1 || boundingBox.min.y > 1
+                )
+                    continue;
+
+                meshesRendering++;
+
                 Projection projectedVertices[mesh->vertices.size()];
 
                 for (size_t j = 0; j < mesh->vertices.size(); j++) {

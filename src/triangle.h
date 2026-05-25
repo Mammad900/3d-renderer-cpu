@@ -7,6 +7,8 @@
 #include <SFML/Graphics/Image.hpp>
 #include <iostream>
 
+extern int trisRendering;
+
 using sf::Vector2f, sf::Vector2u, sf::Vector2i;
 using std::swap, std::max, std::abs;
 
