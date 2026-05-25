@@ -10,8 +10,7 @@ void Camera::update() {
 }
 
 Projection Camera::project(Vec3 a) {
-    Vec3 b = a - obj->globalPosition;
-    float vM[4] = {b.x, b.y, b.z, 1};
+    float vM[4] = {a.x, a.y, a.z, 1};
     matMul(vM, projectionMatrix.data(), vM, 1, 4, 4);
     return Projection{
         .worldPos = a,
@@ -84,12 +83,18 @@ Vec3 Camera::screenSpaceToWorldSpace(int x, int y, float z) {
 void Camera::makeProjectionMatrix() {
     float S = 1 / (tanHalfFov = orthographic ? fov : tan(fov * M_PI / 360));
     float f = -farClip / (farClip - nearClip);
-    matMul(transposeMatrix(obj->transformRotation).data(), (float[]){
+    TransformMatrix translate {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        -obj->globalPosition.x, -obj->globalPosition.y, -obj->globalPosition.z, 1,
+    }, project {
         S, 0, 0, 0,
         0, S, 0, 0,
         0, 0, f,-1,
         0, 0,-f*nearClip,0
-    }, projectionMatrix.data(), 4,4,4);
+    };
+    projectionMatrix = translate * transposeMatrix(obj->transformRotation) * project;
 }
 
 void Camera::GUI() {
