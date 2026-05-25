@@ -118,7 +118,7 @@ void Camera::buildTriangles(
                     Projection v1s = projectedVertices[face.v1],
                                v2s = projectedVertices[face.v2],
                                v3s = projectedVertices[face.v3];
-                    Vec3 normalS = (v3s.screenPos - v1s.screenPos).cross(v2s.screenPos - v1s.screenPos);
+                    float signedArea = (v3s.screenPos - v1s.screenPos).cross2d(v2s.screenPos - v1s.screenPos);
 
                     Triangle tri = {
                         .s1 = v1s,
@@ -130,7 +130,7 @@ void Camera::buildTriangles(
                         .mat = face.material,
                         .face = &face,
                         .mesh = mesh,
-                        .cull = normalS.z <= 0
+                        .cull = signedArea <= 0
                     };
                     if (face.material->flags.transparent) {
                         transparents.push_back(TransparentTriangle{

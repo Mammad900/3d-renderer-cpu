@@ -84,6 +84,9 @@ public:
     constexpr Vec3 cross(const Vec3& rhs) const { 
         return Vec3((y * rhs.z) - (z * rhs.y), (z * rhs.x) - (x * rhs.z), (x * rhs.y) - (y * rhs.x));
     }
+    constexpr float cross2d(const Vec3& rhs) const { 
+        return (x * rhs.y) - (y * rhs.x);
+    }
 
     ////////////////////////////////////////////////////////////
     /// \brief Component-wise multiplication of `*this` and `rhs`.
