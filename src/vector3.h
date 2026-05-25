@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cassert>
 #include <algorithm>
+#include <array>
 
 class Vec3 {
 public:
@@ -133,9 +134,12 @@ public:
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    float x{}; //!< X coordinate of the vector
-    float y{}; //!< Y coordinate of the vector
-    float z{}; //!< Z coordinate of the vector
+    union {
+        struct { float x; float y; float z; };   // legacy names
+        std::array<float, 3> arr;                // array view
+    };
+    constexpr inline float& operator[](size_t i) { return arr[i]; }
+    constexpr inline const float& operator[](size_t i) const { return arr[i]; }
     // float w{}; // Fourth float to alow compiler auto-vectorization EDIT: doesn't actually speed up
 };
 

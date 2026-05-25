@@ -113,12 +113,7 @@ Color ShadedInfiniteFloor::sample (Vec3 L, Vec3 O, bool canWriteDepth) {
     return res;
 }
 
-Color CubicRoom::sample(Vec3 L_, Vec3 O_, bool canWriteDepth) {
-    float L[3] = {L_.x, L_.y, L_.z};
-    float O[3] = {O_.x, O_.y, O_.z};
-    float boxMin[3] = {boundingBox.min.x, boundingBox.min.y, boundingBox.min.z};
-    float boxMax[3] = {boundingBox.max.x, boundingBox.max.y, boundingBox.max.z};
-
+Color CubicRoom::sample(Vec3 L, Vec3 O, bool canWriteDepth) {
     int hitAxis = -1;
     bool hitSide = 0;
 
@@ -128,12 +123,12 @@ Color CubicRoom::sample(Vec3 L_, Vec3 O_, bool canWriteDepth) {
     for (int i=0; i<3; ++i) {
         float o = O[i];
         float l = L[i];
-        float minB = boxMin[i];
-        float maxB = boxMax[i];
+        float minB = boundingBox.min[i];
+        float maxB = boundingBox.max[i];
 
         if (fabs(l) < 1e-6f) {
             if (o < minB || o > maxB)
-                return fallback->sample(L_,O_,canWriteDepth);
+                return fallback->sample(L,O,canWriteDepth);
             continue;
         }
 
@@ -150,10 +145,9 @@ Color CubicRoom::sample(Vec3 L_, Vec3 O_, bool canWriteDepth) {
     }
 
     if (tmin > tmax || tmax <= 0)
-        return fallback->sample(L_,O_,canWriteDepth);
+        return fallback->sample(L,O,canWriteDepth);
 
-    Vec3 pos   = O_ + L_ * tmax;
-    float pos_[3] = {pos.x, pos.y, pos.z};
+    Vec3 pos   = O + L * tmax;
     // Vec3 normal(0,0,0);
     // normal[axis] = side;
 
@@ -172,8 +166,8 @@ Color CubicRoom::sample(Vec3 L_, Vec3 O_, bool canWriteDepth) {
     else if (hitAxis == 1) { uIdx = 0; vIdx = 2; }
     else                   { uIdx = 0; vIdx = 1; }
 
-    float u = (pos_[uIdx] - boxMin[uIdx]) / (boxMax[uIdx] - boxMin[uIdx]);
-    float v = (pos_[vIdx] - boxMin[vIdx]) / (boxMax[vIdx] - boxMin[vIdx]);
+    float u = (pos[uIdx] - boundingBox.min[uIdx]) / (boundingBox.max[uIdx] - boundingBox.min[uIdx]);
+    float v = (pos[vIdx] - boundingBox.min[vIdx]) / (boundingBox.max[vIdx] - boundingBox.min[vIdx]);
 
     int texId = 0;
     Color i{1,1,1};
