@@ -997,7 +997,7 @@ CubicRoom = {}
 
 ---@param boundingBox [number,number,number,number,number,number]
 ---@param fallback EnvironmentMapT
----@param textures [ColorTexture, ColorTexture, ColorTexture, ColorTexture, ColorTexture, ColorTexture]
+---@param textures [ColorTexture|Material, ColorTexture|Material, ColorTexture|Material, ColorTexture|Material, ColorTexture|Material, ColorTexture|Material]
 ---@return CubicRoomT
 function CubicRoom.new(boundingBox, fallback, textures) end
 

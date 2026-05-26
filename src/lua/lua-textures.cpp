@@ -239,7 +239,7 @@ void luaTextures() {
     );
     Lua.new_usertype<CubicRoom>("CubicRoom",
         sol::meta_function::construct, [](sol::table aabbTable, shared_ptr<EnvironmentMap> fallback, sol::table texturesTable) {
-            std::array<shared_ptr<Texture<Color>>, 6> textures{
+            std::array<std::variant<shared_ptr<Texture<Color>>, shared_ptr<Material>>, 6> textures{
                 texturesTable[1], texturesTable[2], texturesTable[3],
                 texturesTable[4], texturesTable[5], texturesTable[6],
             };

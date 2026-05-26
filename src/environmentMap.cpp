@@ -1,10 +1,13 @@
 #include "environmentMap.h"
 #include "data.h"
 #include "fog.h"
+#include "material.h"
 #include "vector3.h"
 #include <SFML/System/Vector2.hpp>
+#include <array>
 #include <cstddef>
 #include <utility>
+#include <variant>
 
 // scale x, scale y, offset x, offset y
 using offsets = std::tuple<float,float,float,float>;
@@ -113,6 +116,15 @@ Color ShadedInfiniteFloor::sample (Vec3 L, Vec3 O, bool canWriteDepth) {
     return res;
 }
 
+std::array<Vec3, 6> cubeNormals{
+    Vec3{1.f, 0.f, 0.f},
+    Vec3{0.f, 1.f, 0.f},
+    Vec3{0.f, 0.f, 1.f},
+    Vec3{-1.f, 0.f, 0.f},
+    Vec3{0.f, -1.f, 0.f},
+    Vec3{0.f, 0.f, -1.f},
+};
+
 Color CubicRoom::sample(Vec3 L, Vec3 O, bool canWriteDepth) {
     int hitAxis = -1;
     bool hitSide = 0;
@@ -178,5 +190,24 @@ Color CubicRoom::sample(Vec3 L, Vec3 O, bool canWriteDepth) {
     else if(hitAxis == 1 && hitSide) {texId = 4;i={1,0,1};}
     else if(hitAxis == 2 && hitSide) {texId = 5;v = 1-v;u = 1-u;}
 
-    return textures[texId]->sample({u,v}, {0,0}, {0,0});
+    auto x = textures[texId];
+    if(shared_ptr<Texture<Color>>* texture = std::get_if<shared_ptr<Texture<Color>>>(&x)) {
+        return texture->get()->sample({u,v}, {0,0}, {0,0});
+    }
+    if(shared_ptr<Material> material = *std::get_if<shared_ptr<Material>>(&x)) {
+        // return texture->get()->sample({u,v}, {0,0}, {0,0});
+        Face face{0,0,0, material};
+        Fragment f{
+            .worldPos= pos,
+            .normal= cubeNormals[texId],
+            .viewDir = -L,
+            .uv = {u,v},
+            .dUVdx= {0,0},
+            .dUVdy= {0,0},
+            .baseColor = material->getBaseColor({u,v}, {0,0}, {0,0}),
+            .face= &face,
+            .isBackFace= false,
+        };
+        return material->shade(f, Color{}, *currentWindow->scene);
+    }
 }

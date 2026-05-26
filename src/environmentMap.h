@@ -8,6 +8,8 @@
 #include "aabb.h"
 #include <SFML/System/Vector2.hpp>
 #include <array>
+#include <memory>
+#include <variant>
 
 extern std::array<std::tuple<float,float,float,float>, 6> cubeMapFaces;
 
@@ -76,9 +78,10 @@ class CubicRoom : public EnvironmentMap {
   public:
     AABB boundingBox;
     shared_ptr<EnvironmentMap> fallback;
-    std::array<shared_ptr<Texture<Color>>, 6> textures;
+    std::array<std::variant<shared_ptr<Texture<Color>>, shared_ptr<Material>>, 6> textures;
     
-    CubicRoom(AABB boundingBox, shared_ptr<EnvironmentMap> fallback, std::array<shared_ptr<Texture<Color>>, 6> textures)
+    CubicRoom(AABB boundingBox, shared_ptr<EnvironmentMap> fallback, 
+        std::array<std::variant<shared_ptr<Texture<Color>>, shared_ptr<Material>>, 6> textures)
         : boundingBox(boundingBox), fallback(fallback), textures(textures) {}
 
     Color sample(Vec3 L, Vec3 origin={0,0,0}, bool canWriteDepth = false);
