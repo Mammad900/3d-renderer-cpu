@@ -523,6 +523,7 @@ my_mat = PBRMaterial.new{
 - **`metallic`** (float texture): 0 for non-metallic, 1 for metallic. Metals have a much stronger base specular reflection and no diffuse reflection. Values between 0 and 1 are only intended for texture filtering.
 - **`roughness`** (float texture): Defines how rough the surface is. The lower, the value, the sharper reflections are.
 - **`ambient_occlusion`** (float texture): Controls how strong ambient lighting is. A value of 1 means 100% ambient lighting and 0 means no ambient lighting.
+- **`environment_specular`** (EnvironmentMap): The environment map to use for specular IBL (image based lighting). For now specular IBL does not support roughness.
 - **`transparent`** (boolean): See flags.
 - **`double_sided`** (boolean): See flags.
 - **`alpha_cutout`** (boolean): See flags.
@@ -770,13 +771,13 @@ This is a variant that performs material shading. Slower.
 
 ### `CubicRoom`
 
-Like `InfiniteFloor` but it simulates an axis aligned cube instead.
+Like `InfiniteFloor`/`ShadedInfiniteFloor` but it simulates an axis aligned cube instead.
 
 Parameters:
 
 1. `boundingBox`: The coordinates of the bounding box as an array of six numbers: min x, min y, min z, max x, max y, max z.
 2. `fallback`: The environment map to sample from when a hit can't be found (like when camera / object is outside the bounding box)
-3. `textures`: The textures of the bounding box, as an array of six color textures in order: -x, -y, -z, +x, +y, +z.
+3. `textures`: The textures of the bounding box, as an array of six color textures in order: -x, -y, -z, +x, +y, +z. Each one can be either a color texture or a material. If it's a material.
 
 ## Scripting
 
