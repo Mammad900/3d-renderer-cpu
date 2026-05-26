@@ -7,10 +7,6 @@
 
 using std::max, std::min;
 
-Vec3 v2reflect(Vec3 in, Vec3 normal) {
-    return in - normal * in.dot(normal) * 2.0f;
-}
-
 void PhongMaterial::GUI() {
     diffuse->Gui("Diffuse");
     specular->Gui("Specular");
@@ -68,7 +64,7 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene &scene) {
 
         // Specular highlights
         if(matSpecular.a > 0) {
-            float specularIntensity = pow(max(f.viewDir.dot(v2reflect(direction, normal)), 0.0f), shininess);
+            float specularIntensity = pow(max(f.viewDir.dot(direction.reflect(normal)), 0.0f), shininess);
             if(receivedLight <= 0)
                 specularIntensity = 0;
             specular += light * specularIntensity;
@@ -87,7 +83,7 @@ Color PhongMaterial::shade(Fragment &f, Color previous, Scene &scene) {
 
     Color matReflect = environmentReflection->sample(f);
     if (matReflect.a > 0) {
-        Vec3 R = -v2reflect(f.viewDir, normal);
+        Vec3 R = -f.viewDir.reflect(normal);
         lighting += matReflect * scene.skyBox->sample(R, f.worldPos);
     }
 

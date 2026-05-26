@@ -10,3 +10,7 @@ Vec3 Vec3::normalizedSafe() const  {
     if(l == 0) return {0,0,0};
     return (*this) / l;
 }
+
+Vec3 Vec3::reflect(Vec3 normal) {
+    return *this - normal * dot(normal) * 2.0f;
+}

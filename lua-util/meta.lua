@@ -628,6 +628,7 @@ function EarthMaterial.new(props) end
 ---@field metallic FloatTexture
 ---@field roughness FloatTexture
 ---@field ambient_occlusion FloatTexture
+---@field environment_specular EnvironmentMapT?
 ---@field as_material fun(self: PBRMaterialT): Material
 ---@field z__DO_NOT_CONSTRUCT_YOURSELF "DO_NOT_CONSTRUCT_YOURSELF_PBR"
 
@@ -637,6 +638,7 @@ function EarthMaterial.new(props) end
 ---@field metallic? FloatTexture
 ---@field roughness? FloatTexture
 ---@field ambient_occlusion? FloatTexture
+---@field environment_specular? EnvironmentMapT
 ---@field transparent? boolean
 ---@field double_sided? boolean
 ---@field alpha_cutout? boolean

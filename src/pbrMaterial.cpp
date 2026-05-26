@@ -17,6 +17,11 @@ Color fresnelSchlick(float cosTheta, Color F0) {
     return (Color(1,1,1,1) - F0) * pow(clamp(1.0f - cosTheta, 0.0f, 1.0f), 5.0f) + F0;
 }
 
+Color fresnelSchlickRoughness(float cosTheta, Color F0, float roughness) {
+    float r = 1.0 - roughness;
+    return F0 + (Color(max(r,F0.r), max(r, F0.g), max(r, F0.b)) - F0) * pow(clamp(1.f - cosTheta, 0.f, 1.f), 5.f);
+}
+
 float DistributionGGX(Vec3 N, Vec3 H, float roughness)
 {
     float a      = roughness*roughness;
@@ -61,13 +66,14 @@ Color PBRMaterial::shade(Fragment &f, Color previous, Scene &scene) {
     Vec3 N = f.normal;
     Vec3 V = -f.viewDir;
 
+    Color F0{0.04f, 0.04f, 0.04f, 1.0f};
+    F0 = Color::mix(F0, albedo, metallic);
+
     Color Lo{0, 0, 0, 0};
     for (size_t i = 0; i < scene.lights.size(); i++) {
         auto [radiance, L] = scene.lights[i]->sample(f.worldPos, scene);
         if(radiance.a == 0) continue; // No light received, don't bother calculating
         Vec3 H = (L + V).normalized();
-        Color F0{0.04f, 0.04f, 0.04f, 1.0f};
-        F0 = Color::mix(F0, albedo, metallic);
         Color F = fresnelSchlick(max(H.dot(V), 0.0f), F0);
         float NDF = DistributionGGX(N, H, roughness);       
         float G   = GeometrySmith(N, V, L, roughness);
@@ -82,6 +88,12 @@ Color PBRMaterial::shade(Fragment &f, Color previous, Scene &scene) {
     }
     Color ambient = scene.ambientLight * scene.ambientLight.a * albedo * ao;
     Color res = ambient + Lo;
+
+    if(environmentSpecular) {
+        Color F = fresnelSchlickRoughness(max(N.dot(V), 0.f), F0, roughness);
+        Vec3 R = -f.viewDir.reflect(N);
+        res += F * environmentSpecular->sample(R, f.worldPos);
+    }
 
     if(currentWindow->camera->whitePoint == 0) // Don't waste cycles if it won't be used
         currentWindow->camera->maximumColor = max(currentWindow->camera->maximumColor, res.luminance()); // This doesn't take transparency into account

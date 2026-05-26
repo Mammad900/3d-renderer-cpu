@@ -4,6 +4,8 @@
 #include "../pbrMaterial.h"
 #include "../earthMaterial.h"
 #include "../gui.h"
+#include "sol/sol.hpp"
+#include <memory>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Warray-bounds"
@@ -135,6 +137,7 @@ void luaMaterial() {
             shared_ptr<Texture<float>> metallic = properties.get_or<shared_ptr<Texture<float>>>("metallic", nullptr);
             shared_ptr<Texture<float>> roughness = properties.get_or<shared_ptr<Texture<float>>>("roughness", nullptr);
             shared_ptr<Texture<float>> ambient_occlusion = properties.get_or<shared_ptr<Texture<float>>>("ambient_occlusion", nullptr);
+            shared_ptr<EnvironmentMap> environment_specular = properties.get_or<shared_ptr<EnvironmentMap>>("environment_specular", nullptr);
 
             auto mat= std::make_shared<PBRMaterial>(
                 properties.get_or("name", std::string("PBR")), 
@@ -146,7 +149,8 @@ void luaMaterial() {
                 albedo ? albedo : std::make_shared<SolidTexture<Color>>(Color{1,1,1,1}),
                 metallic ? metallic : std::make_shared<SolidTexture<float>>(0),
                 roughness ? roughness : std::make_shared<SolidTexture<float>>(1),
-                ambient_occlusion ? ambient_occlusion : std::make_shared<SolidTexture<float>>(1)
+                ambient_occlusion ? ambient_occlusion : std::make_shared<SolidTexture<float>>(1),
+                environment_specular
             );
             materials.emplace_back(mat);
             return mat;
@@ -157,6 +161,12 @@ void luaMaterial() {
         "metallic", &PBRMaterial::metallic,
         "roughness", &PBRMaterial::roughness,
         "ambient_occlusion", &PBRMaterial::ambientOcclusion,
+        "environment_specular", sol::property(
+            [](PBRMaterial& m) {return m.environmentSpecular;},
+            [](PBRMaterial& m, sol::object val) {
+                m.environmentSpecular = val.get_type() == sol::type::nil ? nullptr : val.as<shared_ptr<EnvironmentMap>>();
+            } 
+        ),
         "as_material", [](std::shared_ptr<PBRMaterial>& m) -> std::shared_ptr<Material> { return m; }
     );
 }
