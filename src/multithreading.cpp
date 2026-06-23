@@ -10,50 +10,60 @@ bool jobSecondPass = false;
 std::vector<std::condition_variable> cvs(numThreads);
 std::mutex mtx;
 bool shutdown = false;
-bool init = false;
+bool threadsInit = false;
+std::condition_variable cv_done;
+int jobs_remaining = 0;          // protected by mtx
 
-void startThreads(Camera *camera, bool secondPass) {
-    if(!init) {
-        for (uint i = 0; i < numThreads; i++)
+void startThreads(Camera* camera, bool secondPass) {
+    if (!threadsInit) {
+        for (uint i = 0; i < numThreads; ++i)
             threads[i] = std::thread(threadLoop, numThreads, i);
-        init = true;
+        threadsInit = true;
     }
-    
+
     {
         std::lock_guard<std::mutex> lock(mtx);
-        for (uint i = 0; i < numThreads; i++)
-            jobReady[i] = camera;
+        jobs_remaining = numThreads;
+        for (uint i = 0; i < numThreads; ++i) jobReady[i] = camera;
         jobSecondPass = secondPass;
     }
+    for (auto& cv : cvs) 
+        cv.notify_one();
 
-    for (uint i = 0; i < numThreads; i++)
-        cvs[i].notify_one();
-
-    bool allDone = false;
-    while(!allDone) {
-        std::this_thread::yield();
-        std::lock_guard<std::mutex> lock(mtx);
-        allDone = std::all_of(jobReady.begin(), jobReady.end(), [](Camera *v) {return !v;});
-    }
+    // Wait until all workers report done
+    std::unique_lock<std::mutex> lock(mtx);
+    cv_done.wait(lock, []{ return jobs_remaining == 0; });
 }
 
-void threadLoop(uint n, uint i) {
+void threadLoop(uint n, uint i)
+{
     while (true) {
         std::unique_lock<std::mutex> lock(mtx);
-        cvs[i].wait(lock, [&] { return jobReady[i] || shutdown; });
-        if(shutdown) break;
+
+        // Wait for a job or shutdown
+        cvs[i].wait(lock, [&]{ return jobReady[i] || shutdown; });
+
+        if (shutdown) break;
+
+        // We have a job – release the mutex so other threads can run
+        Camera* cam = jobReady[i];   // copy it while still holding lock
         lock.unlock();
-        if(jobSecondPass)
-            fogPass(n, i, jobReady[i]);
+
+        if (jobSecondPass)
+            fogPass(n, i, cam);
         else
-            deferredPass(n, i, jobReady[i]);
-        lock.lock();
+            deferredPass(n, i, cam);
+
+        // Re‑acquire the mutex to mark our slot as free and update counter
+        std::lock_guard<std::mutex> lk(mtx);
         jobReady[i] = nullptr;
+        if (--jobs_remaining == 0)
+            cv_done.notify_one();
     }
 }
 
 void shutdownThreads() {
-    if(!init)
+    if(!threadsInit)
         return;
     {
         std::lock_guard<std::mutex> lock(mtx);
