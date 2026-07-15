@@ -3,6 +3,7 @@
 #include "triangle.h"
 #include "vector3.h"
 #include <SFML/System/Vector2.hpp>
+#include <cmath>
 #include <imgui.h>
 #include <SFML/System/Clock.hpp>
 
@@ -32,7 +33,9 @@ sf::Image Camera::getRenderedFrame(RenderMode renderMode) {
             }
             else if (renderMode == RenderMode::zBuffer) {
                 // Z buffer range is really display-to-end-user unfriendly
-                float z = frame->zBuffer[i] * 20.0f;
+                float z = frame->zBuffer[i];
+                if(z == INFINITY) z = 255;
+                else z = z / (z+10) * 255;
                 c = sf::Color(z, z, z);
             }
             else if (renderMode == RenderMode::gBufferPosition) {
