@@ -5,6 +5,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "material.h"
 #include "miscTypes.h"
+#include "multithreading.h"
 #include "phongMaterial.h"
 #include "lua/lua.h"
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -87,7 +88,9 @@ void guiUpdate(shared_ptr<Window> window) {
     ImGui::SliderFloat("White point", (float *)&camera->whitePoint, 0, 5);
     ImGui::End();
 
+    
     ImGui::Begin("Performance");
+    
     ImGui::Checkbox("Render", &timing.render);
     if(ImGui::Button("Render one frame now and save")) {
         currentWindow = window;
@@ -101,6 +104,7 @@ void guiUpdate(shared_ptr<Window> window) {
         camera->render();
         stbi_write_hdr("render.hdr", camera->frame->size.x, camera->frame->size.y, 4, &camera->frame->framebuffer[0].r);
     }
+    
     ImGui::Text("FPS: %.1f", 1000.f / timing.overallTime.average());
     timing.unaccountedTime.push(timing.overallTime.last 
                                 - timing.updateTime.last 
@@ -123,9 +127,11 @@ void guiUpdate(shared_ptr<Window> window) {
     Timing(timing.fogTime           , "Fog              ");
     Timing(timing.postProcessTime   , "Post processing  ");
     Timing(timing.windowTime        , "Window           ");
+    
     ImGui::Text("Meshes rendering: %i", meshesRendering);
     ImGui::Text("Tris rendering: %i", trisRendering);
     meshesRendering = trisRendering = 0;
+   
     ImGui::Checkbox("Sync frame size to window size", &window->syncFrameSize);
     if(ImGui::DragScalarN("Frame size", ImGuiDataType_U32, &window->frame->size, 2)) {
         if(window->syncFrameSize)
@@ -133,9 +139,14 @@ void guiUpdate(shared_ptr<Window> window) {
         else
             window->changeFrameSize(window->frame->size);
     }
+
     if(ImGui::Checkbox("Use Deferred rendering", &window->frame->deferred))
         window->frame->changeSize(window->frame->size, window->frame->deferred);
+
+    ImGui::Text("Thread count: %i", threadsInit ? numThreads : 0);
+
     ImGui::End();
+
 
     if(ImGui::Begin("Objects")) {
         for (size_t i = 0; i < editingScene->objects.size(); i++) {
@@ -143,18 +154,6 @@ void guiUpdate(shared_ptr<Window> window) {
             editingScene->objects[i]->GUI();
             ImGui::PopID();
         }
-        // ImGui::Spacing();
-        // if (ImGui::TreeNode("Create object")) {
-        //     if(selectedMesh == nullptr)
-        //         ImGui::Text("Select a mesh in the meshes window.");
-        //     if(selectedMesh!= nullptr && ImGui::Button("Create")) {
-        //         Object *obj = new Object();
-        //         obj->scene = editingScene;
-        //         obj->components.push_back(std::make_shared<MeshComponent>(obj, selectedMesh));
-        //         editingScene->objects.push_back(obj);
-        //     }
-        //     ImGui::TreePop();
-        // }
     }
     ImGui::End();
 
