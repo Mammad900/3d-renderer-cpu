@@ -6,7 +6,7 @@ Check out some of the best [renders](renders/renders.md).
 
 ## Features
 
-- Perspective projection
+- Perspective and orthographic projection
 - Forward and deferred shading
 - Multithreaded deferred pass
 - Adjustable camera settings
@@ -17,8 +17,8 @@ Check out some of the best [renders](renders/renders.md).
 - Phong shading (per pixel lighting)
 - Alpha testing
 - Order Independent Transparency
-- Flat material support
-- Simple subsurface scattering for flat materials
+- Flat material support (no volume)
+- Simple subsurface scattering for flat materials (aka back lighting)
 - Directional lights, point lights, spotlights, and ambient lighting
 - Shadow mapping
 - God rays (volumetric lighting)
@@ -37,24 +37,40 @@ Check out some of the best [renders](renders/renders.md).
   - Truncated icosahedron
   - Ball (subdivided truncated icosahedron)
   - Cube-sphere (quadrilateralized spherical cube)
+  - Extrude
 - Material types:
-
   - Phong: Improved Phong reflection model: diffuse, specular, emissive, transmission and simple subsurface scattering
   - Earth: Combines terrain, ocean and clouds
-  - PBR (Physically Based Rendering): Metallic-roughness workflow, fresnel effect, conservation of energy, etc.
+  - PBR (Physically Based Rendering): Metallic-roughness workflow, fresnel effect, conservation of energy, IBL, etc.
 - Texture types:
-
   - Solid
   - Image (loads from image file)
   - Tiny Image (low-memory, no mipmaps)
   - Sine wave
   - Blend (combine multiple textures)
+- Environment maps (used for sky-box and reflections):
+  - Solid color
+  - Equirectangular / Panorama
+  - Cube map
+  - Infinite floor
+  - Cubic room
 - Texture filtering: nearest / bilinear / trilinear
 - Normal mapping with adjustable strength
-- Render options: view framebuffer or z buffer, show wireframe, disable lighting (fullbright)
+- Render options:
+  - View frame-buffer, z-buffer or g-buffer
+  - Show wireframe
+  - Disable lighting (fullbright)
 - GUI allows most scene data to be controlled
 - Lua integration for scene definition and scripting
+  - Lua REPL
 - Instantly switch between multiple scenes
 - Offline rendering mode (pause real-time rendering and render one frame manually)
+  - Post processing when scripted
+    - Bloom
+    - Blur
+    - Refraction
+    - Tone-map to SDR
+  - HDR or SDR output
 - Performance metrics with per-pass timing measurements
 - Multi-window with each window rendering its own camera and scene
+- Spatial and non-spatial audio
